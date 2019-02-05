@@ -49,16 +49,17 @@
 * Org Babel
 #+BEGIN_SRC emacs-lisp
   (org-babel-do-load-languages
-   'org-babel-load-languages '((python . t)
-                               (emacs-lisp . t)
-                               (shell . t)
-                               (C . t)
-                               ;; (Clojure . t)
-                               (R . tx)
-                               (js . t)
-                               (dot . t)
-                               (org . t)
-                               (latex . t )))
+     'org-babel-load-languages '((python . t)
+                                 (emacs-lisp . t)
+                                 (shell . t)
+                                 (C . t)
+                                 ;; (Clojure . t)
+                                 (haskell . t)
+                                 (R . tx)
+                                 (js . t)
+                                 (dot . t)
+                                 (org . t)
+                                 (latex . t )))
 #+END_SRC
 * Backup
 #+BEGIN_SRC emacs-lisp
@@ -448,7 +449,8 @@ narrowed."
      (setq cider-repl-use-clojure-font-lock nil)
      (setq cider-repl-use-pretty-printing t)
      (setq cider-repl-wrap-history t)
-     (setq cider-repl-result-prefix ";; => "))
+     (setq cider-repl-result-prefix ";; => ")
+     (setq org-babel-clojure-backend 'cider))
 
    (use-package ac-cider
      :ensure t
@@ -630,6 +632,15 @@ narrowed."
   (use-package ess
     :ensure t)
 #+end_src
+** CSS
+** CSV
+#+BEGIN_SRC emacs-lisp
+(use-package csv-mode
+ :ensure t
+:config
+(setq csv-separators '("," ";" "|" " " )))
+#+END_SRC
+
 * Interface tweaks
 #+BEGIN_SRC emacs-lisp
   (cua-mode)
