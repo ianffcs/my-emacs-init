@@ -18,33 +18,54 @@
 #+END_SRC
 * Org
 #+BEGIN_SRC emacs-lisp
-    (use-package org
-      :ensure t
-      :pin org
-      :config
-      '(org-directory "~/sync/orgfiles")
-      '(org-default-notes-file (concat org-directory "/life.org"))
-      '(org-export-html-postamble nil)
-      '(org-hide-leading-stars t)
-      '(org-startup-indented t)
-      '(org-journal-dir "~/sync/orgfiles")
-      '(org-agenda-files (list "~/Sync/orgfiles/life.org"))
-      '(org-display-inline-images t)
-      '(org-redisplay-inline-images t)
-      '(org-startup-with-inline-images "inlineimages")
-      (require 'ox-reveal))
+  (use-package org
+    :ensure t
+    :pin org
+    :config
+    '(org-directory "~/sync/orgfiles")
+    '(org-default-notes-file (concat org-directory "/life.org"))
+    '(org-export-html-postamble nil)
+    '(org-hide-leading-stars t)
+    '(org-startup-indented t)
+    '(org-journal-dir "~/sync/orgfiles")
+    '(org-agenda-files (list "~/Sync/orgfiles/life.org"))
+    '(org-display-inline-images t)
+    '(org-redisplay-inline-images t)
+    '(org-startup-with-inline-images "inlineimages")
+    (add-hook 'org-mode-hook (lambda () (setq truncate-lines nil)))
+    (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
+    (defun do-org-show-all-inline-images ()
+      (interactive)
+      (org-display-inline-images t t))
+    (global-set-key (kbd "C-c C-x C v")
+                    'do-org-show-all-inline-images)
+    (require 'ox-reveal))
 
-    (setq org-reveal-root "file:///home/ianffcs/reveal.js")
+  (use-package org-bullets
+    :ensure t
+    :config
+    (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
-    (use-package org-journal
-      :ensure t)
+  (setq org-reveal-root "file:///home/ianffcs/reveal.js")
 
-  (defun do-org-show-all-inline-images ()
-    (interactive)
-    (org-display-inline-images t t))
-  (global-set-key (kbd "C-c C-x C v")
-                  'do-org-show-all-inline-images)
+  (setq org-file-apps
+    (append '(
+               ("\\.pdf\\'" . "evince %s")
+               ("\\.x?html?\\'" . "/usr/bin/chromium-browser %s")
+             ) org-file-apps ))
 
+    (require 'org-crypt)
+    (org-crypt-use-before-save-magic)
+    (setq org-tags-exclude-from-inheritance (quote ("crypt")))
+  ;; GPG key to use for encryption
+  ;; Either the Key ID or set to nil to use symmetric encryption.
+    (setq org-crypt-key "9CD4DA20")
+
+  (use-package org-web-tools
+    :ensure t)
+
+  (use-package org-journal
+    :ensure t)
 #+END_SRC
 * Org Babel
 #+BEGIN_SRC emacs-lisp
@@ -52,6 +73,7 @@
      'org-babel-load-languages '((python . t)
                                  (emacs-lisp . t)
                                  (shell . t)
+                                 (plantuml . t)
                                  (C . t)
                                  ;; (Clojure . t)
                                  (haskell . t)
@@ -60,6 +82,9 @@
                                  (dot . t)
                                  (org . t)
                                  (latex . t )))
+
+(setq org-plantuml-jar-path
+      (expand-file-name "/opt/plantuml/plantuml.jar"))
 #+END_SRC
 * Backup
 #+BEGIN_SRC emacs-lisp
@@ -111,6 +136,12 @@
   (use-package smex
     :ensure t)
 #+END_SRC
+* Avy
+#+BEGIN_SRC emacs-lisp
+(use-package avy
+:ensure t
+:bind ("M-s" . avy-goto-word-1)) ;; changed from char as per jcs
+#+END_SRC
 * Company
 #+BEGIN_SRC emacs-lisp
 (use-package company
@@ -136,6 +167,21 @@
 :ensure t
 :config
 (add-hook 'irony-mode-hook #'irony-eldoc))
+
+(defun my/python-mode-hook ()
+  (add-to-list 'company-backends 'company-jedi))
+
+(add-hook 'python-mode-hook 'my/python-mode-hook)
+(use-package company-jedi
+    :ensure t
+    :config
+    (add-hook 'python-mode-hook 'jedi:setup)
+       )
+
+(defun my/python-mode-hook ()
+  (add-to-list 'company-backends 'company-jedi))
+
+(add-hook 'python-mode-hook 'my/python-mode-hook)
 #+END_SRC
 * Flycheck
 #+BEGIN_SRC emacs-lisp
@@ -143,6 +189,16 @@
   :ensure t
   :init
   (global-flycheck-mode t))
+#+END_SRC
+* Yasnippet
+#+BEGIN_SRC emacs-lisp
+(use-package yasnippet
+  :ensure t
+  :init
+  (yas-global-mode 1))
+(use-package auto-yasnippet
+:ensure t)
+
 #+END_SRC
 * Iedit and narrow/widen dwin
 #+BEGIN_SRC emacs-lisp
@@ -228,6 +284,16 @@ narrowed."
     :bind (("C-\"" . better-shell-shell)
            ("C-:" . better-shell-remote-open)))
 #+END_SRC
+* Keyfreq
+#+BEGIN_SRC emacs-lisp
+(use-package keyfreq
+  :ensure t
+  :config
+  (require 'keyfreq)
+  (keyfreq-mode 1)
+  (keyfreq-autosave-mode 1)
+  )
+#+END_SRC
 * personal keymap
 #+BEGIN_SRC emacs-lisp
 (setq user-full-name "Ian Fernandez"
@@ -244,6 +310,12 @@ narrowed."
   :init
   (setq magit-diff-options (quote ("--word-diff")))
   (setq magit-diff-refine-hunk 'all))
+
+(use-package git-gutter
+  :ensure t
+  :init
+  (global-git-gutter-mode +1))
+
   ;; Use evil keybindings within magit
 ;  (use-package evil-magit
 ;    :ensure t
@@ -361,6 +433,16 @@ narrowed."
 :ensure t
 :config (pcre-mode))
 #+END_SRC
+* Counsel Spotify
+#+BEGIN_SRC emacs-lisp
+(setq counsel-spotify-client-id "ab61a7718cc1467eb8fbd6a374a5eb3a")
+(setq counsel-spotify-client-secret "825f638e071d445287e36369c4075130")
+(use-package counsel-spotify
+:ensure t
+:config
+(require 'counsel-spotify)
+)
+#+END_SRC
 * EMMS with mpd
 #+BEGIN_SRC emacs-lisp
   (use-package emms
@@ -436,6 +518,13 @@ narrowed."
   :commands (telega)
   :defer t)
 #+END_SRC
+* Wakatime
+#+BEGIN_SRC emacs-lisp
+  (use-package wakatime-mode
+    :ensure t
+    :config
+    (setq wakatime-api-key "73d4ae10-c5e3-490e-816e-0976c22ecd22"))
+#+END_SRC
 * Langs
 ** Clojure
  #+BEGIN_SRC emacs-lisp
@@ -482,23 +571,20 @@ narrowed."
  #+END_SRC
 ** Python
 #+BEGIN_SRC emacs-lisp
-  (setq py-python-command "python3")
-  (setq python-shell-interpreter "python3")
+(setq py-python-command "python3")
+(setq python-shell-interpreter "python3")
 
-  (defun my/python-mode-hook ()
-    (add-to-list 'company-backends 'company-jedi))
 
-  (add-hook 'python-mode-hook 'my/python-mode-hook)
-  ;; (use-package company-jedi
-      ;; :ensure t
-      ;; :config
-      ;; (add-hook 'python-mode-hook 'jedi:setup)
-         ;; )
+    (use-package elpy
+    :ensure t
+    :config
+    (elpy-enable))
 
-  ;; (defun my/python-mode-hook ()
-    ;; (add-to-list 'company-backends 'company-jedi))
-
-  (add-hook 'python-mode-hook 'my/python-mode-hook)
+(use-package virtualenvwrapper
+  :ensure t
+  :config
+  (venv-initialize-interactive-shells)
+  (venv-initialize-eshell))
 
   (use-package pipenv
     :hook (python-mode . pipenv-mode)
@@ -643,6 +729,11 @@ narrowed."
 
 * Interface tweaks
 #+BEGIN_SRC emacs-lisp
+
+(when (fboundp 'windmove-default-keybindings)
+  (windmove-default-keybindings))
+
+
   (cua-mode)
   ; don't show the startup screen
   (setq inhibit-startup-screen 1)
@@ -704,6 +795,54 @@ narrowed."
   (require 'paren)
   (show-paren-mode 1)
 
+  ; Highlights the current cursor line
+  (global-hl-line-mode t)
+
+  ; flashes the cursor's line when you scroll
+  (use-package beacon
+  :ensure t
+  :config
+  (beacon-mode 1)
+  ; (setq beacon-color "#666600")
+  )
+
+  ; expand the marked region in semantic increments (negative prefix to reduce region)
+  (use-package expand-region
+  :ensure t
+  :config
+  (global-set-key (kbd "C-=") 'er/expand-region))
+
+  (setq save-interprogram-paste-before-kill t)
+
+  ; deletes all the whitespace when you hit backspace or delete
+  (use-package hungry-delete
+  :ensure t
+  :config
+  (global-hungry-delete-mode))
+
+  (use-package origami
+  :ensure t)
+  (global-origami-mode)
+
+  ;;; Stefan Monnier <foo at acm.org>. It is the opposite of fill-paragraph
+    (defun unfill-paragraph (&optional region)
+      "Takes a multi-line paragraph and makes it into a single line of text."
+      (interactive (progn (barf-if-buffer-read-only) '(t)))
+      (let ((fill-column (point-max))
+            ;; This would override `fill-column' if it's an integer.
+            (emacs-lisp-docstring-fill-column t))
+        (fill-paragraph nil region)))
+
+(defun unfill-region (beg end)
+  "Unfill the region, joining text paragraphs into a single
+    logical line.  This is useful, e.g., for use with
+    `visual-line-mode'."
+  (interactive "*r")
+  (let ((fill-column (point-max)))
+    (fill-region beg end)))
+
+(global-prettify-symbols-mode)
+
   (use-package nyan-mode
     :ensure t
     :init
@@ -716,6 +855,9 @@ narrowed."
   (use-package which-key
     :ensure t
     :config (which-key-mode))
+
+(global-wakatime-mode)
+
 ;; before save clears whitespace
   (add-hook 'before-save-hook 'whitespace-cleanup)
 
@@ -727,7 +869,7 @@ narrowed."
 * Themes
 #+BEGIN_SRC emacs-lisp
   (use-package all-the-icons)
-  (use-package monokai-theme
+  (use-package cyberpunk-theme
                :ensure t)
 
   (use-package base16-theme
