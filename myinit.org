@@ -730,156 +730,162 @@ narrowed."
 * Interface tweaks
 #+BEGIN_SRC emacs-lisp
 
-(when (fboundp 'windmove-default-keybindings)
-  (windmove-default-keybindings))
+  (when (fboundp 'windmove-default-keybindings)
+    (windmove-default-keybindings))
 
 
-  (cua-mode)
-  ; don't show the startup screen
-  (setq inhibit-startup-screen 1)
-  ; don't show the menu bar
-  (menu-bar-mode -1)
-  ; don't show the tool bar
-  (require 'tool-bar)
-  (tool-bar-mode -1)
-  (scroll-bar-mode -1)
-  (global-linum-mode t)
-  (use-package linum-relative
-  :ensure t)
-  ; turn on mouse wheel support for scrolling
-  (require 'mwheel)
-  (mouse-wheel-mode 1)
+    (cua-mode)
+    ; don't show the startup screen
+    (setq inhibit-startup-screen 1)
+    ; don't show the menu bar
+    (menu-bar-mode -1)
+    ; don't show the tool bar
+    (require 'tool-bar)
+    (tool-bar-mode -1)
+    (scroll-bar-mode -1)
+    ;(global-linum-mode t)
+    ;(use-package linum-relative
+    ;:ensure t)
+    ; turn on mouse wheel support for scrolling
+    (require 'mwheel)
+    (mouse-wheel-mode 1)
 
-  ; number of characters until the fill column
-  (setq-default fill-column 70)
+    ; number of characters until the fill column
+    (setq-default fill-column 70)
 
-  ; each line of text gets one line on the screen (i.e., text will run
-  ; off the left instead of wrapping around onto a new line)
-  (setq-default truncate-lines 1)
-  ; truncate lines even in partial-width windows
-  (setq truncate-partial-width-windows 1)
+    ; each line of text gets one line on the screen (i.e., text will run
+    ; off the left instead of wrapping around onto a new line)
+    (setq-default truncate-lines 1)
+    ; truncate lines even in partial-width windows
+    (setq truncate-partial-width-windows 1)
 
-  ; default window width and height
-  (defun custom-set-frame-size ()
-    (add-to-list 'default-frame-alist '(height . 50))
-    (add-to-list 'default-frame-alist '(width . 178)))
-  (custom-set-frame-size)
-  (add-hook 'before-make-frame-hook 'custom-set-frame-size)
+    ; default window width and height
+    (defun custom-set-frame-size ()
+      (add-to-list 'default-frame-alist '(height . 50))
+      (add-to-list 'default-frame-alist '(width . 178)))
+    (custom-set-frame-size)
+    (add-hook 'before-make-frame-hook 'custom-set-frame-size)
 
-  (use-package rainbow-delimiters
-   :ensure t
-   :config (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+    (use-package rainbow-delimiters
+     :ensure t
+     :config (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
-  ; always use spaces, not tabs, when indenting
-  (setq-default indent-tabs-mode nil)
+    ; always use spaces, not tabs, when indenting
+    (setq-default indent-tabs-mode nil)
 
-  ; show the current line and column numbers in the stats bar as well
-  (line-number-mode 1)
-  (column-number-mode 1)
+    ; show the current line and column numbers in the stats bar as well
+    (line-number-mode 1)
+    (column-number-mode 1)
 
-  (use-package linum-relative
+    ;(use-package linum-relative
+     ; :ensure t
+      ;:init (linum-relative-global-mode t)
+      ;:config (linum-relative-global-mode 1)
+      ;(setq linum-relative-current-symbol "")
+      ;(set-face-attribute 'linum nil :height 110))
+
+    ; don't blink the cursor
+    (blink-cursor-mode 0)
+
+    ; make sure transient mark mode is enabled (it should be by default,
+    ; but just in case)
+    (transient-mark-mode 1)
+
+    ; highlight parentheses when the cursor is next to them
+    (require 'paren)
+    (show-paren-mode 1)
+
+    ; Highlights the current cursor line
+    (global-hl-line-mode t)
+
+    ; flashes the cursor's line when you scroll
+    (use-package beacon
     :ensure t
-    :init (linum-relative-global-mode t)
-    :config (linum-relative-global-mode 1)
-    (setq linum-relative-current-symbol "")
-    (set-face-attribute 'linum nil :height 110))
+    :config
+    (beacon-mode 1)
+    ; (setq beacon-color "#666600")
+    )
 
-  ; don't blink the cursor
-  (blink-cursor-mode 0)
-
-  ; make sure transient mark mode is enabled (it should be by default,
-  ; but just in case)
-  (transient-mark-mode 1)
-
-  ; highlight parentheses when the cursor is next to them
-  (require 'paren)
-  (show-paren-mode 1)
-
-  ; Highlights the current cursor line
-  (global-hl-line-mode t)
-
-  ; flashes the cursor's line when you scroll
-  (use-package beacon
-  :ensure t
-  :config
-  (beacon-mode 1)
-  ; (setq beacon-color "#666600")
-  )
-
-  ; expand the marked region in semantic increments (negative prefix to reduce region)
-  (use-package expand-region
-  :ensure t
-  :config
-  (global-set-key (kbd "C-=") 'er/expand-region))
-
-  (setq save-interprogram-paste-before-kill t)
-
-  ; deletes all the whitespace when you hit backspace or delete
-  (use-package hungry-delete
-  :ensure t
-  :config
-  (global-hungry-delete-mode))
-
-  (use-package origami
-  :ensure t)
-  (global-origami-mode)
-
-  ;;; Stefan Monnier <foo at acm.org>. It is the opposite of fill-paragraph
-    (defun unfill-paragraph (&optional region)
-      "Takes a multi-line paragraph and makes it into a single line of text."
-      (interactive (progn (barf-if-buffer-read-only) '(t)))
-      (let ((fill-column (point-max))
-            ;; This would override `fill-column' if it's an integer.
-            (emacs-lisp-docstring-fill-column t))
-        (fill-paragraph nil region)))
-
-(defun unfill-region (beg end)
-  "Unfill the region, joining text paragraphs into a single
-    logical line.  This is useful, e.g., for use with
-    `visual-line-mode'."
-  (interactive "*r")
-  (let ((fill-column (point-max)))
-    (fill-region beg end)))
-
-(global-prettify-symbols-mode)
-
-  (use-package nyan-mode
+    ; expand the marked region in semantic increments (negative prefix to reduce region)
+    (use-package expand-region
     :ensure t
-    :init
-    (setq nyan-animate-nyancat t
-          nyan-wavy-trail t
-          mode-line-format
-          (list '(:eval (list (nyan-create)))))
-    (nyan-mode t))
+    :config
+    (global-set-key (kbd "C-=") 'er/expand-region))
 
-  (use-package which-key
+    (setq save-interprogram-paste-before-kill t)
+
+    ; deletes all the whitespace when you hit backspace or delete
+    (use-package hungry-delete
     :ensure t
-    :config (which-key-mode))
+    :config
+    (global-hungry-delete-mode))
 
-(global-wakatime-mode)
+    (use-package origami
+    :ensure t)
+    (global-origami-mode)
 
-;; before save clears whitespace
-  (add-hook 'before-save-hook 'whitespace-cleanup)
+    ;;; Stefan Monnier <foo at acm.org>. It is the opposite of fill-paragraph
+      (defun unfill-paragraph (&optional region)
+        "Takes a multi-line paragraph and makes it into a single line of text."
+        (interactive (progn (barf-if-buffer-read-only) '(t)))
+        (let ((fill-column (point-max))
+              ;; This would override `fill-column' if it's an integer.
+              (emacs-lisp-docstring-fill-column t))
+          (fill-paragraph nil region)))
 
-  (fset 'yes-or-no-p 'y-or-n-p)
-  (global-set-key (kbd "<f5>") 'revert-buffer)
-  (setq multi-term-program "/bin/bash")
+  (defun unfill-region (beg end)
+    "Unfill the region, joining text paragraphs into a single
+      logical line.  This is useful, e.g., for use with
+      `visual-line-mode'."
+    (interactive "*r")
+    (let ((fill-column (point-max)))
+      (fill-region beg end)))
+
+  (global-prettify-symbols-mode)
+
+    (use-package nyan-mode
+      :ensure t
+      :init
+      (setq nyan-animate-nyancat t
+            nyan-wavy-trail t
+            mode-line-format
+            (list '(:eval (list (nyan-create)))))
+      (nyan-mode t))
+
+    (use-package which-key
+      :ensure t
+      :config (which-key-mode))
+
+  (global-wakatime-mode)
+
+  ;; before save clears whitespace
+    (add-hook 'before-save-hook 'whitespace-cleanup)
+
+    (fset 'yes-or-no-p 'y-or-n-p)
+    (global-set-key (kbd "<f5>") 'revert-buffer)
+    (setq multi-term-program "/bin/bash")
 #+END_SRC
 
 * Themes
 #+BEGIN_SRC emacs-lisp
-  (use-package all-the-icons)
-  (use-package cyberpunk-theme
-               :ensure t)
+    (use-package all-the-icons)
+    (use-package cyberpunk-theme
+                 :ensure t)
 
-  (use-package base16-theme
-               :ensure t)
+    ;; (use-package base16-theme
+    ;;              :ensure t)
 
-  ;(use-package moe-theme
-  ;            :ensure t)
+  (custom-set-faces
+   ;; custom-set-faces was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   '(cursor ((t (:background "DarkGoldenrod2")))))
+    ;(use-package moe-theme
+    ;            :ensure t)
 
-  ;; (use-package poet-theme
-        ;; :ensure t)
+    ;; (use-package poet-theme
+          ;; :ensure t)
 #+END_SRC
 * Pretty Mode
 #+BEGIN_SRC emacs-lisp
