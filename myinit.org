@@ -32,6 +32,7 @@
     '(org-display-inline-images t)
     '(org-redisplay-inline-images t)
     '(org-startup-with-inline-images "inlineimages")
+    '(set-default 'preview-scale-function 2.0)
     (add-hook 'org-mode-hook (lambda () (setq truncate-lines nil)))
     (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
     (defun do-org-show-all-inline-images ()
@@ -66,6 +67,8 @@
 
   (use-package org-journal
     :ensure t)
+
+
 #+END_SRC
 * Org Babel
 #+BEGIN_SRC emacs-lisp
@@ -77,7 +80,7 @@
                                  (C . t)
                                  ;; (Clojure . t)
                                  (haskell . t)
-                                 (R . tx)
+                                 (R . t)
                                  (js . t)
                                  (dot . t)
                                  (org . t)
@@ -101,18 +104,19 @@
 #+BEGIN_SRC emacs-lisp
   (use-package counsel
     :ensure t
-    :bind
+    :bind*
     (("M-y" . counsel-yank-pop)
      :map ivy-minibuffer-map
      ("M-y" . ivy-next-line)))
 
   (use-package ivy
     :ensure t
-    :diminish (ivy-mode)
+    :diminish (ivy-mode . "")
     :bind (("C-x b" . ivy-switch-buffer))
     :config
     (ivy-mode 1)
     (setq ivy-use-virtual-buffers t)
+    (setq ivy-height 7)
     (setq ivy-count-format "%d/%d ")
     (setq ivy-display-style 'fancy)
     (setq projectile-completion-system 'ivy)
@@ -354,38 +358,73 @@ narrowed."
   (use-package treemacs
     :ensure t
     :defer t
+    :init
+    (with-eval-after-load 'winum
+      (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
     :config
     (progn
-
-      (setq treemacs-follow-after-init          t
-            treemacs-width                      35
-            treemacs-indentation                2
-            treemacs-git-integration            t
-            treemacs-collapse-dirs              3
-            treemacs-silent-refresh             nil
-            treemacs-change-root-without-asking nil
-            treemacs-sorting                    'alphabetic-desc
-            treemacs-show-hidden-files          t
-            treemacs-never-persist              nil
-            treemacs-is-never-other-window      nil
-            treemacs-goto-tag-strategy          'refetch-index)
-
+      (setq treemacs-collapse-dirs   (if (executable-find "python") 3 0)
+            treemacs-deferred-git-apply-delay      0.5
+            treemacs-display-in-side-window        t
+            treemacs-file-event-delay              5000
+            treemacs-file-follow-delay             0.2
+            treemacs-follow-after-init             t
+            treemacs-git-command-pipe              ""
+            treemacs-goto-tag-strategy             'refetch-index
+            treemacs-indentation                   2
+            treemacs-indentation-string            " "
+            treemacs-is-never-other-window         nil
+            treemacs-max-git-entries               5000
+            treemacs-no-png-images                 nil
+            treemacs-no-delete-other-windows       t
+            treemacs-project-follow-cleanup        nil
+            treemacs-persist-file                  (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+            treemacs-recenter-distance             0.1
+            treemacs-recenter-after-file-follow    nil
+            treemacs-recenter-after-tag-follow     nil
+            treemacs-recenter-after-project-jump   'always
+            treemacs-recenter-after-project-expand 'on-distance
+            treemacs-show-cursor                   nil
+            treemacs-show-hidden-files             t
+            treemacs-silent-filewatch              nil
+            treemacs-silent-refresh                nil
+            treemacs-sorting                       'alphabetic-desc
+            treemacs-space-between-root-nodes      t
+            treemacs-tag-follow-cleanup            t
+            treemacs-tag-follow-delay              1.5
+            treemacs-width                         35)
       (treemacs-follow-mode t)
-      (treemacs-filewatch-mode t))
+      (treemacs-filewatch-mode t)
+      (treemacs-fringe-indicator-mode t)
+      (pcase (cons (not (null (executable-find "git")))
+                   (not (null (executable-find "python3"))))
+        (`(t . t)
+         (treemacs-git-mode 'deferred))
+        (`(t . _)
+         (treemacs-git-mode 'simple))))
     :bind
     (:map global-map
-          ([f8]        . treemacs-toggle)
-          ([f9]        . treemacs-projectile-toggle)
-          ("<C-M-tab>" . treemacs-toggle)
           ("M-0"       . treemacs-select-window)
-          ("C-c 1"     . treemacs-delete-other-windows)
-        ))
+          ("C-x t 1"   . treemacs-delete-other-windows)
+          ("C-x t t"   . treemacs)
+          ("C-x t B"   . treemacs-bookmark)
+          ("C-x t C-t" . treemacs-find-file)
+          ("C-x t M-t" . treemacs-find-tag)))
+
   (use-package treemacs-projectile
     :defer t
     :ensure t
     :config
     (setq treemacs-header-function #'treemacs-projectile-create-header))
 
+  ;; (use-package treemacs-icons-dired
+  ;;   :after treemacs dired
+  ;;   :ensure t
+  ;;   :config (treemacs-icons-dired-mode))
+
+  (use-package treemacs-magit
+    :after treemacs magit
+    :ensure t)
   ;(use-package treemacs-evil
    ; :ensure t)
 #+END_SRC
@@ -531,26 +570,34 @@ narrowed."
    (use-package cider
      :ensure t
      :config
-     ;; (add-hook 'cider-repl-mode-hook #'rainbow-delimiters-mode)
-     ;; (add-hook 'cider-repl-mode-hook (lambda () (sp-local-pair '(cider-repl-mode) "'" "'" :actions nil)))
-     ;; (add-hook 'cider-repl-mode-hook #'agressive-ident-mode)
      (setq cider-repl-pop-to-buffer-on-connect 'display-only)
      (setq cider-repl-use-clojure-font-lock nil)
      (setq cider-repl-use-pretty-printing t)
      (setq cider-repl-wrap-history t)
+     (setq cider-repl-pop-to-buffer-on-connect 'display-only)
      (setq cider-repl-result-prefix ";; => ")
+     (setq cider-repl-display-in-current-window t)
+     (setq cider-repl-wrap-history t)
+     (setq cider-repl-use-pretty-printing 't)
+     (setq cider-pprint-fn 'puget)
+     (setq cider-print-options '(("print-color" "true")))
+     (setq cider-repl-use-clojure-font-lock t)
+     (add-hook 'cider-repl-mode-hook #'company-mode)
+     (add-hook 'cider-mode-hook #'company-mode)
+     (add-hook 'cider-repl-mode-hook #'cider-company-enable-fuzzy-completion)
+     (add-hook 'cider-mode-hook #'cider-company-enable-fuzzy-completion)
+     (setq cider-auto-select-error-buffer nil)
      (setq org-babel-clojure-backend 'cider))
 
-   (use-package ac-cider
-     :ensure t
-     :config (ac-config-default)
-     (add-hook 'cider-repl-mode-hook 'ac-cider-setup)
-     (add-hook 'cider-mode-hook 'ac-cider-setup)
-     (eval-after-load "auto-complete"
-       '(add-to-list 'ac-modes 'cider-repl-mode)))
+   ;; (use-package ac-cider
+   ;;   :ensure t
+   ;;   :config (ac-config-default)
+   ;;   (add-hook 'cider-repl-mode-hook 'ac-cider-setup)
+   ;;   (add-hook 'cider-mode-hook 'ac-cider-setup)
+   ;;   (eval-after-load "auto-complete"
+   ;;     '(add-to-list 'ac-modes 'cider-repl-mode)))
 
-   (use-package highlight-parentheses
-     :ensure t)
+   ;; (use-package highlight-parentheses :ensure t)
      ;; :config
      ;; (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
      ;; (add-hook 'clojurescript-mode-hook #'smartparens-strict-mode)
@@ -596,7 +643,41 @@ narrowed."
   (use-package ein
     :ensure t)
 #+END_SRC
+** Rust
+#+BEGIN_SRC emacs-lisp
+  (use-package cargo
+    :ensure t)
 
+  (use-package racer
+      :ensure t
+      :config
+      (add-hook 'racer-mode-hook #'company-mode)
+      (define-key rust-mode-map (kbd "TAB") #'company-indent-or-complete-common)
+      (setq company-tooltip-align-annotations t)
+      (setq racer-rust-src-path "/home/ianffcs/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src"))
+
+  (use-package company-racer
+    :ensure t)
+
+  (use-package flymake-rust
+    :ensure t)
+
+  (use-package rust-mode
+    :ensure t
+      :config
+      (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
+      (add-hook 'rust-mode-hook  #'company-mode)
+      (add-hook 'rust-mode-hook  #'racer-mode)
+      (add-hook 'racer-mode-hook #'eldoc-mode)
+      (add-hook 'rust-mode-hook #'smartparens-strict-mode)
+      (add-hook 'rust-mode-hook #'cargo-minor-mode)
+      (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)
+      (add-hook 'rust-mode-hook
+      '(lambda ()
+      (setq racer-cmd "/home/ianffcs/.cargo/bin/racer")
+      (setq racer-rust-src-path  "/home/ianffcs/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src")
+      (local-set-key (kbd "TAB") #'company-indent-or-complete-common))))
+#+END_SRC
 ** Haskell
 #+BEGIN_SRC emacs-lisp
   (use-package haskell-mode
@@ -869,7 +950,7 @@ narrowed."
 * Themes
 #+BEGIN_SRC emacs-lisp
     (use-package all-the-icons)
-    (use-package cyberpunk-theme
+    (use-package rebecca-theme
                  :ensure t)
 
     ;; (use-package base16-theme
