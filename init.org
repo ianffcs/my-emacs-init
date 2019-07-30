@@ -76,8 +76,7 @@
 (setq custom-file (expand-file-name (concat user-emacs-directory "custom/custom.el")))
 (load custom-file)
 
-(defconst *is-a-mac* (eq system-type 'darwin))
-(when *is-a-mac* ;; mac specific settings
+(when (eq system-type 'darwin) ;; mac specific settings
       ;; Map Command to Meta
       (setq mac-command-modifier 'meta)
       ;; Map Option to Control (I know, smaller key, that's what we have for now. :/)
