@@ -77,6 +77,11 @@
 (load custom-file)
 
 (defconst *is-a-mac* (eq system-type 'darwin))
+(when *is-a-mac* ;; mac specific settings
+      ;; Map Command to Meta
+      (setq mac-command-modifier 'meta)
+      ;; Map Option to Control (I know, smaller key, that's what we have for now. :/)
+      (setq mac-option-modifier 'control))
 #+END_SRC
 * Interface tweaks
 #+BEGIN_SRC emacs-lisp
@@ -407,9 +412,7 @@
 
 
   (setq org-file-apps
-    (append '(
-               ("\\.pdf\\'" . "evince %s")
-               ("\\.x?html?\\'" . "/usr/bin/chromium-browser %s")) org-file-apps))
+    (append '(("\\.pdf\\'" . "evince %s")) org-file-apps))
 
   (require 'org-crypt)
   (org-crypt-use-before-save-magic)
@@ -421,19 +424,15 @@
   (use-package org-web-tools
     :ensure t)
 
-  (use-package org-journal
-    :ensure t)
-
 
 #+END_SRC
-
-#+RESULTS:
 
 ** Babel
 #+BEGIN_SRC emacs-lisp
 (setq org-export-allow-bind-keywords t)
 
 (use-package ob-go)
+(use-package ob-clojure)
 (org-babel-do-load-languages
  'org-babel-load-languages '((python . t)
                              (emacs-lisp . t)
