@@ -20,6 +20,10 @@
 
  (add-hook 'after-save-hook 'tangle-init)
 #+END_SRC
+
+#+RESULTS:
+| tangle-init | rmail-after-save-hook |
+
 * Beginning
 #+BEGIN_SRC emacs-lisp
 
@@ -73,93 +77,111 @@
       ;; Map Option to Control (I know, smaller key, that's what we have for now. :/)
       (setq mac-option-modifier 'control))
 #+END_SRC
+* Private
+#+BEGIN_SRC emacs-lisp
+(defconst private-dir (expand-file-name "private" user-emacs-directory))
+(defconst temp-dir (format "%s/cache" private-dir))
+
+(unless (file-exists-p private-dir)
+  (make-directory private-dir :parents))
+
+(unless (file-exists-p temp-dir)
+  (make-directory temp-dir :parents))
+#+END_SRC
 * Interface tweaks
 #+BEGIN_SRC emacs-lisp
 (when (fboundp 'windmove-default-keybindings)
-    (windmove-default-keybindings))
-
-
-                                          ; default window width and height
-                                          ; flashes the cursor's line when you scroll
+  (windmove-default-keybindings))
+                                        ; default window width and height
+                                        ; flashes the cursor's line when you scroll
   (use-package beacon
     :ensure t
     :config
     (beacon-mode 1)
-                                          ; (setq beacon-color "#666600")
+                                        ; (setq beacon-color "#666600")
     )
 
-                                          ; expand the marked region in semantic increments (negative prefix to reduce region)
+                                        ; expand the marked region in semantic increments (negative prefix to reduce region)
   (use-package expand-region
     :ensure t
     :config
     (global-set-key (kbd "C-=") 'er/expand-region))
 
-                                          ; deletes all the whitespace when you hit backspace or delete
-  (use-package hungry-delete
-    :ensure t
-    :config
-    (global-hungry-delete-mode))
+                                        ; deletes all the whitespace when you hit backspace or delete
+(use-package hungry-delete
+  :ensure t
+  :config
+  (global-hungry-delete-mode))
 
-  (use-package origami
-    :ensure t)
+(use-package origami
+  :ensure t)
 
-  (global-origami-mode)
+(global-origami-mode)
 
       ;;; Stefan Monnier <foo at acm.org>. It is the opposite of fill-paragraph
-  (defun unfill-paragraph (&optional region)
-    "Takes a multi-line paragraph and makes it into a single line of text."
-    (interactive (progn (barf-if-buffer-read-only) '(t)))
-    (let ((fill-column (point-max))
-          ;; This would override `fill-column' if it's an integer.
-          (emacs-lisp-docstring-fill-column t))
-      (fill-paragraph nil region)))
+(defun unfill-paragraph (&optional region)
+  "Takes a multi-line paragraph and makes it into a single line of text."
+  (interactive (progn (barf-if-buffer-read-only) '(t)))
+  (let ((fill-column (point-max))
+        ;; This would override `fill-column' if it's an integer.
+        (emacs-lisp-docstring-fill-column t))
+    (fill-paragraph nil region)))
 
-  (defun unfill-region (beg end)
-    "Unfill the region, joining text paragraphs into a single
+(defun unfill-region (beg end)
+  "Unfill the region, joining text paragraphs into a single
         logical line.  This is useful, e.g., for use with
         `visual-line-mode'."
-    (interactive "*r")
-    (let ((fill-column (point-max)))
-      (fill-region beg end)))
+  (interactive "*r")
+  (let ((fill-column (point-max)))
+    (fill-region beg end)))
 
-  (mode-icons-mode)
+(mode-icons-mode)
 
-  (global-prettify-symbols-mode)
+(global-prettify-symbols-mode)
 
-  (use-package nyan-mode
-    :ensure t
-    :init
-    (setq nyan-animate-nyancat t
-          nyan-wavy-trail t
-          mode-line-format
-          (list '(:eval (list (nyan-create)))))
-    (nyan-mode t))
+(use-package nyan-mode
+  :ensure t
+  :init
+  (setq nyan-animate-nyancat t
+        nyan-wavy-trail t
+        mode-line-format
+        (list '(:eval (list (nyan-create)))))
+  (nyan-mode t))
 
-  (use-package parrot
-    :config
-    (global-set-key (kbd "C-c p") 'parrot-rotate-prev-word-at-point)
-    (global-set-key (kbd "C-c n") 'parrot-rotate-next-word-at-point)
-    (parrot-set-parrot-type 'thumbsup)
-    (parrot-mode)
-    (add-hook 'before-save-hook 'parrot-start-animation))
+(use-package parrot
+  :config
+  (global-set-key (kbd "C-c p") 'parrot-rotate-prev-word-at-point)
+  (global-set-key (kbd "C-c n") 'parrot-rotate-next-word-at-point)
+  (parrot-set-parrot-type 'thumbsup)
+  (parrot-mode)
+  (add-hook 'before-save-hook 'parrot-start-animation))
 
-  (use-package which-key
-    :ensure t
-    :config (which-key-mode))
+(use-package which-key
+  :ensure t
+  :config (which-key-mode))
 
-  (global-wakatime-mode)
+(global-wakatime-mode)
 
-  (defalias 'yes-or-no-p 'y-or-n-p)
-  ;; before save clears whitespace
-  (add-hook 'before-save-hook 'whitespace-cleanup)
+(defalias 'yes-or-no-p 'y-or-n-p)
+;; before save clears whitespace
+(add-hook 'before-save-hook 'whitespace-cleanup)
 
-  (fset 'yes-or-no-p 'y-or-n-p)
-  (global-set-key (kbd "<f5>") 'revert-buffer)
+(fset 'yes-or-no-p 'y-or-n-p)
+(global-set-key (kbd "<f5>") 'revert-buffer)
 
-  (global-set-key (kbd "C-c i") 'string-inflection-all-cycle)
-
+(global-set-key (kbd "C-c i") 'string-inflection-all-cycle)
 #+END_SRC
 * Themes
+** UTF-8
+#+BEGIN_SRC emacs-lisp
+(set-charset-priority 'unicode)
+(set-terminal-coding-system  'utf-8)   ; pretty
+(set-keyboard-coding-system  'utf-8)   ; pretty
+(set-selection-coding-system 'utf-8)   ; please
+(prefer-coding-system        'utf-8)   ; with sugar on top
+(setq default-process-coding-system '(utf-8-unix . utf-8-unix)
+      locale-coding-system          'utf-8)
+#+END_SRC
 ** Fonts
 #+BEGIN_SRC emacs-lisp
   ;; (defconst my-default-font "-*-fixed-medium-r-normal-*-15-*-*-*-*-*-*-*")
@@ -168,10 +190,11 @@
   ;; (defconst my-default-font "FantasqueSansMono Nerd Font-10")
   ;; (defconst my-default-font "Monoid-9")
   ;; (defconst my-default-font "Fixed-10")
-  (defconst my-default-font "Dina-10")
+  ;;(defconst my-default-font "Dina-10")
   ;; (defconst my-default-font "Iosevka-9")
   ;; (defconst my-default-font "Terminus-10")
-  ;; (defconst my-default-font "Hack-10")
+  ;; (defconst my-default-font "Fira Code-10")
+  (defconst my-default-font "Hack-10")
 #+END_SRC
 ** Visual
 #+BEGIN_SRC emacs-lisp
@@ -201,7 +224,7 @@
          column-number-mode            1
          show-paren-mode               1
          show-paren-delay              0
-         blink-cursor-mode            -1
+         blink-cursor-mode             nil
          transient-mark-mode           1
          scroll-bar-mode               -1
          browser-url-browse-function   'browse-url-firefox
@@ -232,8 +255,14 @@
 
      (use-package rainbow-delimiters
        :ensure t
-       :config (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
-
+       :config
+       (add-hook 'cider-repl-mode-hook #'rainbow-delimiters-mode)
+       (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
+       (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
+       (add-hook 'common-lisp-mode-hook #'rainbow-delimiters-mode)
+       (add-hook 'scheme-mode-hook #'rainbow-delimiters-mode)
+       (add-hook 'lisp-mode-hook #'rainbow-delimiters-mode)
+       (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
    (add-hook 'prog-mode-hook 'linum-mode)
 
@@ -244,6 +273,8 @@
 
    (set-frame-alpha 90)
 #+END_SRC
+
+#+RESULTS:
 * Langs
 ** General
 - Highlight Numbers
@@ -310,6 +341,16 @@
   ;; (add-hook 'python-mode-hook 'my/python-mode-hook)
 #+END_SRc
 ** By Lang Configuration
+*** Clisp
+#+BEGIN_src emacs-lisp
+(use-package slime
+  :mode
+  ("\\.lisp$" . slime-mode)
+  :init
+  (setq inferior-lisp-program "/usr/bin/sbcl"
+        slime-net-coding-system 'utf-8-unix
+        slime1-contribs '(slime-fancy)))
+#+END_SRC
 *** Clojure
  #+BEGIN_SRC emacs-lisp
    (use-package cider
@@ -386,35 +427,78 @@
      '(define-key cider-mode-map (kbd "C-c C-d") 'ac-cider-popup-doc))
 
  #+END_SRC
+*** Docker
+#+BEGIN_SRC emacs-lisp
+(use-package dockerfile-mode
+  :mode ("\\Dockerfile$" . dockerfile-mode))
+
+(use-package docker-compose-mode)
+#+END_SRC
+*** Elixir
+#+BEGIN_SRC emacs-lisp
+(defun format-elixir-buffer ()
+  "Format elixir buffer."
+  (add-hook 'before-save-hook 'elixir-format nil t))
+
+(use-package elixir-mode
+  :hook ((elixir-mode . format-elixir-buffer)
+         (elixir-mode . flycheck-mix-setup))
+  :mode (("\\.ex$" . elixir-mode)
+         ("\\.exs$" . elixir-mode)))
+
+(use-package alchemist
+  :hook (elixir-mode . alchemist-mode))
+
+(use-package flycheck-mix)
+#+END_SRC
+*** Nginx
+#+BEGIN_SRC emacs-lisp
+(use-package nginx-mode)
+#+END_SRC
 *** Python
 #+BEGIN_SRC emacs-lisp
-  (setq py-python-command "python3")
-  (setq python-shell-interpreter "python3")
+(use-package python
+  :mode ("\\.py" . python-mode)
+  :config (setq python-shell-interpreter "python3"
+                py-python-command "python3"))
 
+(use-package elpy
+  :hook ((python-mode . elpy-mode)
+         (python-mode . elpy-enable))
+  :custom
+  (elpy-rpc-backend "jedi")
+  :bind (:map elpy-mode-map
+              ("M-." . elpy-goto-definition)
+              ("M-," . pop-tag-mark)
+              ("<M-left>" . nil)
+              ("<M-right>" . nil)
+              ("<M-S-left>" . elpy-nav-indent-shift-left)
+              ("<M-S-right>" . elpy-nav-indent-shift-right)
+              ("C-c i" . elpy-autopep8-fix-code)
+              ("C-c C-d" . elpy-doc)))
 
-      (use-package elpy
-      :ensure t
-      :config
-      (elpy-enable))
+(use-package pip-requirements
+  :hook ((pip-requirements-mode . #'pip-requirements-auto-complete-setup)))
 
-  (use-package virtualenvwrapper
+(use-package py-autopep8
+  :hook ((python-mode . py-autopep8-enable-on-save)))
+
+(use-package virtualenvwrapper
     :ensure t
     :config
     (venv-initialize-interactive-shells)
     (venv-initialize-eshell))
 
-    (use-package pipenv
-      :hook (python-mode . pipenv-mode)
-      :init
-      (setq
-       pipenv-projectile-after-switch-function
-       #'pipenv-projectile-after-switch-extended))
+(use-package pipenv
+  :hook (python-mode . pipenv-mode)
+  :init
+  (setq
+   pipenv-projectile-after-switch-function
+   #'pipenv-projectile-after-switch-extended))
 
-    (use-package ein
-      :ensure t)
+(use-package ein)
 
-  (use-package hy-mode
-    :ensure t)
+(use-package hy-mode)
 #+END_SRC
 *** Rust
 #+BEGIN_SRC emacs-lisp
@@ -427,15 +511,20 @@
     (progn
       ;; add flycheck support for rust
       ;; https://github.com/flycheck/flycheck-rust
-      (use-package flycheck-rust)
+      (use-package flycheck-rust
+       :after rust-mode
+       :hook ((rust-mode . flycheck-rust-setup)))
 
       ;; cargo-mode for all the cargo related operations
       ;; https://github.com/kwrooijen/cargo.el
-      (use-package cargo)
+      (use-package cargo
+         :hook ((rust-mode . cargo-minor-mode)))
 
       ;; racer-mode for getting IDE like features for rust-mode
       ;; https://github.com/racer-rust/emacs-racer
       (use-package racer
+        :hook ((rust-mode . racer-mode)
+               (racer-mode . eldoc-mode))
         :config
         (progn
           ;; set racer rust source path environment variable
@@ -443,6 +532,7 @@
           (defun my-racer-mode-hook ()
             (set (make-local-variable 'company-backends)
                  '((company-capf company-files))))
+           (define-key rust-mode-map (kbd "TAB") #'company-indent-or-complete-common))
 
           ;; enable company and eldoc minor modes in rust-mode
           (add-hook 'racer-mode-hook 'company-mode)
@@ -457,7 +547,7 @@
       (add-hook 'before-save-hook
                 (lambda ()
                   (when (eq major-mode 'rust-mode)
-                    (rust-format-buffer))))))
+                    (rust-format-buffer)))))
 
 #+END_SRC
 *** Haskell
@@ -553,6 +643,36 @@
   (setq web-mode-css-indent-offset 2)
   (setq web-mode-code-indent-offset 2))
 (add-hook 'web-mode-hook  'my-web-mode-hook)
+
+(use-package company-web
+  :after web-mode)
+
+(use-package rjsx-mode
+  :mode ("\\.jsx$" . rjsx-mode)
+  :magic ("%React" . rjsx-mode))
+
+(use-package vue-mode
+  :mode
+  ("\\.vue$" . vue-mode))
+
+(use-package indium
+  :after js2-mode
+  :hook ((js2-mode . indium-interaction-mode))
+  :bind (:map indium-interaction-mode-map
+              ("C-x C-e" . indium-eval-last-node)
+              ("C-<f6>" . vs/stop-indium-debug)
+              ("S-<f6>" . indium-connect)
+              ("<f6>" . indium-launch))
+  :config (delight indium-interaction-mode))
+
+(use-package mocha
+  :init (setq mocha-reporter "spec")
+  :bind (:map js2-mode-map
+              (("C-c t" . mocha-test-project))))
+
+(use-package json-mode
+  :mode
+  ("\\.json$" . json-mode))
 #+END_SRC
 *** Latex
 #+BEGIN_SRC emacs-lisp
@@ -619,18 +739,23 @@
 
 *** Plantuml
 #+BEGIN_SRC emacs-lisp
-  (use-package plantuml-mode
-    :ensure t
-    :config
-    (setq org-plantuml-jar-path
-         (expand-file-name "/usr/share/java/plantuml/plantuml.jar"))
-    (setq plantuml-jar-path (expand-file-name "/usr/share/java/plantuml/plantuml.jar"))
-    (add-to-list 'org-src-lang-modes
-                 '("plantuml" . plantuml))
-    (add-to-list 'auto-mode-alist
-                 '("\\.plantuml\\'" . plantuml-mode))
-    (add-to-list 'auto-mode-alist
-                 '("\\.ptuml\\'" . plantuml-mode)))
+(use-package plantuml-mode
+  :mode ("\\.plantuml\\'" . plantuml-mode)
+  :config
+  (let ((plantuml-directory (concat user-emacs-directory "private/"))
+        (plantuml-link "http://sourceforge.net/projects/plantuml/files/plantuml.jar/download"))
+    (let ((plantuml-target (concat plantuml-directory "plantuml.jar")))
+      (if (not (file-exists-p plantuml-target))
+          (progn (message "Downloading plantuml.jar")
+                 (shell-command
+                  (mapconcat 'identity (list "wget" plantuml-link "-O" plantuml-target) " "))
+                 (kill-buffer "*Shell Command Output*")))
+      (setq org-plantuml-jar-path plantuml-target
+            plantuml-jar-path plantuml-target
+            plantuml-output-type "svg"))))
+
+(use-package flycheck-plantuml
+  :config (flycheck-plantuml-setup))
 #+END_SRC
 *** Elisp
 #+BEGIN_SRC emacs-lisp
@@ -755,20 +880,6 @@
    ; :ensure t)
   ;; (treemacs-reset-icons)
 #+END_SRC
-* Rainbow Delimiters
-  #+BEGIN_SRC emacs-lisp
-  (use-package rainbow-delimiters
-    :ensure t
-    :init
-    (progn
-      (add-hook 'cider-repl-mode-hook #'rainbow-delimiters-mode)
-      (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
-      (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
-      (add-hook 'common-lisp-mode-hook #'rainbow-delimiters-mode)
-      (add-hook 'scheme-mode-hook #'rainbow-delimiters-mode)
-      (add-hook 'lisp-mode-hook #'rainbow-delimiters-mode)))
-  #+END_SRC
-
 * Pretty Mode
 #+BEGIN_SRC emacs-lisp
 (use-package pretty-mode
@@ -835,38 +946,71 @@
 * Org
 ** Org General confs
 #+BEGIN_SRC emacs-lisp
-    (use-package org
-      :ensure org-plus-contrib
-      ;:pin org
-      :config
-      '(org-directory "~/sync/orgfiles")
-      '(org-default-notes-file (concat org-directory "~/sync/orgfiles/notes.org.gpg"))
-      '(org-export-html-postamble nil)
-      '(org-hide-leading-stars t)
-      '(org-startup-indented t)
-      '(org-journal-dir "~/sync/orgfiles")
-      '(org-agenda-files (list "~/sync/orgfiles/life.org.gpg" "~/sync/orgfiles/personal_cal.org.gpg" "~/sync/orgfiles/work_cal.org.gpg"))
-      '(org-display-inline-images t)
-      '(org-redisplay-inline-images t)
-      '(org-startup-with-inline-images "inlineimages")
-      '(set-default 'preview-scale-function 2.0)
-      (setq org-todo-keywords
-            '((sequence "TODO(t)" "PENDING(p!)" "WAIT(w@)" "VERIFY(v)" "|" "DONE(d!)" "CANCELED(c@)")
-              (sequence "REPORT(r@)" "BUG(b@)" "KNOWNCAUSE(k@)" "|" "FIXED(f!)")))
-      (add-hook 'org-mode-hook (lambda ()
-                                 (setq truncate-lines nil)
-                                 (visual-line-mode)
-                                 (org-ident-mode)))
-      ;; (global-set-key (kbd "C-c l")
-      ;;               (lambda () (interactive) (find-file "~/sync/orgfiles/life.org.gpg")))
-      (add-hook 'org-mode-hook #'toggle-word-wrap)
-      (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
-      (defun do-org-show-all-inline-images ()
-        (interactive)
-        (org-display-inline-images t t))
-      (global-set-key (kbd "C-c C-x C v")
-                      'do-org-show-all-inline-images)
-      (require 'ox-reveal))
+(use-package org
+  :ensure org-plus-contrib
+  :hook ((org-mode . toggle-word-wrap)
+         (org-mode . org-indent-mode)
+         (org-mode . turn-on-visual-line-mode)
+         (org-mode . (lambda () (display-line-numbers-mode -1))))
+  :bind (("C-c l" . org-store-link)
+         ("C-c a" . org-agenda))
+  :config
+  (setq ;org-default-notes-file (concat org-directory "~/sync/orgfiles/notes.org.gpg")
+        org-export-html-postamble nil
+        org-hide-leading-stars t
+        org-startup-indented t
+        org-journal-dir "~/sync/orgfiles"
+        org-display-inline-images t
+        org-redisplay-inline-images t
+        org-startup-with-inline-images "inlineimages"
+        ;org-agenda-files (list "~/sync/orgfiles/life.org.gpg" "~/sync/orgfiles/personal_cal.org.gpg" "~/sync/orgfiles/work_cal.org.gpg")
+        org-todo-keywords
+        '((sequence "TODO(t)" "PENDING(p!)" "WAIT(w@)" "VERIFY(v)" "|" "DONE(d!)" "CANCELED(c@)")
+          (sequence "REPORT(r@)" "BUG(b@)" "KNOWNCAUSE(k@)" "|" "FIXED(f!)"))
+        org-edit-src-content-indentation 0
+        org-src-tab-acts-natively t
+        org-src-fontify-natively t
+        org-confirm-babel-evaluate nil
+        org-support-shift-select 'always
+        org-hide-emphasis-markers        t
+        org-edit-src-content-indentation 0
+        org-src-tab-acts-natively        t
+        org-src-fontify-natively         t
+        org-src-preserve-indentation     t)
+
+  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
+  (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
+
+  (defun do-org-show-all-inline-images ()
+    (interactive)
+    (org-display-inline-images t t))
+  (global-set-key (kbd "C-c C-x C v")
+                  'do-org-show-all-inline-images)
+  (use-package ob-restclient)
+  (use-package ob-ipython)
+  (use-package ob-async
+    :init (setq ob-async-no-async-languages-alist '("ipython")))
+  (use-package ox-reveal)
+  (org-babel-do-load-languages
+           'org-babel-load-languages
+           (org-babel-do-load-languages
+            'org-babel-load-languages
+            (append org-babel-load-languages
+                    '((emacs-lisp . t)
+                      (clojure . t)
+                      (python . t)
+                      (restclient . t)
+                      (js . t)
+                      (shell . t)
+                      (plantuml . t)
+                      (sql . t)
+                      (ipython . t)))))
+  (setq org-hide-emphasis-markers t
+        org-babel-clojure-nrepl-timeout nil
+        org-export-allow-bind-keywords t
+        org-confirm-babel-evaluate       t)
+  (org-defkey org-mode-map "\C-x\C-e" 'cider-eval-last-sexp)
+  (org-defkey org-mode-map "\C-c\C-d" 'cider-doc))
 
     ;; (use-package org-gcal
                  ;; :init (load-library "~/.gcal.el.gpg")
@@ -874,20 +1018,20 @@
                                                      ;; ("ian@crowd.br.com" . "~/sync/orgfiles/work_cal.org"))))
 
   ;; organize journal confs after
-  ;; (load (expand-file-name (concat user-emacs-directory "sensitive/journal.el")))
-   ;; (use-package org-journal
-   ;;   :init
-   ;;   (defun org-journal-load-files ()
-   ;;     (interactive)
-   ;;     (when (not org-journal-loaded)
-   ;;        (setq org-agenda-file-regexp "\\`[^.].*\\.org'\\|[0-9]$")
-   ;;        (add-to-list 'org-agenda-files org-journal-dir)
-   ;;        (setq org-journal-loaded t)))
-   ;;   :config (setq org-journal-loaded nil))
+   (load (expand-file-name (concat user-emacs-directory "sensitive/journal.el")))
+   (use-package org-journal
+     :init
+     (defun org-journal-load-files ()
+       (interactive)
+       (when (not org-journal-loaded)
+          (setq org-agenda-file-regexp "\\`[^.].*\\.org'\\|[0-9]$")
+          (add-to-list 'org-agenda-files org-journal-dir)
+          (setq org-journal-loaded t)))
+     :config (setq org-journal-loaded nil))
 
-  ;; (setq org-agenda-include-diary t)
+  (setq org-agenda-include-diary t)
 #+END_SRC
-y** Agenda
+** Agenda
 #+BEGIN_SRC emacs-lisp
    (require 'org-agenda)
    (setq org-agenda-include-diary t
@@ -915,33 +1059,24 @@ y** Agenda
   (load (expand-file-name (concat user-emacs-directory "elisp/brazil-holidays.el")))
   (setq calendar-holidays holiday-brazil-all)
 
-  ;(load (expand-file-name (concat user-emacs-directory "sensitive/agenda.el")))
-  ;(add-hook 'org-mode-hook 'auto-revert-mode)
+  (load (expand-file-name (concat user-emacs-directory "sensitive/agenda.el")))
+  (add-hook 'org-mode-hook 'auto-revert-mode)
 #+END_SRC
 ** Appearance
 #+BEGIN_SRC emacs-lisp
+(use-package org-bullets
+   :hook ((org-mode . org-bullets-mode))
+   :init (setq org-hide-leading-stars t))
 
-  (add-hook 'org-mode-hook #'toggle-word-wrap)
-  (add-hook 'org-mode-hook #'org-indent-mode)
-  (add-hook 'org-mode-hook #'turn-on-visual-line-mode)
-
-  (use-package org-bullets
-   :config (add-hook 'org-mode-hook #'org-bullets-mode))
-
-  (use-package fill-column-indicator
+(use-package fill-column-indicator
    :config (progn
-               (add-hook 'org-mode-hook
-                         (lambda ()
-                           (setq fci-rule-width 1)
-                           (setq fci-rule-color "darkblue")))
-               (add-hook 'org-mode-hook 'turn-on-auto-fill)))
+             (add-hook 'org-mode-hook
+                       (lambda ()
+                         (setq fci-rule-width 1)
+                         (setq fci-rule-color "darkblue")))
+             (add-hook 'org-mode-hook 'turn-on-auto-fill)))
 
-  (setq org-hide-emphasis-markers        t
-       org-edit-src-content-indentation 0
-       org-src-tab-acts-natively        t
-       org-src-fontify-natively         t
-       org-src-preserve-indentation     t
-       org-confirm-babel-evaluate       t)
+
 #+END_SRC
 ** Alert
 #+BEGIN_SRC emacs-lisp
@@ -964,6 +1099,13 @@ y** Agenda
                                (interactive)
                                (cfw:open-org-calendar)))))
 #+END_SRC
+** Org Reveal.js
+#+BEGIN_SRC emacs-lisp
+(use-package org-re-reveal
+  :init (setq org-re-reveal-root "https://cdn.jsdelivr.net/reveal.js/latest"
+              org-reveal-mathjax t))
+
+#+END_SRC
 ** aaa
 #+BEGIN_SRC emacs-lisp
  (setq org-file-apps
@@ -979,28 +1121,6 @@ y** Agenda
  (use-package org-web-tools
    :ensure t)
 
-
-#+END_SRC
-** Babel
-#+BEGIN_SRC emacs-lisp
-(setq org-export-allow-bind-keywords t)
-
-(use-package ob-go)
-;(use-package ob-clojure)
-(org-babel-do-load-languages
- 'org-babel-load-languages '((python . t)
-                             (emacs-lisp . t)
-                             (shell . t)
-                             (plantuml . t)
-                             (C . t)
-                             ;; (Clojure . t)
-                             (haskell . t)
-                             (R . t)
-                             (js . t)
-                             (dot . t)
-                             (org . t)
-                             (latex . t )))
- (setq org-reveal-root "file:///home/ianffcs/reveal.js")
 
 #+END_SRC
 * Dashboard
@@ -1039,7 +1159,8 @@ y** Agenda
   (yas-global-mode 1))
 (use-package auto-yasnippet
 :ensure t)
-
+(use-package yasnippet-snippets
+  :after (yas-global-mode))
 #+END_SRC
 
 * Iedit and narrow/widen dwin
