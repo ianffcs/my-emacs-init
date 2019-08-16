@@ -70,12 +70,14 @@
 #+BEGIN_SRC emacs-lisp
 (setq custom-file (expand-file-name (concat user-emacs-directory "custom/custom.el")))
 (load custom-file)
-
-(when (eq system-type 'darwin) ;; mac specific settings
-      ;; Map Command to Meta
-      (setq mac-command-modifier 'meta)
-      ;; Map Option to Control (I know, smaller key, that's what we have for now. :/)
-      (setq mac-option-modifier 'control))
+#+END_SRC
+* Mac custom keyboard
+#+BEGIN_SRC emacs-lisp
+(setq mac-command-modifier 'meta)
+(setq mac-option-modifier 'super)
+;; Check the system
+(when (eq system-type 'darwin)
+  (setq mac-right-option-modifier 'none))
 #+END_SRC
 * Private
 #+BEGIN_SRC emacs-lisp
