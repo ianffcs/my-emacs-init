@@ -73,6 +73,17 @@
 #+END_SRC
 * Mac custom keyboard
 #+BEGIN_SRC emacs-lisp
+(defun paste-from-osx ()
+  (shell-command-to-string "pbpaste"))
+
+(defun copy-to-osx (text &optional push)
+  (let ((process-connection-type nil))
+    (let ((proc (start-process "pbcopy" "*Messages*" "pbcopy")))
+      (process-send-string proc text)
+      (process-send-eof proc))))
+
+(setq interprogram-cut-function 'copy-to-osx)
+(setq interprogram-paste-function 'paste-from-osx)
 (setq mac-command-modifier 'meta)
 (setq mac-option-modifier 'super)
 ;; Check the system
@@ -137,7 +148,8 @@
   (let ((fill-column (point-max)))
     (fill-region beg end)))
 
-(mode-icons-mode)
+(use-package mode-icons
+ :config (mode-icons-mode))
 
 (global-prettify-symbols-mode)
 
@@ -162,7 +174,8 @@
   :ensure t
   :config (which-key-mode))
 
-(global-wakatime-mode)
+(use-package wakatime-mode
+  :config (global-wakatime-mode))
 
 (defalias 'yes-or-no-p 'y-or-n-p)
 ;; before save clears whitespace
