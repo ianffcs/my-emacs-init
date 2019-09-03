@@ -306,6 +306,8 @@
   (sp-local-pair '(lisp-mode) "'" "'" :actions nil)
   (setq smartparens-global-strict-mode 1))
 
+(use-package highlight-parentheses)
+
 (use-package highlight-sexp)
 
   #+END_SRC
@@ -382,24 +384,37 @@
 *** Clisp
 #+BEGIN_src emacs-lisp
 (use-package slime
+  :hook ((slime-mode . smartparens-strict-mode)
+         (slime-mode . rainbow-parens-mode)
+         (slime-mode . highlight-parentheses-mode))
   :mode
   ("\\.lisp$" . slime-mode)
   :init
   (setq inferior-lisp-program "/usr/bin/sbcl"
     slime-net-coding-system 'utf-8-unix
     slime1-contribs '(slime-fancy)))
+
 #+END_SRC
 *** Elisp
 #+BEGIN_SRC emacs-lisp
-;; Automatically load paredit when editing a lisp file
-;; More at http://www.emacswiki.org/emacs/ParEdit
-(autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
-(add-hook 'emacs-lisp-mode-hook       #'enable-paredit-mode)
-(add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
-(add-hook 'ielm-mode-hook             #'enable-paredit-mode)
-(add-hook 'lisp-mode-hook             #'enable-paredit-mode)
-(add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
-(add-hook 'scheme-mode-hook           #'enable-paredit-mode)
+(add-hook 'emacs-lisp-mode-hook #'smartparens-strict-mode)
+(add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
+(add-hook 'emacs-lisp-mode-hook #'highlight-parentheses-mode)
+(add-hook 'eval-expression-minibuffer-setup-hook #'smartparens-strict-mode)
+(add-hook 'eval-expression-minibuffer-setup-hook #'rainbow-delimiters-mode)
+(add-hook 'eval-expression-minibuffer-setup-hook #'highlight-parentheses-mode)
+(add-hook 'ielm-mode-hook             #'smartparens-strict-mode)
+(add-hook 'ielm-mode-hook             #'rainbow-delimiters-mode)
+(add-hook 'ielm-mode-hook #'highlight-parentheses-mode)
+(add-hook 'lisp-mode-hook             #'smartparens-strict-mode)
+(add-hook 'lisp-mode-hook             #'rainbow-delimiters-mode)
+(add-hook 'lisp-mode-hook #'highlight-parentheses-mode)
+(add-hook 'lisp-interaction-mode-hook #'smartparens-strict-mode)
+(add-hook 'lisp-interaction-mode-hook #'rainbow-delimiters-mode)
+(add-hook 'lisp-interaction-mode-hook #'highlight-parentheses-mode)
+(add-hook 'scheme-mode-hook           #'smartparens-strict-mode)
+(add-hook 'scheme-mode-hook           #'rainbow-delimiters-mode)
+(add-hook 'scheme-mode-hook #'highlight-parentheses-mode)
 
 ;; eldoc-mode shows documentation in the minibuffer when writing code
 ;; http://www.emacswiki.org/emacs/ElDoc
@@ -431,11 +446,14 @@
 
 (use-package clojure-mode
   :hook ((clojure-mode . aggressive-indent-mode)
-     (clojure-mode . smartparens-strict-mode)
-     (clojure-mode . subword-mode)
-     (clojure-mode . clojure-mode-extra-font-locking)
-     (clojure-mode . cider-mode)
-     (clojure-mode . clj-refactor-mode))
+         (clojure-mode . smartparens-strict-mode)
+         (clojure-mode . subword-mode)
+         (clojure-mode . clojure-mode-extra-font-locking)
+         (clojure-mode . cider-mode)
+         (clojure-mode . clj-refactor-mode)
+         (clojure-mode . rainbow-delimiters-mode)
+         (clojure-mode . highlight-parentheses-mode)
+         (clojure-mode . highlight-sexp))
   :config
   (add-to-list 'auto-mode-alist '("\\.edn$" . clojure-mode))
   (add-to-list 'auto-mode-alist '("\\.boot$" . clojure-mode))
@@ -450,19 +468,15 @@
           (clj-kondo-cljc . clojure-joker)
           (clj-kondo-edn . edn-joker)))
     (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers)))))
-(add-hook 'cider-repl-mode-hook #'smartparens-strict-mode)
-    (add-hook 'clojure-mode-hook #'smartparens-strict-mode)
-    (add-hook 'emacs-lisp-mode-hook #'smartparens-strict-mode)
-    (add-hook 'common-lisp-mode-hook #'smartparens-strict-mode)
-    (add-hook 'scheme-mode-hook #'smartparens-strict-mode)
-    (add-hook 'lisp-mode-hook #'smartparens-strict-mode)
 
 (use-package cider
   :hook ((cider-repl-mode . subword-mode)
-     (cider-repl-mode . company-mode)
-     (cider-repl-mode . smartparens-strict-mode)
-     (cider-mode . smartparens-strict-mode)
-     (cider-mode . cider-company-enable-fuzzy-completion))
+         (cider-repl-mode . company-mode)
+         (cider-repl-mode . smartparens-strict-mode)
+         (cider-mode . smartparens-strict-mode)
+         (cider-mode . rainbow-delimiters-mode)
+         (cider-mode . highlight-parentheses-mode)
+         (cider-mode . cider-company-enable-fuzzy-completion))
   :config
   (eval-after-load 'cider #'emidje-enable-nrepl-middleware)
   (define-key cider-mode-map (kbd "C-c C-d") 'ac-cider-popup-doc)
@@ -496,12 +510,6 @@
 
 (use-package emidje
   :config (eval-after-load 'cider #'emidje-setup))
-
-(use-package highlight-parentheses
-  :config
-  (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
-  (add-hook 'clojurescript-mode-hook #'smartparens-strict-mode)
-  (add-hook 'clojure-mode-hook (lambda () (sp-local-pair '(clojure-mode) "'" "'" :actions nil))))
 
 (use-package kaocha-runner
   :config
