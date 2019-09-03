@@ -4,20 +4,20 @@
 #+STARTUP: overview inlineimages
 * Meta
 #+BEGIN_SRC emacs-lisp
-;;;; Initialization
+  ;;;; Initialization
 
- (defun tangle-init ()
-   "If the current buffer is 'init.org' the code-blocks are
-   tangled, and the tangled file is compiled."
-   (when (equal (buffer-file-name)
-         (expand-file-name (concat user-emacs-directory "init.org")))
-     ;; Avoid running hooks when tangling.
-     (let ((prog-mode-hook nil))
-    (org-babel-tangle)
-     ;   (byte-compile-file (concat user-emacs-directory "init.el"))
-     )))
+   (defun tangle-init ()
+     "If the current buffer is 'init.org' the code-blocks are
+     tangled, and the tangled file is compiled."
+     (when (equal (buffer-file-name)
+           (expand-file-name (concat user-emacs-directory "init.org")))
+       ;; Avoid running hooks when tangling.
+       (let ((prog-mode-hook nil))
+         (org-babel-tangle)
+       ;   (byte-compile-file (concat user-emacs-directory "init.el"))
+      )))
 
- (add-hook 'after-save-hook 'tangle-init)
+   (add-hook 'after-save-hook 'tangle-init)
 #+END_SRC
 * Beginning
 #+BEGIN_SRC emacs-lisp
@@ -60,7 +60,6 @@
   (setq use-package-always-ensure t)
 
 #+END_SRC
-
 * Custom
 #+BEGIN_SRC emacs-lisp
 (setq custom-file (expand-file-name (concat user-emacs-directory "custom/custom.el")))
@@ -68,13 +67,28 @@
 #+END_SRC
 * Mac custom keyboard
 #+BEGIN_SRC emacs-lisp
-(when (eq system-type 'darwin) ;; mac specific settings
-  (setq mac-option-modifier 'control)
-  (setq mac-command-modifier 'meta)
-  (global-set-key [kp-delete] 'delete-char) ;; sets fn-delete to be right-delete
-  (add-to-list 'exec-path "/usr/local/bin")
-  )
+  (defun paste-from-osx ()
+    (shell-command-to-string "pbpaste"))
+
+  (defun copy-to-osx (text &optional push)
+    (let ((process-connection-type nil))
+      (let ((proc (start-process "pbcopy" "*Messages*" "pbcopy")))
+    (process-send-string proc text)
+    (process-send-eof proc))))
+  ;; Check the system
+  (when (eq system-type 'darwin)
+    (setq ;interprogram-cut-function 'copy-to-osx
+            ;interprogram-paste-function 'paste-from-osx
+            mac-emulate-three-button-mouse nil
+            mac-option-modifier 'command
+            mac-command-modifier 'meta
+            mac-right-command-modifier 'meta
+            mac-right-option-modifier 'control
+            ;mac-option-key-is-control t
+))
+
 #+END_SRC
+
 * Private
 #+BEGIN_SRC emacs-lisp
 (defconst private-dir (expand-file-name "private" user-emacs-directory))
@@ -90,19 +104,17 @@
 #+BEGIN_SRC emacs-lisp
 (when (fboundp 'windmove-default-keybindings)
   (windmove-default-keybindings))
-                    ; default window width and height
-                    ; flashes the cursor's line when you scroll
+
   (use-package beacon
     :ensure t
     :config
-    (beacon-mode 1)
-                    ; (setq beacon-color "#666600")
-    )
+    (beacon-mode 1))
 
 (use-package smooth-scrolling
   :config (smooth-scrolling-mode 1))
+            ; expand the marked region in semantic increments (negative prefix to reduce region)
                     ; expand the marked region in semantic increments (negative prefix to reduce region)
-  (use-package expand-region
+(use-package expand-region
     :ensure t
     :config
     (global-set-key (kbd "C-=") 'er/expand-region))
@@ -129,8 +141,7 @@
 
 (defun unfill-region (beg end)
   "Unfill the region, joining text paragraphs into a single
-    logical line.  This is useful, e.g., for use with
-    `visual-line-mode'."
+   logical line.  This is useful, e.g., for use with `visual-line-mode'."
   (interactive "*r")
   (let ((fill-column (point-max)))
     (fill-region beg end)))
@@ -161,8 +172,9 @@
   :ensure t
   :config (which-key-mode))
 
-;(use-package wakatime-mode
- ; :config (global-wakatime-mode))
+(use-package wakatime-mode
+  :config (global-wakatime-mode))
+
 
 (defalias 'yes-or-no-p 'y-or-n-p)
 ;; before save clears whitespace
@@ -217,7 +229,7 @@
      :init (setq doom-themes-enable-bold t doom-themes-enable-italic t)
      :config
      (doom-themes-org-config)
-                       ; (doom-themes-treemacs-config)
+; (doom-themes-treemacs-config)
      (load-theme 'doom-one t))
 
    (setq inhibit-startup-screen        t
@@ -275,7 +287,6 @@
 
    (set-frame-alpha 90)
 #+END_SRC
-
 * Smartparens & Parens-thing
 #+BEGIN_SRC emacs-lisp
 (use-package smartparens
@@ -298,15 +309,14 @@
 (use-package highlight-sexp)
 
   #+END_SRC
-
 * Langs
 ** General
-- Highlight Numbers
+*** Highlight Numbers
 #+BEGIN_SRC emacs-lisp
   (use-package highlight-numbers
     :config (add-hook 'prog-mode-hook 'highlight-numbers-mode))
 #+END_SRC
-- Flycheck confs
+*** Flycheck confs
 #+BEGIN_SRC emacs-lisp
 (use-package flycheck)
 
@@ -314,7 +324,7 @@
 
 (use-package flycheck-clj-kondo)
 #+END_SRC
-- Semantic confs
+*** Semantic confs
 #+BEGIN_SRC emacs-lisp
   (require 'semantic)
 
@@ -324,9 +334,9 @@
 
   (semantic-mode 1)
 #+END_SRC
-- Company confs
+*** Company confs
 #+BEGIN_SRC emacs-lisp
-  (use-package company
+(use-package company
     :ensure t
     :config
     (setq company-idle-delay 0)
@@ -364,7 +374,7 @@
 
   ;; (add-hook 'python-mode-hook 'my/python-mode-hook)
 #+END_SRC
-- Aggressive Indent
+*** Aggressive Indent
 #+BEGIN_SRC emacs-lisp
 (use-package aggressive-indent)
 #+END_SRC
@@ -396,6 +406,22 @@
 (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
 (add-hook 'lisp-interaction-mode-hook 'turn-on-eldoc-mode)
 (add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
+
+(defun ielm-auto-complete ()
+  "Enables `auto-complete' support in \\[ielm]."
+  (setq ac-sources '(ac-source-functions
+             ac-source-variables
+             ac-source-features
+             ac-source-symbols
+             ac-source-words-in-same-mode-buffers))
+  (auto-complete-mode 1))
+
+(defun ielm/clear-repl ()
+  "Clear current REPL buffer."
+  (interactive)
+  (let ((inhibit-read-only t))
+    (erase-buffer)
+    (ielm-send-input)))
 #+END_SRC
 *** Clojure
  #+BEGIN_SRC emacs-lisp
@@ -405,11 +431,11 @@
 
 (use-package clojure-mode
   :hook ((clojure-mode . aggressive-indent-mode)
-         (clojure-mode . smartparens-strict-mode)
-         (clojure-mode . subword-mode)
-         (clojure-mode . clojure-mode-extra-font-locking)
-         (clojure-mode . cider-mode)
-         (clojure-mode . clj-refactor-mode))
+     (clojure-mode . smartparens-strict-mode)
+     (clojure-mode . subword-mode)
+     (clojure-mode . clojure-mode-extra-font-locking)
+     (clojure-mode . cider-mode)
+     (clojure-mode . clj-refactor-mode))
   :config
   (add-to-list 'auto-mode-alist '("\\.edn$" . clojure-mode))
   (add-to-list 'auto-mode-alist '("\\.boot$" . clojure-mode))
@@ -420,9 +446,9 @@
   (dolist (checker '(clj-kondo-clj clj-kondo-cljs clj-kondo-cljc clj-kondo-edn))
     (setq flycheck-checkers (cons checker (delq checker flycheck-checkers))))
   (dolist (checkers '((clj-kondo-clj . clojure-joker)
-              (clj-kondo-cljs . clojurescript-joker)
-              (clj-kondo-cljc . clojure-joker)
-              (clj-kondo-edn . edn-joker)))
+          (clj-kondo-cljs . clojurescript-joker)
+          (clj-kondo-cljc . clojure-joker)
+          (clj-kondo-edn . edn-joker)))
     (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers)))))
 (add-hook 'cider-repl-mode-hook #'smartparens-strict-mode)
     (add-hook 'clojure-mode-hook #'smartparens-strict-mode)
@@ -433,40 +459,40 @@
 
 (use-package cider
   :hook ((cider-repl-mode . subword-mode)
-         (cider-repl-mode . company-mode)
-         (cider-repl-mode . smartparens-strict-mode)
-         (cider-mode . smartparens-strict-mode)
-         (cider-mode . cider-company-enable-fuzzy-completion))
+     (cider-repl-mode . company-mode)
+     (cider-repl-mode . smartparens-strict-mode)
+     (cider-mode . smartparens-strict-mode)
+     (cider-mode . cider-company-enable-fuzzy-completion))
   :config
   (eval-after-load 'cider #'emidje-enable-nrepl-middleware)
   (define-key cider-mode-map (kbd "C-c C-d") 'ac-cider-popup-doc)
   (setq cider-repl-pop-to-buffer-on-connect 'display-only
-        cider-repl-use-clojure-font-lock nil
-        cider-annotate-completion-candidates t
-        cider-prompt-for-symbol nil
-        cider-repl-use-pretty-printing t
-        cider-repl-wrap-history t
-        cider-repl-pop-to-buffer-on-connect 'display-only
-        cider-repl-result-prefix ";; => "
-        cider-repl-display-in-current-window t
-        cider-repl-wrap-history t
-        cider-repl-use-pretty-printing 't
-        cider-pprint-fn 'puget
-        cider-print-options '(("print-color" "true"))
-        cider-repl-use-clojure-font-lock t
-        cider-auto-select-error-buffer nil
-        org-babel-clojure-backend 'cider
-        cider-eldoc-display-context-dependent-info t)
+    cider-repl-use-clojure-font-lock nil
+    cider-annotate-completion-candidates t
+    cider-prompt-for-symbol nil
+    cider-repl-use-pretty-printing t
+    cider-repl-wrap-history t
+    cider-repl-pop-to-buffer-on-connect 'display-only
+    cider-repl-result-prefix ";; => "
+    cider-repl-display-in-current-window t
+    cider-repl-wrap-history t
+    cider-repl-use-pretty-printing 't
+    cider-pprint-fn 'puget
+    cider-print-options '(("print-color" "true"))
+    cider-repl-use-clojure-font-lock t
+    cider-auto-select-error-buffer nil
+    org-babel-clojure-backend 'cider
+    cider-eldoc-display-context-dependent-info t)
   (eval-after-load 'cider #'emidje-enable-nrepl-middleware)
      ;(setq-default emidje-load-facts-on-eval t)
      )
 
 (use-package clj-refactor
   :config (progn (setq cljr-suppress-middleware-warnings t)
-         (add-hook 'clojure-mode-hook (lambda ()
-                        (clj-refactor-mode 1)
-                        (yas-minor-mode 1)
-                        (cljr-add-keybindings-with-prefix "C-c C-m")))))
+     (add-hook 'clojure-mode-hook (lambda ()
+            (clj-refactor-mode 1)
+            (yas-minor-mode 1)
+            (cljr-add-keybindings-with-prefix "C-c C-m")))))
 
 (use-package emidje
   :config (eval-after-load 'cider #'emidje-setup))
@@ -498,9 +524,7 @@
 (add-hook 'auto-complete-mode-hook 'set-auto-complete-as-completion-at-point-function)
 (add-hook 'cider-repl-mode-hook 'set-auto-complete-as-completion-at-point-function)
 (add-hook 'cider-mode-hook 'set-auto-complete-as-completion-at-point-function)
-
-
- #+END_SRC
+#+END_SRC
 *** Docker
 #+BEGIN_SRC emacs-lisp
 (use-package dockerfile-mode
@@ -650,6 +674,7 @@
        '(("css" . (ac-source-css-property))
        ("vue" . (ac-source-words-in-buffer ac-source-abbrev))
      ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
+
 (setq web-mode-enable-auto-closing t))
 (setq web-mode-enable-auto-quoting t) ; this fixes the quote problem I mentioned
 #+END_SRC
@@ -814,44 +839,24 @@
 *** Plantuml
 #+BEGIN_SRC emacs-lisp
 (use-package plantuml-mode
-    :mode ("\\.plantuml\\'" . plantuml-mode)
-    :config
-    (let ((plantuml-directory (concat user-emacs-directory "private/"))
-          (plantuml-link "http://sourceforge.net/projects/plantuml/files/plantuml.jar/download"))
-      (let ((plantuml-target (concat plantuml-directory "plantuml.jar")))
-        (if (not (file-exists-p plantuml-target))
-            (progn (message "Downloading plantuml.jar")
-                   (shell-command
-                    (mapconcat 'identity (list "wget" plantuml-link "-O" plantuml-target) " "))
-                   (kill-buffer "*Shell Command Output*")))
-        (setq org-plantuml-jar-path plantuml-target
-              plantuml-jar-path plantuml-target
-              plantuml-output-type "svg"))))
+  :mode ("\\.plantuml\\'" . plantuml-mode)
+  :config
+  (let ((plantuml-directory (concat user-emacs-directory "private/"))
+    (plantuml-link "http://sourceforge.net/projects/plantuml/files/plantuml.jar/download"))
+    (let ((plantuml-target (concat plantuml-directory "plantuml.jar")))
+      (if (not (file-exists-p plantuml-target))
+      (progn (message "Downloading plantuml.jar")
+         (shell-command
+          (mapconcat 'identity (list "wget" plantuml-link "-O" plantuml-target) " "))
+         (kill-buffer "*Shell Command Output*")))
+      (setq org-plantuml-jar-path plantuml-target
+        plantuml-jar-path plantuml-target
+        plantuml-output-type "svg"))))
 
-  (use-package flycheck-plantuml
-    :config (flycheck-plantuml-setup))
-#+END_SRC
-*** Elisp
-#+BEGIN_SRC emacs-lisp
-  (defun ielm-auto-complete ()
-    "Enables `auto-complete' support in \\[ielm]."
-    (setq ac-sources '(ac-source-functions
-               ac-source-variables
-               ac-source-features
-               ac-source-symbols
-               ac-source-words-in-same-mode-buffers))
-    ;; (add-to-list 'ac-modes 'inferior-emacs-lisp-mode)
-    (auto-complete-mode 1))
-
-  (defun ielm/clear-repl ()
-    "Clear current REPL buffer."
-    (interactive)
-    (let ((inhibit-read-only t))
-    (erase-buffer)
-    (ielm-send-input)))
+(use-package flycheck-plantuml
+  :config (flycheck-plantuml-setup))
 
 #+END_SRC
-
 * Treemacs
 #+BEGIN_SRC emacs-lisp
   (use-package treemacs
@@ -937,31 +942,27 @@
 #+END_SRC
 * Movin' around baby
 #+BEGIN_SRC emacs-lisp
-  (use-package ace-window
-    :init
-    (progn
-      (setq aw-scope 'global) ;; was frame
-      (global-set-key (kbd "C-x O") 'other-frame)
-      (global-set-key [remap other-window] 'ace-window)
-      (custom-set-faces
-       '(aw-leading-char-face
-     ((t (:inherit ace-jump-face-foreground :height 3.0)))))))
+(use-package ace-window
+  :config
+  (global-set-key (kbd "M-o") 'ace-window)
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
 
-  (use-package avy
-    :bind
-    ("M-s" . avy-goto-word-1)) ;; changed from char as per jcs
 #+END_SRC
 * Completion Framework Ivy
 #+BEGIN_SRC emacs-lisp
   (use-package counsel
     :bind
-    (("M-y" . counsel-yank-pop)
+    (("M-x" . counsel-M-x)
+     ("M-y" . counsel-yank-pop)
      :map ivy-minibuffer-map
-     ("M-y" . ivy-next-line)))
+     ("M-y" . ivy-next-line)
+     ("C-x C-f" . counsel-find-file))
+    :config       (define-key read-expression-map (kbd "C-r") 'counsel-expression-history))
 
   (use-package ivy
     :diminish (ivy-mode)
-    :bind (("C-x b" . ivy-switch-buffer))
+    :bind (("C-x b" . ivy-switch-buffer)
+             ("C-c C-r" . ivy-resume))
     :config
     (ivy-mode 1)
     (setq ivy-use-virtual-buffers t)
@@ -970,16 +971,9 @@
 
   (use-package swiper
     :bind (("C-s" . swiper-isearch)
-       ("C-r" . swiper-isearch)
-       ("C-c C-r" . ivy-resume)
-       ("M-x" . counsel-M-x)
-       ("C-x C-f" . counsel-find-file))
+             ("C-r" . swiper-isearch))
     :config
-    (progn
-      (ivy-mode 1)
-      (setq ivy-use-virtual-buffers t)
-      (setq ivy-display-style 'fancy)
-      (define-key read-expression-map (kbd "C-r") 'counsel-expression-history)))
+    (ivy-mode 1))
 #+END_SRC
 * GPG
 #+BEGIN_SRC emacs-lisp
@@ -1034,6 +1028,7 @@
     (org-display-inline-images t t))
   (global-set-key (kbd "C-c C-x C v")
           'do-org-show-all-inline-images)
+
   (use-package ob-restclient)
   (use-package ob-ipython)
   (use-package ob-async
@@ -1057,6 +1052,7 @@
     org-babel-clojure-nrepl-timeout nil
     org-export-allow-bind-keywords t
     org-confirm-babel-evaluate       t)
+
   (org-defkey org-mode-map "\C-x\C-e" 'cider-eval-last-sexp)
   (org-defkey org-mode-map "\C-c\C-d" 'cider-doc))
 
@@ -1064,7 +1060,6 @@
          ;; :init (load-library "~/.gcal.el.gpg")
          ;; :config (setq org-gcal-file-alist '(("maximoiann@gmail.com" .  "~/sync/orgfiles/personal_cal.org")
                              ;; ("ian@crowd.br.com" . "~/sync/orgfiles/work_cal.org"))))
-
   ;; organize journal confs after
    (load (expand-file-name (concat user-emacs-directory "sensitive/journal.el")))
    (use-package org-journal
@@ -1124,7 +1119,6 @@
              (setq fci-rule-color "darkblue")))
          (add-hook 'org-mode-hook 'turn-on-auto-fill)))
 
-
 #+END_SRC
 ** Alert
 #+BEGIN_SRC emacs-lisp
@@ -1152,7 +1146,6 @@
 (use-package org-re-reveal
   :init (setq org-re-reveal-root "https://cdn.jsdelivr.net/reveal.js/latest"
           org-reveal-mathjax t))
-
 #+END_SRC
 ** aaa
 #+BEGIN_SRC emacs-lisp
@@ -1182,10 +1175,10 @@
        (setq dashboard-startup-banner 'logo)
        (setq dashboard-set-navigator t)
        (setq dashboard-items '((recents  . 5)
-                   (bookmarks . 5)
-                   (projects . 5)
-                   (agenda . 5)
-                   (registers . 5)))))
+           (bookmarks . 5)
+           (projects . 5)
+           (agenda . 5)
+           (registers . 5)))))
 #+END_SRC
 * Backup
 
@@ -1198,7 +1191,7 @@
  kept-new-versions 6
  kept-old-versions 2
  version-control 1)
-                    ; use versioned backups
+            ; use versioned backups
 #+END_SRC
 * Yasnippet
 #+BEGIN_SRC emacs-lisp
@@ -1253,14 +1246,9 @@ narrowed."
 * Which key
 #+BEGIN_SRC emacs-lisp
 (use-package which-key
-         :ensure t
          :config
          (which-key-mode))
 #+END_SRC
-
-#+RESULTS:
-: t
-
 * Autocomplete
 #+BEGIN_SRC emacs-lisp  :tangle no
 (use-package auto-complete
@@ -1387,12 +1375,13 @@ narrowed."
     :config
     (add-hook 'magit-mode-hook 'turn-on-magit-gitflow))
 
-(use-package git-gutter
-  :ensure t
-  :init
-  (global-git-gutter-mode +1))
+(use-package magit-gitflow)
 
-;; (use-package magit-gitflow)
+  (use-package git-gutter
+    :ensure t
+    :init
+    (global-git-gutter-mode +1))
+
     ;; Use evil keybindings within magit
   ;  (use-package evil-magit
   ;    :ensure t
@@ -1406,33 +1395,32 @@ narrowed."
   ;    (evil-define-key 'normal git-rebase-mode-map
   ;      "l" 'git-rebase-show-commit))
 #+END_SRC
-* COMMENT PDF Tools
+
+* PDF Tools
 #+BEGIN_SRC emacs-lisp
-;; (use-package pdf-tools
-;;   :ensure t
-;;   :pin manual
-;;   :config
-;;   ;; initialise
-;;   (pdf-tools-install)
-;;   ;; open pdfs scaled to fit page
-;;   (setq-default pdf-view-display-size 'fit-page)
-;;   ;; automatically annotate highlights
-;;   (setq pdf-annot-activate-created-annotations t)
-;;   ;; use normal isearch
-;;   (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
-;;   ;; turn off cua so copy works
-;;   (add-hook 'pdf-view-mode-hook (lambda () (cua-mode 0)))
-;;   ;; more fine-grained zooming
-;;   (setq pdf-view-resize-factor 1.1)
-;;   ;; keyboard shortcuts
-;;   (define-key pdf-view-mode-map (kbd "h") 'pdf-annot-add-highlight-markup-annotation)
-;;   (define-key pdf-view-mode-map (kbd "t") 'pdf-annot-add-text-annotation)
-;;   (define-key pdf-view-mode-map (kbd "D") 'pdf-annot-delete))
+(when  (not (eq system-type 'darwin))
+  (use-package pdf-tools
+    :pin manual
+    :config
+    ;; initialise
+    (pdf-tools-install)
+    ;; open pdfs scaled to fit page
+    (setq-default pdf-view-display-size 'fit-page)
+    ;; automatically annotate highlights
+    (setq pdf-annot-activate-created-annotations t)
+    ;; use normal isearch
+    (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
+    ;; turn off cua so copy works
+    (add-hook 'pdf-view-mode-hook (lambda () (cua-mode 0)))
+    ;; more fine-grained zooming
+    (setq pdf-view-resize-factor 1.1)
+    ;; keyboard shortcuts
+    (define-key pdf-view-mode-map (kbd "h") 'pdf-annot-add-highlight-markup-annotation)
+    (define-key pdf-view-mode-map (kbd "t") 'pdf-annot-add-text-annotation)
+    (define-key pdf-view-mode-map (kbd "D") 'pdf-annot-delete))
 
-;; (use-package org-pdfview
-;; :ensure t)
-
-
+(use-package org-pdfview
+  :ensure t))
 #+END_SRC
 * Projectile
 #+BEGIN_SRC emacs-lisp
@@ -1473,9 +1461,6 @@ narrowed."
         (ibuffer-auto-mode 1)
         (ibuffer-switch-to-saved-filter-groups "default")))
 
-;; don't show these
-                    ;(add-to-list 'ibuffer-never-show-predicates "zowie")
-;; Don't show filter groups if there are no buffers in that group
 (setq ibuffer-show-empty-filter-groups nil)
 
 ;; Don't ask for confirmation to delete marked buffers
