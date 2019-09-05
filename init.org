@@ -10,10 +10,10 @@
      "If the current buffer is 'init.org' the code-blocks are
      tangled, and the tangled file is compiled."
      (when (equal (buffer-file-name)
-	   (expand-file-name (concat user-emacs-directory "init.org")))
+           (expand-file-name (concat user-emacs-directory "init.org")))
        ;; Avoid running hooks when tangling.
        (let ((prog-mode-hook nil))
-	 (org-babel-tangle)
+         (org-babel-tangle)
        ;   (byte-compile-file (concat user-emacs-directory "init.el"))
       )))
 
@@ -42,11 +42,11 @@
   ;;;; Packaging
   (setq package-enable-at-startup nil)
   (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
-	       ("marmalade" . "https://marmalade-repo.org/packages/")
-	       ;;("melpa-stable" . "https://stable.melpa.org/packages/")
-	       ("tromey" . "http://tromey.com/elpa/")
-	       ("melpa" . "https://melpa.org/packages/")
-	       ("org" . "https://orgmode.org/elpa/")))
+               ("marmalade" . "https://marmalade-repo.org/packages/")
+               ;;("melpa-stable" . "https://stable.melpa.org/packages/")
+               ("tromey" . "http://tromey.com/elpa/")
+               ("melpa" . "https://melpa.org/packages/")
+               ("org" . "https://orgmode.org/elpa/")))
 
   (package-initialize)
 
@@ -78,13 +78,14 @@
   ;; Check the system
   (when (eq system-type 'darwin)
     (setq ;interprogram-cut-function 'copy-to-osx
-	    ;interprogram-paste-function 'paste-from-osx
-	    mac-emulate-three-button-mouse nil
-	    mac-option-modifier 'command
-	    mac-command-modifier 'meta
-	    mac-right-command-modifier 'meta
-	    mac-right-option-modifier 'control
-	    ;mac-option-key-is-control t
+            ;interprogram-paste-function 'paste-from-osx
+            mac-emulate-three-button-mouse nil
+            mac-option-modifier 'command
+            mac-command-modifier 'meta
+            mac-right-command-modifier 'meta
+            mac-right-option-modifier 'control
+            exec-path (append exec-path '("/usr/local/bin"))
+            ;mac-option-key-is-control t
 ))
 
 #+END_SRC
@@ -112,14 +113,14 @@
 
 (use-package smooth-scrolling
   :config (smooth-scrolling-mode 1))
-	    ; expand the marked region in semantic increments (negative prefix to reduce region)
-		    ; expand the marked region in semantic increments (negative prefix to reduce region)
+            ; expand the marked region in semantic increments (negative prefix to reduce region)
+                    ; expand the marked region in semantic increments (negative prefix to reduce region)
 (use-package expand-region
     :ensure t
     :config
     (global-set-key (kbd "C-=") 'er/expand-region))
 
-		    ; deletes all the whitespace when you hit backspace or delete
+                    ; deletes all the whitespace when you hit backspace or delete
 (use-package hungry-delete
   :ensure t
   :config
@@ -385,8 +386,8 @@
 #+BEGIN_src emacs-lisp
 (use-package slime
   :hook ((slime-mode . smartparens-strict-mode)
-	 (slime-mode . rainbow-parens-mode)
-	 (slime-mode . highlight-parentheses-mode))
+         (slime-mode . rainbow-parens-mode)
+         (slime-mode . highlight-parentheses-mode))
   :mode
   ("\\.lisp$" . slime-mode)
   :init
@@ -425,10 +426,10 @@
 (defun ielm-auto-complete ()
   "Enables `auto-complete' support in \\[ielm]."
   (setq ac-sources '(ac-source-functions
-	     ac-source-variables
-	     ac-source-features
-	     ac-source-symbols
-	     ac-source-words-in-same-mode-buffers))
+             ac-source-variables
+             ac-source-features
+             ac-source-symbols
+             ac-source-words-in-same-mode-buffers))
   (auto-complete-mode 1))
 
 (defun ielm/clear-repl ()
@@ -446,13 +447,13 @@
 
 (use-package clojure-mode
   :hook ((clojure-mode . aggressive-indent-mode)
-	 (clojure-mode . smartparens-strict-mode)
-	 (clojure-mode . subword-mode)
-	 (clojure-mode . clojure-mode-extra-font-locking)
-	 (clojure-mode . cider-mode)
-	 (clojure-mode . clj-refactor-mode)
-	 (clojure-mode . rainbow-delimiters-mode)
-	 (clojure-mode . highlight-parentheses-mode))
+         (clojure-mode . smartparens-strict-mode)
+         (clojure-mode . subword-mode)
+         (clojure-mode . clojure-mode-extra-font-locking)
+         (clojure-mode . cider-mode)
+         (clojure-mode . clj-refactor-mode)
+         (clojure-mode . rainbow-delimiters-mode)
+         (clojure-mode . highlight-parentheses-mode))
   :config
   (add-to-list 'auto-mode-alist '("\\.edn$" . clojure-mode))
   (add-to-list 'auto-mode-alist '("\\.boot$" . clojure-mode))
@@ -463,19 +464,19 @@
   (dolist (checker '(clj-kondo-clj clj-kondo-cljs clj-kondo-cljc clj-kondo-edn))
     (setq flycheck-checkers (cons checker (delq checker flycheck-checkers))))
   (dolist (checkers '((clj-kondo-clj . clojure-joker)
-	  (clj-kondo-cljs . clojurescript-joker)
-	  (clj-kondo-cljc . clojure-joker)
-	  (clj-kondo-edn . edn-joker)))
+          (clj-kondo-cljs . clojurescript-joker)
+          (clj-kondo-cljc . clojure-joker)
+          (clj-kondo-edn . edn-joker)))
     (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers)))))
 
 (use-package cider
   :hook ((cider-repl-mode . subword-mode)
-	 (cider-repl-mode . company-mode)
-	 (cider-repl-mode . smartparens-strict-mode)
-	 (cider-mode . smartparens-strict-mode)
-	 (cider-mode . rainbow-delimiters-mode)
-	 (cider-mode . highlight-parentheses-mode)
-	 (cider-mode . cider-company-enable-fuzzy-completion))
+         (cider-repl-mode . company-mode)
+         (cider-repl-mode . smartparens-strict-mode)
+         (cider-mode . smartparens-strict-mode)
+         (cider-mode . rainbow-delimiters-mode)
+         (cider-mode . highlight-parentheses-mode)
+         (cider-mode . cider-company-enable-fuzzy-completion))
   :config
   (eval-after-load 'cider #'emidje-enable-nrepl-middleware)
   (define-key cider-mode-map (kbd "C-c C-d") 'ac-cider-popup-doc)
@@ -503,9 +504,9 @@
 (use-package clj-refactor
   :config (progn (setq cljr-suppress-middleware-warnings t)
      (add-hook 'clojure-mode-hook (lambda ()
-	    (clj-refactor-mode 1)
-	    (yas-minor-mode 1)
-	    (cljr-add-keybindings-with-prefix "C-c C-m")))))
+            (clj-refactor-mode 1)
+            (yas-minor-mode 1)
+            (cljr-add-keybindings-with-prefix "C-c C-m")))))
 
 (use-package emidje
   :config (eval-after-load 'cider #'emidje-setup))
@@ -568,7 +569,7 @@
 (use-package python
   :mode ("\\.py" . python-mode)
   :config (setq python-shell-interpreter "python3"
-	py-python-command "python3"))
+        py-python-command "python3"))
 
 (use-package elpy
   :hook ((python-mode . elpy-mode)
@@ -576,14 +577,14 @@
   :custom
   (elpy-rpc-backend "jedi")
   :bind (:map elpy-mode-map
-	  ("M-." . elpy-goto-definition)
-	  ("M-," . pop-tag-mark)
-	  ("<M-left>" . nil)
-	  ("<M-right>" . nil)
-	  ("<M-S-left>" . elpy-nav-indent-shift-left)
-	  ("<M-S-right>" . elpy-nav-indent-shift-right)
-	  ("C-c i" . elpy-autopep8-fix-code)
-	  ("C-c C-d" . elpy-doc)))
+          ("M-." . elpy-goto-definition)
+          ("M-," . pop-tag-mark)
+          ("<M-left>" . nil)
+          ("<M-right>" . nil)
+          ("<M-S-left>" . elpy-nav-indent-shift-left)
+          ("<M-S-right>" . elpy-nav-indent-shift-right)
+          ("C-c i" . elpy-autopep8-fix-code)
+          ("C-c C-d" . elpy-doc)))
 
 (use-package pip-requirements
   :hook ((pip-requirements-mode . #'pip-requirements-auto-complete-setup)))
@@ -632,14 +633,14 @@
       ;; https://github.com/racer-rust/emacs-racer
       (use-package racer
     :hook ((rust-mode . racer-mode)
-	   (racer-mode . eldoc-mode))
+           (racer-mode . eldoc-mode))
     :config
     (progn
       ;; set racer rust source path environment variable
       (setq racer-rust-src-path "/home/ianffcs/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src")
       (defun my-racer-mode-hook ()
-	(set (make-local-variable 'company-backends)
-	 '((company-capf company-files))))
+        (set (make-local-variable 'company-backends)
+         '((company-capf company-files))))
        (define-key rust-mode-map (kbd "TAB") #'company-indent-or-complete-common))
 
       ;; enable company and eldoc minor modes in rust-mode
@@ -653,9 +654,9 @@
 
       ;; format rust buffers on save using rustfmt
       (add-hook 'before-save-hook
-	(lambda ()
-	  (when (eq major-mode 'rust-mode)
-	    (rust-format-buffer)))))
+        (lambda ()
+          (when (eq major-mode 'rust-mode)
+            (rust-format-buffer)))))
 
 #+END_SRC
 *** Haskell
@@ -679,7 +680,7 @@
        (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
        (add-to-list 'auto-mode-alist '("\\.vue?\\'" . web-mode))
        (setq web-mode-engines-alist
-	 '(("django"    . "\\.html\\'")))
+         '(("django"    . "\\.html\\'")))
        (setq web-mode-ac-sources-alist
        '(("css" . (ac-source-css-property))
        ("vue" . (ac-source-words-in-buffer ac-source-abbrev))
@@ -768,16 +769,16 @@
   :after js2-mode
   :hook ((js2-mode . indium-interaction-mode))
   :bind (:map indium-interaction-mode-map
-	  ("C-x C-e" . indium-eval-last-node)
-	  ("C-<f6>" . vs/stop-indium-debug)
-	  ("S-<f6>" . indium-connect)
-	  ("<f6>" . indium-launch))
+          ("C-x C-e" . indium-eval-last-node)
+          ("C-<f6>" . vs/stop-indium-debug)
+          ("S-<f6>" . indium-connect)
+          ("<f6>" . indium-launch))
   :config (delight indium-interaction-mode))
 
 (use-package mocha
   :init (setq mocha-reporter "spec")
   :bind (:map js2-mode-map
-	  (("C-c t" . mocha-test-project))))
+          (("C-c t" . mocha-test-project))))
 
 (use-package json-mode
   :mode
@@ -856,12 +857,12 @@
     (let ((plantuml-target (concat plantuml-directory "plantuml.jar")))
       (if (not (file-exists-p plantuml-target))
       (progn (message "Downloading plantuml.jar")
-	 (shell-command
-	  (mapconcat 'identity (list "wget" plantuml-link "-O" plantuml-target) " "))
-	 (kill-buffer "*Shell Command Output*")))
+         (shell-command
+          (mapconcat 'identity (list "wget" plantuml-link "-O" plantuml-target) " "))
+         (kill-buffer "*Shell Command Output*")))
       (setq org-plantuml-jar-path plantuml-target
-	plantuml-jar-path plantuml-target
-	plantuml-output-type "svg"))))
+        plantuml-jar-path plantuml-target
+        plantuml-output-type "svg"))))
 
 (use-package flycheck-plantuml
   :config (flycheck-plantuml-setup))
@@ -878,40 +879,40 @@
     :config
     (progn
       (setq treemacs-collapse-dirs   (if (executable-find "python") 3 0)
-	treemacs-deferred-git-apply-delay      0.5
-	treemacs-display-in-side-window        t
-	treemacs-file-event-delay              5000
-	treemacs-file-follow-delay             0.2
-	treemacs-follow-after-init             t
-	treemacs-git-command-pipe              ""
-	treemacs-goto-tag-strategy             'refetch-index
-	treemacs-indentation                   2
-	treemacs-indentation-string            " "
-	treemacs-is-never-other-window         nil
-	treemacs-max-git-entries               5000
-	treemacs-no-png-images                 nil
-	treemacs-no-delete-other-windows       t
-	treemacs-project-follow-cleanup        nil
-	treemacs-persist-file                  (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
-	treemacs-recenter-distance             0.1
-	treemacs-recenter-after-file-follow    nil
-	treemacs-recenter-after-tag-follow     nil
-	treemacs-recenter-after-project-jump   'always
-	treemacs-recenter-after-project-expand 'on-distance
-	treemacs-show-cursor                   nil
-	treemacs-show-hidden-files             t
-	treemacs-silent-filewatch              nil
-	treemacs-silent-refresh                nil
-	treemacs-sorting                       'alphabetic-desc
-	treemacs-space-between-root-nodes      t
-	treemacs-tag-follow-cleanup            t
-	treemacs-tag-follow-delay              1.5
-	treemacs-width                         35)
+        treemacs-deferred-git-apply-delay      0.5
+        treemacs-display-in-side-window        t
+        treemacs-file-event-delay              5000
+        treemacs-file-follow-delay             0.2
+        treemacs-follow-after-init             t
+        treemacs-git-command-pipe              ""
+        treemacs-goto-tag-strategy             'refetch-index
+        treemacs-indentation                   2
+        treemacs-indentation-string            " "
+        treemacs-is-never-other-window         nil
+        treemacs-max-git-entries               5000
+        treemacs-no-png-images                 nil
+        treemacs-no-delete-other-windows       t
+        treemacs-project-follow-cleanup        nil
+        treemacs-persist-file                  (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+        treemacs-recenter-distance             0.1
+        treemacs-recenter-after-file-follow    nil
+        treemacs-recenter-after-tag-follow     nil
+        treemacs-recenter-after-project-jump   'always
+        treemacs-recenter-after-project-expand 'on-distance
+        treemacs-show-cursor                   nil
+        treemacs-show-hidden-files             t
+        treemacs-silent-filewatch              nil
+        treemacs-silent-refresh                nil
+        treemacs-sorting                       'alphabetic-desc
+        treemacs-space-between-root-nodes      t
+        treemacs-tag-follow-cleanup            t
+        treemacs-tag-follow-delay              1.5
+        treemacs-width                         35)
       (treemacs-follow-mode t)
       (treemacs-filewatch-mode t)
       (treemacs-fringe-indicator-mode t)
       (pcase (cons (not (null (executable-find "git")))
-	   (not (null (executable-find "python3"))))
+           (not (null (executable-find "python3"))))
     (`(t . t)
      (treemacs-git-mode 'deferred))
     (`(t . _)
@@ -972,7 +973,7 @@
   (use-package ivy
     :diminish (ivy-mode)
     :bind (("C-x b" . ivy-switch-buffer)
-	     ("C-c C-r" . ivy-resume))
+             ("C-c C-r" . ivy-resume))
     :config
     (ivy-mode 1)
     (setq ivy-use-virtual-buffers t)
@@ -981,7 +982,7 @@
 
   (use-package swiper
     :bind (("C-s" . swiper-isearch)
-	     ("C-r" . swiper-isearch))
+             ("C-r" . swiper-isearch))
     :config
     (ivy-mode 1))
 #+END_SRC
@@ -1037,7 +1038,7 @@
     (interactive)
     (org-display-inline-images t t))
   (global-set-key (kbd "C-c C-x C v")
-	  'do-org-show-all-inline-images)
+          'do-org-show-all-inline-images)
 
   (use-package ob-restclient)
   (use-package ob-ipython)
@@ -1047,17 +1048,17 @@
   (org-babel-do-load-languages
        'org-babel-load-languages
        (org-babel-do-load-languages
-	'org-babel-load-languages
-	(append org-babel-load-languages
-	    '((emacs-lisp . t)
-	      (clojure . t)
-	      (python . t)
-	      (restclient . t)
-	      (js . t)
-	      (shell . t)
-	      (plantuml . t)
-	      (sql . t)
-	      (ipython . t)))))
+        'org-babel-load-languages
+        (append org-babel-load-languages
+            '((emacs-lisp . t)
+              (clojure . t)
+              (python . t)
+              (restclient . t)
+              (js . t)
+              (shell . t)
+              (plantuml . t)
+              (sql . t)
+              (ipython . t)))))
   (setq org-hide-emphasis-markers t
     org-babel-clojure-nrepl-timeout nil
     org-export-allow-bind-keywords t
@@ -1067,9 +1068,9 @@
   (org-defkey org-mode-map "\C-c\C-d" 'cider-doc))
 
     ;; (use-package org-gcal
-	 ;; :init (load-library "~/.gcal.el.gpg")
-	 ;; :config (setq org-gcal-file-alist '(("maximoiann@gmail.com" .  "~/sync/orgfiles/personal_cal.org")
-			     ;; ("ian@crowd.br.com" . "~/sync/orgfiles/work_cal.org"))))
+         ;; :init (load-library "~/.gcal.el.gpg")
+         ;; :config (setq org-gcal-file-alist '(("maximoiann@gmail.com" .  "~/sync/orgfiles/personal_cal.org")
+                             ;; ("ian@crowd.br.com" . "~/sync/orgfiles/work_cal.org"))))
   ;; organize journal confs after
    (load (expand-file-name (concat user-emacs-directory "sensitive/journal.el")))
    (use-package org-journal
@@ -1090,24 +1091,24 @@
    (setq org-agenda-include-diary t
       calendar-week-start-day 0
       calendar-day-name-array ["Domingo" "Segunda" "Terça" "Quarta"
-		   "Quinta" "Sexta" "Sábado"]
+                   "Quinta" "Sexta" "Sábado"]
       calendar-month-name-array ["Janeiro" "Fevereiro" "Março" "Abril"
-		     "Maio" "Junho" "Julho" "Agosto"
-		     "Setembro" "Outubro" "Novembro" "Dezembro"])
+                     "Maio" "Junho" "Julho" "Agosto"
+                     "Setembro" "Outubro" "Novembro" "Dezembro"])
 
    (add-to-list 'org-agenda-custom-commands
-	 '("Y" "Agenda anual de aniversários e feriados" agenda "Visão Anual"
-	   ((org-agenda-span 365)
-	    (org-agenda-filter-by-category 'Aniversário)
-	    (org-agenda-time-grid nil))))
+         '("Y" "Agenda anual de aniversários e feriados" agenda "Visão Anual"
+           ((org-agenda-span 365)
+            (org-agenda-filter-by-category 'Aniversário)
+            (org-agenda-time-grid nil))))
    (add-to-list 'org-agenda-custom-commands
-	 '("1" "Agenda mensal" agenda "Visão Mensal"
-	   ((org-agenda-span 31)
-	    (org-agenda-time-grid nil))))
+         '("1" "Agenda mensal" agenda "Visão Mensal"
+           ((org-agenda-span 31)
+            (org-agenda-time-grid nil))))
    (add-to-list 'org-agenda-custom-commands
-	 '("7" "Agenda dos próximos sete dias" agenda "Visão de Sete Dias"
-	   ((org-agenda-span 7)
-	    (org-agenda-time-grid nil))))
+         '("7" "Agenda dos próximos sete dias" agenda "Visão de Sete Dias"
+           ((org-agenda-span 7)
+            (org-agenda-time-grid nil))))
 
   (load (expand-file-name (concat user-emacs-directory "elisp/brazil-holidays.el")))
   (setq calendar-holidays holiday-brazil-all)
@@ -1123,11 +1124,11 @@
 
 (use-package fill-column-indicator
    :config (progn
-	 (add-hook 'org-mode-hook
-	       (lambda ()
-	     (setq fci-rule-width 1)
-	     (setq fci-rule-color "darkblue")))
-	 (add-hook 'org-mode-hook 'turn-on-auto-fill)))
+         (add-hook 'org-mode-hook
+               (lambda ()
+             (setq fci-rule-width 1)
+             (setq fci-rule-color "darkblue")))
+         (add-hook 'org-mode-hook 'turn-on-auto-fill)))
 
 #+END_SRC
 ** Alert
@@ -1135,8 +1136,8 @@
 (use-package org-alert
  :config (progn
        (setq alert-default-style          'libnotify
-	 org-alert-notification-title "*org-mode*"
-	 org-alert-interval           21600)
+         org-alert-notification-title "*org-mode*"
+         org-alert-interval           21600)
        (org-alert-enable)))
 #+END_SRC
 ** Calfw
@@ -1145,17 +1146,17 @@
 (use-package calfw-org
  :requires calfw
  :config (progn
-	 (setq cfw:org-overwrite-default-keybinding t)
-	 (global-set-key (kbd "<f6>")
-		 (lambda ()
-		   (interactive)
-		   (cfw:open-org-calendar)))))
+         (setq cfw:org-overwrite-default-keybinding t)
+         (global-set-key (kbd "<f6>")
+                 (lambda ()
+                   (interactive)
+                   (cfw:open-org-calendar)))))
 #+END_SRC
 ** Org Reveal.js
 #+BEGIN_SRC emacs-lisp
 (use-package org-re-reveal
   :init (setq org-re-reveal-root "https://cdn.jsdelivr.net/reveal.js/latest"
-	  org-reveal-mathjax t))
+          org-reveal-mathjax t))
 #+END_SRC
 ** aaa
 #+BEGIN_SRC emacs-lisp
@@ -1185,10 +1186,10 @@
        (setq dashboard-startup-banner 'logo)
        (setq dashboard-set-navigator t)
        (setq dashboard-items '((recents  . 5)
-	   (bookmarks . 5)
-	   (projects . 5)
-	   (agenda . 5)
-	   (registers . 5)))))
+           (bookmarks . 5)
+           (projects . 5)
+           (agenda . 5)
+           (registers . 5)))))
 #+END_SRC
 * Backup
 
@@ -1201,7 +1202,7 @@
  kept-new-versions 6
  kept-old-versions 2
  version-control 1)
-	    ; use versioned backups
+            ; use versioned backups
 #+END_SRC
 * Yasnippet
 #+BEGIN_SRC emacs-lisp
@@ -1256,24 +1257,24 @@ narrowed."
 * Which key
 #+BEGIN_SRC emacs-lisp
 (use-package which-key
-	 :config
-	 (which-key-mode))
+         :config
+         (which-key-mode))
 #+END_SRC
 * Autocomplete
 #+BEGIN_SRC emacs-lisp  :tangle no
 (use-package auto-complete
-	 :ensure t
-	 :init
-	 (progn
-	   (ac-config-default)
-	   (global-auto-complete-mode t)))
+         :ensure t
+         :init
+         (progn
+           (ac-config-default)
+           (global-auto-complete-mode t)))
 #+END_SRC
 * Undo Tree
 #+BEGIN_SRC emacs-lisp
   (use-package undo-tree
-	   :ensure t
-	   :init
-	   (setq global-undo-tree-mode 1))
+           :ensure t
+           :init
+           (setq global-undo-tree-mode 1))
 #+END_SRC
 * Evil
 #+BEGIN_SRC emacs-lisp
@@ -1297,7 +1298,7 @@ narrowed."
   (use-package better-shell
       :ensure t
       :bind (("C-\"" . better-shell-shell)
-	 ("C-:" . better-shell-remote-open)))
+         ("C-:" . better-shell-remote-open)))
 
   (use-package shell
     :ensure nil
@@ -1336,7 +1337,7 @@ narrowed."
     (use-package company-shell
       :after company
       :init (cl-pushnew '(company-shell company-shell-env company-fish-shell)
-	    company-backends))
+            company-backends))
 
     ;; Bash completion
     (use-package bash-completion
@@ -1348,10 +1349,10 @@ narrowed."
       :init
       (setenv "TERM" "xterm-256color")
       (setq comint-output-filter-functions
-	(remove 'ansi-color-process-output comint-output-filter-functions))
+        (remove 'ansi-color-process-output comint-output-filter-functions))
 
       (add-hook 'shell-mode-hook
-	(lambda () (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t)))))
+        (lambda () (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t)))))
 
 #+END_SRC
 * Keyfreq
@@ -1369,7 +1370,7 @@ narrowed."
 (setq user-full-name "Ian Fernandez"
       user-mail-address "ianffcs@tutanota.com")
 (global-set-key (kbd "<menu>")
-	  (lambda () (interactive) (find-file "~/.emacs.d/init.org")))
+          (lambda () (interactive) (find-file "~/.emacs.d/init.org")))
   ;;--------------------------------------------------------------------------
 #+END_SRC
 
@@ -1446,30 +1447,30 @@ narrowed."
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 (setq ibuffer-saved-filter-groups
       (quote (("default"
-	   ("dired" (mode . dired-mode))
-	   ("org" (name . "^.*org$"))
-	   ("magit" (mode . magit-mode))
-	   ("IRC" (or (mode . circe-channel-mode) (mode . circe-server-mode)))
-	   ("web" (or (mode . web-mode) (mode . js2-mode)))
-	   ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
-	   ("mu4e" (or
+           ("dired" (mode . dired-mode))
+           ("org" (name . "^.*org$"))
+           ("magit" (mode . magit-mode))
+           ("IRC" (or (mode . circe-channel-mode) (mode . circe-server-mode)))
+           ("web" (or (mode . web-mode) (mode . js2-mode)))
+           ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
+           ("mu4e" (or
 
-	    (mode . mu4e-compose-mode)
-	    (name . "\*mu4e\*")
-	    ))
-	   ("programming" (or
-		   (mode . clojure-mode)
-		   (mode . clojurescript-mode)
-		   (mode . python-mode)
-		   (mode . c++-mode)))
-	   ("emacs" (or
-	     (name . "^\\*scratch\\*$")
-	     (name . "^\\*Messages\\*$")))
-	   ))))
+            (mode . mu4e-compose-mode)
+            (name . "\*mu4e\*")
+            ))
+           ("programming" (or
+                   (mode . clojure-mode)
+                   (mode . clojurescript-mode)
+                   (mode . python-mode)
+                   (mode . c++-mode)))
+           ("emacs" (or
+             (name . "^\\*scratch\\*$")
+             (name . "^\\*Messages\\*$")))
+           ))))
 (add-hook 'ibuffer-mode-hook
       (lambda ()
-	(ibuffer-auto-mode 1)
-	(ibuffer-switch-to-saved-filter-groups "default")))
+        (ibuffer-auto-mode 1)
+        (ibuffer-switch-to-saved-filter-groups "default")))
 
 (setq ibuffer-show-empty-filter-groups nil)
 
