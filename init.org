@@ -970,6 +970,8 @@
      ("C-x C-f" . counsel-find-file))
     :config       (define-key read-expression-map (kbd "C-r") 'counsel-expression-history))
 
+  (use-package smex)
+
   (use-package ivy
     :diminish (ivy-mode)
     :bind (("C-x b" . ivy-switch-buffer)
@@ -986,6 +988,10 @@
     :config
     (ivy-mode 1))
 #+END_SRC
+
+#+RESULTS:
+: swiper-isearch
+
 * GPG
 #+BEGIN_SRC emacs-lisp
   (setenv "GPG_AGENT_INFO" nil)
