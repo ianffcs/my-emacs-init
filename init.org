@@ -173,10 +173,6 @@
   :ensure t
   :config (which-key-mode))
 
-(use-package wakatime-mode
-  :config (global-wakatime-mode))
-
-
 (defalias 'yes-or-no-p 'y-or-n-p)
 ;; before save clears whitespace
 (add-hook 'before-save-hook 'whitespace-cleanup)
@@ -312,6 +308,15 @@
 (use-package highlight-sexp)
 
   #+END_SRC
+* Autocomplete
+#+BEGIN_SRC emacs-lisp  :tangle no
+(use-package auto-complete
+         :ensure t
+         :init
+         (progn
+           (ac-config-default)
+           (global-auto-complete-mode t)))
+#+END_SRC
 * Langs
 ** General
 *** Highlight Numbers
@@ -1266,15 +1271,6 @@ narrowed."
          :config
          (which-key-mode))
 #+END_SRC
-* Autocomplete
-#+BEGIN_SRC emacs-lisp  :tangle no
-(use-package auto-complete
-         :ensure t
-         :init
-         (progn
-           (ac-config-default)
-           (global-auto-complete-mode t)))
-#+END_SRC
 * Undo Tree
 #+BEGIN_SRC emacs-lisp
   (use-package undo-tree
@@ -1282,7 +1278,7 @@ narrowed."
            :init
            (setq global-undo-tree-mode 1))
 #+END_SRC
-* Evil
+* COMMENT Evil
 #+BEGIN_SRC emacs-lisp
   ;; (use-package evil
     ;; :ensure t
@@ -1499,7 +1495,7 @@ narrowed."
 (require 'counsel-spotify)
 )
 #+END_SRC
-* EMMS with mpd
+* COMMENT EMMS with mpd
 #+BEGIN_SRC emacs-lisp
   ;; (use-package emms
   ;;   :ensure t
@@ -1574,7 +1570,7 @@ narrowed."
   :commands (telega)
   :defer t)
 #+END_SRC
-* Wakatime
+* COMMENT Wakatime
 #+BEGIN_SRC emacs-lisp
   (use-package wakatime-mode
     :ensure t
