@@ -84,13 +84,14 @@
             mac-command-modifier 'meta
             mac-right-command-modifier 'meta
             mac-right-option-modifier 'control
-            exec-path (append exec-path '("/usr/local/bin"))
+            exec-path (append exec-path '("/usr/local/bin"
+                                          "/Users/ianffcs/.nvm/versions/node/v10.16.3/bin/"))
             ;mac-option-key-is-control t
-))
+  ))
 
 #+END_SRC
 
-* Private
+* Pr≈ßivate
 #+BEGIN_SRC emacs-lisp
 (defconst private-dir (expand-file-name "private" user-emacs-directory))
 (defconst temp-dir (format "%s/cache" private-dir))
@@ -483,7 +484,7 @@
          (cider-mode . highlight-parentheses-mode)
          (cider-mode . cider-company-enable-fuzzy-completion))
   :config
-  (eval-after-load 'cider #'emidje-enable-nrepl-middleware)
+  ;(eval-after-load 'cider #'emidje-enable-nrepl-middleware)
   (define-key cider-mode-map (kbd "C-c C-d") 'ac-cider-popup-doc)
   (setq cider-repl-pop-to-buffer-on-connect 'display-only
     cider-repl-use-clojure-font-lock nil
@@ -513,8 +514,8 @@
             (yas-minor-mode 1)
             (cljr-add-keybindings-with-prefix "C-c C-m")))))
 
-(use-package emidje
-  :config (eval-after-load 'cider #'emidje-setup))
+;(use-package emidje
+ ; :config (eval-after-load 'cider #'emidje-setup))
 
 (use-package kaocha-runner
   :config
