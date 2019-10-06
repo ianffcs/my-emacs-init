@@ -59,6 +59,11 @@
 
   (setq use-package-always-ensure t)
 
+;; auto-package-update
+(use-package auto-package-update
+  :config
+  (auto-package-update-maybe)
+  (setq auto-package-update-delete-old-versions t))
 #+END_SRC
 * Custom
 #+BEGIN_SRC emacs-lisp
@@ -91,7 +96,11 @@
 
 #+END_SRC
 
-* Pr≈ßivate
+* Exec-path updates
+#+BEGIN_SRC emacs-lisp
+(setq exec-path (append exec-path '("/home/ianffcs/.nvm/versions/node/v12.10.0/bin")))
+#+END_SRC
+* Private
 #+BEGIN_SRC emacs-lisp
 (defconst private-dir (expand-file-name "private" user-emacs-directory))
 (defconst temp-dir (format "%s/cache" private-dir))
@@ -386,6 +395,10 @@
 *** Aggressive Indent
 #+BEGIN_SRC emacs-lisp
 (use-package aggressive-indent)
+#+END_SRC
+*** NVM
+#+BEGIN_SRC emacs-lisp
+(use-package nvm)
 #+END_SRC
 ** By Lang Configuration
 *** Clisp
