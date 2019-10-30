@@ -274,6 +274,9 @@
 #+BEGIN_SRC emacs-lisp
 (use-package undo-tree
   :ensure t
+  :bind (("C-x u" . undo-tree-visualize)
+         ("C-_" . undo)
+         ("M-_" . undo-tree-redo))
   :config ;; autosave the undo-tree history
   (setq global-undo-tree-mode 1
         undo-tree-history-directory-alist `((".*" . ,temporary-file-directory))
