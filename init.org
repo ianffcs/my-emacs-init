@@ -1060,6 +1060,14 @@
 #+BEGIN_SRC emacs-lisp
 (use-package geiser
   :ensure t
+  :hook ((geiser-repl-mode . subword-mode)
+         (geiser-repl-mode . company-mode)
+         (geiser-repl-mode . smartparens-strict-mode)
+         (geiser-repl-mode . rainbow-delimiters-mode)
+         (geiser-repl-mode . highlight-parentheses-mode)
+         (geiser-mode . smartparens-strict-mode)
+         (geiser-mode . rainbow-delimiters-mode)
+         (geiser-mode . highlight-parentheses-mode))
   :config (setq geiser-mode-start-repl-p t
                 geiser-active-implementations '(guile racket)))
 #+END_SRC
