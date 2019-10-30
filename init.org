@@ -1060,7 +1060,8 @@
 #+BEGIN_SRC emacs-lisp
 (use-package geiser
   :ensure t
-  :config (setq geiser-active-implementations '(guile racket)))
+  :config (setq geiser-mode-start-repl-p t
+                geiser-active-implementations '(guile racket)))
 #+END_SRC
 *** R
 #+begin_src emacs-lisp
