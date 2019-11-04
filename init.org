@@ -668,6 +668,9 @@
 
 (use-package clojure-mode-extra-font-locking)
 
+(use-package flycheck-clj-kondo
+  :ensure t)
+
 (use-package clojure-mode
   :hook ((clojure-mode . aggressive-indent-mode)
          (clojure-mode . smartparens-strict-mode)
