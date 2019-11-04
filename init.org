@@ -106,6 +106,7 @@
       (let ((proc (start-process "pbcopy" "*Messages*" "pbcopy")))
     (process-send-string proc text)
     (process-send-eof proc))))
+
   ;; Check the system
   (when (eq system-type 'darwin)
     (setq ;interprogram-cut-function 'copy-to-osx
@@ -115,13 +116,10 @@
             mac-command-modifier 'meta
             mac-right-command-modifier 'meta
             mac-right-option-modifier 'control
-            exec-path (append exec-path '("/usr/local/bin"
-                                          "/Users/ianffcs/.nvm/versions/node/v10.16.3/bin/"))
             ;mac-option-key-is-control t
   ))
 
 #+END_SRC
-
 * Linux specific settings
 #+BEGIN_SRC emacs-lisp
 (use-package exec-path-from-shell
@@ -680,19 +678,21 @@
          (clojure-mode . rainbow-delimiters-mode)
          (clojure-mode . highlight-parentheses-mode))
   :config
-  (add-to-list 'auto-mode-alist '("\\.edn$" . clojure-mode))
-  (add-to-list 'auto-mode-alist '("\\.boot$" . clojure-mode))
-  (add-to-list 'auto-mode-alist '("\\.cljs.*$" . clojure-mode))
-  (require 'flycheck-joker)
-  (require 'flycheck-clj-kondo)
-  (setq clojure-align-forms-automatically 1)
-  (dolist (checker '(clj-kondo-clj clj-kondo-cljs clj-kondo-cljc clj-kondo-edn))
-    (setq flycheck-checkers (cons checker (delq checker flycheck-checkers))))
-  (dolist (checkers '((clj-kondo-clj . clojure-joker)
-                      (clj-kondo-cljs . clojurescript-joker)
-                      (clj-kondo-cljc . clojure-joker)
-                      (clj-kondo-edn . edn-joker)))
-    (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers)))))
+  (progn
+    (add-to-list 'auto-mode-alist '("\\.edn$" . clojure-mode))
+    (add-to-list 'auto-mode-alist '("\\.boot$" . clojure-mode))
+    (add-to-list 'auto-mode-alist '("\\.cljs.*$" . clojure-mode))
+    (hack-local-variables)
+    (require 'flycheck-joker)
+    (require 'flycheck-clj-kondo)
+    (setq clojure-align-forms-automatically 1)
+    (dolist (checker '(clj-kondo-clj clj-kondo-cljs clj-kondo-cljc clj-kondo-edn))
+      (setq flycheck-checkers (cons checker (delq checker flycheck-checkers))))
+    (dolist (checkers '((clj-kondo-clj . clojure-joker)
+                        (clj-kondo-cljs . clojurescript-joker)
+                        (clj-kondo-cljc . clojure-joker)
+                        (clj-kondo-edn . edn-joker)))
+      (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers))))))
 
 (use-package cider
   :hook ((cider-repl-mode . subword-mode)
@@ -704,27 +704,29 @@
          (cider-mode . cider-company-enable-fuzzy-completion))
   :config
   ;(eval-after-load 'cider #'emidje-enable-nrepl-middleware)
-  (define-key cider-mode-map (kbd "C-c C-d") 'ac-cider-popup-doc)
-  (setq cider-repl-pop-to-buffer-on-connect 'display-only
-        cider-repl-use-clojure-font-lock nil
-        cider-annotate-completion-candidates t
-        cider-prompt-for-symbol nil
-        cider-repl-use-pretty-printing t
-        cider-repl-wrap-history t
-        cider-repl-pop-to-buffer-on-connect 'display-only
-        cider-repl-result-prefix ";; => "
-        cider-repl-display-in-current-window t
-        cider-repl-wrap-history t
-        cider-repl-use-pretty-printing 't
-        cider-pprint-fn 'puget
-        cider-print-options '(("print-color" "true"))
-        cider-repl-use-clojure-font-lock t
-        cider-auto-select-error-buffer nil
-        org-babel-clojure-backend 'cider
-        cider-eldoc-display-context-dependent-info t)
-  (eval-after-load 'cider #'emidje-enable-nrepl-middleware)
+  (progn
+    (define-key cider-mode-map (kbd "C-c C-d") 'ac-cider-popup-doc)
+     (setq cider-repl-pop-to-buffer-on-connect 'display-only
+           cider-repl-use-clojure-font-lock nil
+           cider-annotate-completion-candidates t
+           cider-prompt-for-symbol nil
+           cider-repl-use-pretty-printing t
+           cider-repl-wrap-history t
+           cider-repl-pop-to-buffer-on-connect 'display-only
+           cider-repl-result-prefix ";; => "
+           cider-repl-display-in-current-window t
+           cider-repl-wrap-history t
+           cider-repl-use-pretty-printing 't
+           cider-pprint-fn 'puget
+           cider-print-options '(("print-color" "true"))
+           cider-repl-use-clojure-font-lock t
+           cider-auto-select-error-buffer nil
+           org-babel-clojure-backend 'cider
+           cider-eldoc-display-context-dependent-info t)
+     (eval-after-load 'cider #'emidje-enable-nrepl-middleware))
      ;(setq-default emidje-load-facts-on-eval t)
-     )
+  )
+
 
 (use-package clj-refactor
   :config (progn (setq cljr-suppress-middleware-warnings t)
