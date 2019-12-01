@@ -3,7 +3,7 @@
 #+PROPERTY: header-args :tangle yes
 #+STARTUP: overview inlineimages
 * Meta
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :results none
   ;;;; Initialization
 
    (defun tangle-init ()
@@ -136,7 +136,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; (setq exec-path				    ;;
+;; (setq exec-path                  ;;
 ;;       (nconc exec-path (getenv "NODE_VERSION"))) ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -326,8 +326,6 @@
 (use-package mode-icons
   :config (mode-icons-mode))
 
-(global-prettify-symbols-mode)
-
 (use-package nyan-mode
   :ensure t
   :init
@@ -341,7 +339,7 @@
   :config
   (global-set-key (kbd "C-c p") 'parrot-rotate-prev-word-at-point)
   (global-set-key (kbd "C-c n") 'parrot-rotate-next-word-at-point)
-  (parrot-set-parrot-type 'thumbsup)
+  (parrot-set-parrot-type 'science)
   (parrot-mode)
   (add-hook 'before-save-hook 'parrot-start-animation))
 
@@ -373,7 +371,10 @@
 #+END_SRC
 ** Fonts
 #+BEGIN_SRC emacs-lisp
-  ;; (defconst my-default-font "-*-fixed-medium-r-normal-*-15-*-*-*-*-*-*-*")
+
+(global-prettify-symbols-mode)
+
+;; (defconst my-default-font "-*-fixed-medium-r-normal-*-15-*-*-*-*-*-*-*")
   ;; (defconst my-default-font "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*")
   ;; (defconst my-default-font "-b&h-lucidatypewriter-medium-r-normal-sans-14-*-*-*-*-*-iso8859-1")
   ;; (defconst my-default-font "FantasqueSansMono Nerd Font-10")
@@ -382,24 +383,83 @@
   ;;(defconst my-default-font "Dina-10")
   ;; (defconst my-default-font "Iosevka-9")
   ;; (defconst my-default-font "Terminus-10")
-  ;; (defconst my-default-font "Fira Code-10")
-  (defconst my-default-font "Hack-10")
+(defconst my-default-font "Fira Code-10")
+;; (defconst my-default-font "Hack-10")
+
+
+(defun fira-code-mode--make-alist (list)
+  "Generate prettify-symbols alist from LIST."
+  (let ((idx -1))
+    (mapcar
+     (lambda (s)
+       (setq idx (1+ idx))
+       (let* ((code (+ #Xe100 idx))
+          (width (string-width s))
+          (prefix ())
+          (suffix '(?\s (Br . Br)))
+          (n 1))
+     (while (< n width)
+       (setq prefix (append prefix '(?\s (Br . Bl))))
+       (setq n (1+ n)))
+     (cons s (append prefix suffix (list (decode-char 'ucs code))))))
+     list)))
+
+(defconst fira-code-mode--ligatures
+  '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\"
+    "{-" "[]" "::" ":::" ":=" "!!" "!=" "!==" "-}"
+    "--" "---" "-->" "->" "->>" "-<" "-<<" "-~"
+    "#{" "#[" "##" "###" "####" "#(" "#?" "#_" "#_("
+    ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*"
+    "/**" "/=" "/==" "/>" "//" "///" "&&" "||" "||="
+    "|=" "|>" "^=" "$>" "++" "+++" "+>" "=:=" "=="
+    "===" "==>" "=>" "=>>" "<=" "=<<" "=/=" ">-" ">="
+    ">=>" ">>" ">>-" ">>=" ">>>" "<*" "<*>" "<|" "<|>"
+    "<$" "<$>" "<!--" "<-" "<--" "<->" "<+" "<+>" "<="
+    "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<" "<~"
+    "<~~" "</" "</>" "~@" "~-" "~=" "~>" "~~" "~~>" "%%"
+    "x" ":" "+" "+" "*"))
+
+(defvar fira-code-mode--old-prettify-alist)
+
+(defun fira-code-mode--enable ()
+  "Enable Fira Code ligatures in current buffer."
+  (setq-local fira-code-mode--old-prettify-alist prettify-symbols-alist)
+  (setq-local prettify-symbols-alist (append (fira-code-mode--make-alist fira-code-mode--ligatures) fira-code-mode--old-prettify-alist))
+  (prettify-symbols-mode t))
+
+(defun fira-code-mode--disable ()
+  "Disable Fira Code ligatures in current buffer."
+  (setq-local prettify-symbols-alist fira-code-mode--old-prettify-alist)
+  (prettify-symbols-mode -1))
+
+(define-minor-mode fira-code-mode
+  "Fira Code ligatures minor mode"
+  :lighter " Fira Code"
+  (setq-local prettify-symbols-unprettify-at-point 'right-edge)
+  (if fira-code-mode
+      (fira-code-mode--enable)
+    (fira-code-mode--disable)))
+
+(defun fira-code-mode--setup ()
+  "Setup Fira Code Symbols"
+  (set-fontset-font t '(#Xe100 . #Xe16f) "Fira Code Symbol"))
 #+END_SRC
 ** Visual
 #+BEGIN_SRC emacs-lisp
-   (defconst my-frame-alist
-     `((font                 . ,my-default-font)
-       (scroll-bar           . -1)
-       (height               . 60)
-       (width                . 95)
-       (alpha                . 95)
-       (vertical-scroll-bars . nil)))
-   (setq default-frame-alist my-frame-alist)
+(defconst my-frame-alist
+  `((font                 . ,my-default-font)
+    (scroll-bar           . -1)
+    (height               . 60)
+    (width                . 95)
+    (alpha                . 95)
+    (vertical-scroll-bars . nil)))
 
-   (use-package all-the-icons
+(setq default-frame-alist my-frame-alist)
+
+(use-package all-the-icons
      :ensure t)
 
-   (use-package doom-themes
+(use-package doom-themes
      :ensure t
      :init (setq doom-themes-enable-bold t doom-themes-enable-italic t)
      :config
@@ -407,34 +467,36 @@
 ; (doom-themes-treemacs-config)
      (load-theme 'doom-one t))
 
-   (setq inhibit-startup-screen        t
-     inhibit-splash-screen         t
-     line-number-mode              1
-     column-number-mode            1
-     show-paren-mode               1
-     show-paren-delay              0
-     blink-cursor-mode             nil
-     transient-mark-mode           1
-     scroll-bar-mode               -1
-     browser-url-browse-function   'browse-url-firefox
-     linum-format                  "%5d"
-     tab-width                     4
-     global-hl-line-mode           t
-     indent-tabs-mode              nil
-     truncate-partial-width-windows 1
-     fill-column                   80
-     truncate-lines                1
-     save-interprogram-paste-before-kill t
-     ;; Mouse
-     transentient-mark-mode        t
-     mouse-wheel-follow-mouse      t
-     scroll-step                   1
-     scroll-conservatively         101
-     mouse-wheel-scroll-amount     '(1)
-     mouse-wheel-progressive-speed nil)
+(setq inhibit-startup-screen        t
+      inhibit-splash-screen         t
+      line-number-mode              1
+      column-number-mode            1
+      show-paren-mode               1
+      show-paren-delay              0
+      blink-cursor-mode             nil
+      transient-mark-mode           1
+      scroll-bar-mode               -1
+      browser-url-browse-function   'browse-url-firefox
+      linum-format                  "%5d"
+      tab-width                     4
+      global-hl-line-mode           t
+      indent-tabs-mode              nil
+      truncate-partial-width-windows 1
+      fill-column                   80
+      truncate-lines                1
+      save-interprogram-paste-before-kill t
+      ;; Mouse
+      transentient-mark-mode        t
+      mouse-wheel-follow-mouse      t
+      scroll-step                   1
+      scroll-conservatively         101
+      mouse-wheel-scroll-amount     '(1)
+      mouse-wheel-progressive-speed nil)
 
   (menu-bar-mode -99)
   (tool-bar-mode -1)
+
+(set-cursor-color "#ffffff")
 
      (defun custom-set-frame-size ()
        (add-to-list 'default-frame-alist '(height . 50))
@@ -675,7 +737,6 @@
   :hook ((clojure-mode . aggressive-indent-mode)
          (clojure-mode . smartparens-strict-mode)
          (clojure-mode . subword-mode)
-         (clojure-mode . clojure-mode-extra-font-locking)
          (clojure-mode . cider-mode)
          (clojure-mode . clj-refactor-mode)
          (clojure-mode . rainbow-delimiters-mode)
@@ -725,7 +786,8 @@
            cider-repl-use-clojure-font-lock t
            cider-auto-select-error-buffer nil
            org-babel-clojure-backend 'cider
-           cider-eldoc-display-context-dependent-info t)
+           cider-eldoc-display-context-dependent-info t
+           cider-save-file-on-load t)
      (eval-after-load 'cider #'emidje-enable-nrepl-middleware))
      ;(setq-default emidje-load-facts-on-eval t)
   )
@@ -1363,17 +1425,17 @@
   :init (setq org-re-reveal-root "https://cdn.jsdelivr.net/reveal.js/latest"
               org-reveal-mathjax t))
 #+END_SRC
-** aaa
+** Org Crypt
 #+BEGIN_SRC emacs-lisp
- (setq org-file-apps
-       (append '(("\\.pdf\\'" . "evince %s")) org-file-apps))
-
 (require 'org-crypt)
 (org-crypt-use-before-save-magic)
 (setq org-tags-exclude-from-inheritance (quote ("crypt")))
 ;; GPG key to use for encryption
 ;; Either the Key ID or set to nil to use symmetric encryption.
 (setq org-crypt-key "9CD4DA20")
+
+(setq org-file-apps
+      (append '(("\\.pdf\\'" . "evince %s")) org-file-apps))
 
 (use-package org-web-tools
   :ensure t)
