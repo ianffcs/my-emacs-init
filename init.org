@@ -3,7 +3,7 @@
 #+PROPERTY: header-args :tangle yes
 #+STARTUP: overview inlineimages
 * Meta
-#+BEGIN_SRC emacs-lisp :results none
+#+BEGIN_SRC emacs-lisp
   ;;;; Initialization
 
    (defun tangle-init ()
@@ -594,7 +594,10 @@
 (setq sp-hybrid-kill-entire-symbol nil)
 (sp-use-paredit-bindings)
 #+END_SRC
-*** TODO Lisp General Mode
+*** Lisp General Mode
+#+BEGIN_SRC emacs-lisp
+(use-package highlight-sexp)
+#+END_SRC
 *** Highlight Numbers
 #+BEGIN_SRC emacs-lisp
 (use-package highlight-numbers
@@ -667,6 +670,11 @@
 (use-package nvm)
 #+END_SRC
 ** By Lang Configuration
+*** Agda
+#+BEGIN_SRC emacs-lisp
+(load-file (let ((coding-system-for-read 'utf-8))
+                (shell-command-to-string "agda-mode locate")))
+#+END_SRC
 *** Clisp
 #+BEGIN_src emacs-lisp
 (use-package slime
@@ -701,7 +709,7 @@
 (add-hook 'scheme-mode-hook           #'smartparens-strict-mode)
 (add-hook 'scheme-mode-hook           #'rainbow-delimiters-mode)
 (add-hook 'scheme-mode-hook #'highlight-parentheses-mode)
-
+(add-hook 'emacs-lisp-mode-hook  #'highlight-sexp-mode)
 ;; eldoc-mode shows documentation in the minibuffer when writing code
 ;; http://www.emacswiki.org/emacs/ElDoc
 (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
@@ -730,8 +738,26 @@
 
 (use-package clojure-mode-extra-font-locking)
 
-(use-package flycheck-clj-kondo
-  :ensure t)
+(defun prettify-fns ()
+  (font-lock-add-keywords
+   nil `(("(\\(defn\\))"
+          (0 (progn (compose-region (match-beginning 1) (match-end 1)
+                                    "ƒ")
+                    nil))))))
+
+(defun prettify-anonymous-fns ()
+  (font-lock-add-keywords
+   nil `(("\\(#\\)("
+          (0 (progn (compose-region (match-beginning 1) (match-end 1)
+                                    ,(make-char 'greek-iso8859-7 107))
+                    nil))))))
+
+(defun prettify-sets ()
+  (font-lock-add-keywords
+   nil `(("\\(#\\){"
+          (0 (progn (compose-region (match-beginning 1) (match-end 1)
+                                    "∈")
+                    nil))))))
 
 (use-package clojure-mode
   :hook ((clojure-mode . aggressive-indent-mode)
@@ -740,23 +766,22 @@
          (clojure-mode . cider-mode)
          (clojure-mode . clj-refactor-mode)
          (clojure-mode . rainbow-delimiters-mode)
-         (clojure-mode . highlight-parentheses-mode))
+         (clojure-mode . highlight-sexp-mode)
+         (clojure-mode . highlight-parentheses-mode)
+         (clojure-mode . prettify-fns)
+         (clojure-mode . prettify-anonymous-fns)
+         (clojure-mode . prettify-sets))
   :config
   (progn
     (add-to-list 'auto-mode-alist '("\\.edn$" . clojure-mode))
     (add-to-list 'auto-mode-alist '("\\.boot$" . clojure-mode))
     (add-to-list 'auto-mode-alist '("\\.cljs.*$" . clojure-mode))
     (hack-local-variables)
-    (require 'flycheck-joker)
-    (require 'flycheck-clj-kondo)
-    (setq clojure-align-forms-automatically 1)
-    (dolist (checker '(clj-kondo-clj clj-kondo-cljs clj-kondo-cljc clj-kondo-edn))
-      (setq flycheck-checkers (cons checker (delq checker flycheck-checkers))))
-    (dolist (checkers '((clj-kondo-clj . clojure-joker)
-                        (clj-kondo-cljs . clojurescript-joker)
-                        (clj-kondo-cljc . clojure-joker)
-                        (clj-kondo-edn . edn-joker)))
-      (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers))))))
+    (setq clojure-align-forms-automatically 1)))
+
+(defun cider-repl-prompt-custom (namespace)
+  "Return a prompt string that mentions NAMESPACE."
+  (format "λ %s λ\n" namespace))
 
 (use-package cider
   :hook ((cider-repl-mode . subword-mode)
@@ -766,6 +791,12 @@
          (cider-mode . rainbow-delimiters-mode)
          (cider-mode . highlight-parentheses-mode)
          (cider-mode . cider-company-enable-fuzzy-completion))
+  :bind (:map
+         cider-mode-map
+         ("C-c d" . cider-debug-defun-at-point)
+         :map
+         cider-repl-mode-map
+         ("C-c M-o" . cider-repl-clear-buffer))
   :config
   ;(eval-after-load 'cider #'emidje-enable-nrepl-middleware)
   (progn
@@ -777,6 +808,7 @@
            cider-repl-use-pretty-printing t
            cider-repl-wrap-history t
            cider-repl-pop-to-buffer-on-connect 'display-only
+           cider-repl-prompt-function 'cider-repl-prompt-custom
            cider-repl-result-prefix ";; => "
            cider-repl-display-in-current-window t
            cider-repl-wrap-history t
@@ -800,6 +832,26 @@
                                                 (yas-minor-mode 1)
                                                 (cljr-add-keybindings-with-prefix "C-c C-m")))))
 
+(use-package flycheck
+  :ensure t
+  :config
+  (global-flycheck-mode)
+  :diminish nil)
+
+(use-package flycheck-joker
+  :after clojure-mode
+  :ensure t)
+
+(use-package flycheck-clj-kondo
+  :ensure t
+  :after clojure-mode
+  :config
+  (dolist (checkers '((clj-kondo-clj . clojure-joker)
+                      (clj-kondo-cljs . clojurescript-joker)
+                      (clj-kondo-cljc . clojure-joker)
+                      (clj-kondo-edn . edn-joker)))
+    (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers)))))
+
 ;(use-package emidje
  ; :config (eval-after-load 'cider #'emidje-setup))
 
@@ -820,6 +872,11 @@
 
 (defun set-auto-complete-as-completion-at-point-function ()
   (setq completion-at-point-functions '(auto-complete)))
+
+(use-package clojure-snippets
+  :ensure t
+  :defer t)
+
 
 (add-hook 'auto-complete-mode-hook 'set-auto-complete-as-completion-at-point-function)
 (add-hook 'cider-repl-mode-hook 'set-auto-complete-as-completion-at-point-function)
@@ -1311,7 +1368,9 @@
                   'do-org-show-all-inline-images)
 
   (use-package ob-restclient)
+  (use-package ob-hy)
   (use-package ob-ipython)
+  (use-package ob-prolog)
   (use-package ob-async
     :init (setq ob-async-no-async-languages-alist '("ipython")))
   (use-package ox-reveal)
@@ -1322,6 +1381,8 @@
     (append org-babel-load-languages
             '((emacs-lisp . t)
               (clojure . t)
+              (prolog . t)
+              (hy . y)
               (python . t)
               (restclient . t)
               (js . t)
@@ -1422,8 +1483,28 @@
 ** Org Reveal.js
 #+BEGIN_SRC emacs-lisp
 (use-package org-re-reveal
-  :init (setq org-re-reveal-root "https://cdn.jsdelivr.net/reveal.js/latest"
-              org-reveal-mathjax t))
+  :init (setq org-reveal-mathjax t))
+
+(require 'oer-reveal-publish)
+(oer-reveal-setup-submodules t)
+(oer-reveal-generate-include-files t)
+(oer-reveal-publish-setq-defaults)
+
+(use-package org-re-reveal-ref)
+
+(require 'org-ref)
+(require 'org-re-reveal-ref)
+(setq org-ref-default-bibliography '("references.bib")
+      org-ref-bibliography-entry-format
+      '(("article" . "%a, %t, <i>%j %v(%n)</i>, %p (%y). <a href=\"%U\">%U</a>")
+        ("book" . "%a, %t, %u, %y. <a href=\"%U\">%U</a>")
+        ("inproceedings" . "%a, %t, %b, %y. <a href=\"%U\">%U</a>")
+        ("incollection" . "%a, %t, %b, %u, %y. <a href=\"%U\">%U</a>")
+        ("misc" . "%a, %t, %i, %y.  <a href=\"%U\">%U</a>")
+        ("phdthesis" . "%a, %t, %s, %y.  <a href=\"%U\">%U</a>")
+        ("techreport" . "%a, %t, %i, %u (%y).")
+        ("proceedings" . "%e, %t in %S, %u (%y).")
+        ))
 #+END_SRC
 ** Org Crypt
 #+BEGIN_SRC emacs-lisp
