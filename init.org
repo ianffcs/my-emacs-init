@@ -1485,10 +1485,10 @@
 (use-package org-re-reveal
   :init (setq org-reveal-mathjax t))
 
-(require 'oer-reveal-publish)
-(oer-reveal-setup-submodules t)
-(oer-reveal-generate-include-files t)
-(oer-reveal-publish-setq-defaults)
+;; (require 'oer-reveal-publish)
+;; (oer-reveal-setup-submodules t)
+;; (oer-reveal-generate-include-files t)
+;; (oer-reveal-publish-setq-defaults)
 
 (use-package org-re-reveal-ref)
 
