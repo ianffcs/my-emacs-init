@@ -775,6 +775,23 @@
   (progn
     (add-to-list 'auto-mode-alist '("\\.edn$" . clojure-mode))
     (add-to-list 'auto-mode-alist '("\\.boot$" . clojure-mode))
+    (hack-local-variables)
+    (setq clojure-align-forms-automatically 1)))
+
+(use-package clojurescript-mode
+  :hook ((clojurescript-mode . aggressive-indent-mode)
+         (clojurescript-mode . smartparens-strict-mode)
+         (clojurescript-mode . subword-mode)
+         (clojurescript-mode . cider-mode)
+         (clojurescript-mode . clj-refactor-mode)
+         (clojurescript-mode . rainbow-delimiters-mode)
+         (clojurescript-mode . highlight-sexp-mode)
+         (clojurescript-mode . highlight-parentheses-mode)
+         (clojurescript-mode . prettify-fns)
+         (clojurescript-mode . prettify-anonymous-fns)
+         (clojurescript-mode . prettify-sets))
+  :config
+  (progn
     (add-to-list 'auto-mode-alist '("\\.cljs.*$" . clojure-mode))
     (hack-local-variables)
     (setq clojure-align-forms-automatically 1)))
@@ -793,35 +810,34 @@
          (cider-mode . cider-company-enable-fuzzy-completion))
   :bind (:map
          cider-mode-map
-         ("C-c d" . cider-debug-defun-at-point)
+         ("C-c C-d" . cider-debug-defun-at-point)
          :map
          cider-repl-mode-map
          ("C-c M-o" . cider-repl-clear-buffer))
   :config
-  ;(eval-after-load 'cider #'emidje-enable-nrepl-middleware)
-  (progn
-    (define-key cider-mode-map (kbd "C-c C-d") 'ac-cider-popup-doc)
-     (setq cider-repl-pop-to-buffer-on-connect 'display-only
-           cider-repl-use-clojure-font-lock nil
-           cider-annotate-completion-candidates t
-           cider-prompt-for-symbol nil
-           cider-repl-use-pretty-printing t
-           cider-repl-wrap-history t
-           cider-repl-pop-to-buffer-on-connect 'display-only
-           cider-repl-prompt-function 'cider-repl-prompt-custom
-           cider-repl-result-prefix ";; => "
-           cider-repl-display-in-current-window t
-           cider-repl-wrap-history t
-           cider-repl-use-pretty-printing 't
-           cider-pprint-fn 'puget
-           cider-print-options '(("print-color" "true"))
-           cider-repl-use-clojure-font-lock t
-           cider-auto-select-error-buffer nil
-           org-babel-clojure-backend 'cider
-           cider-eldoc-display-context-dependent-info t
-           cider-save-file-on-load t)
-     (eval-after-load 'cider #'emidje-enable-nrepl-middleware))
-     ;(setq-default emidje-load-facts-on-eval t)
+  (setq cider-repl-pop-to-buffer-on-connect nil
+        cider-repl-use-clojure-font-lock nil
+        cider-annotate-completion-candidates t
+        cider-prompt-for-symbol nil
+        cider-repl-use-pretty-printing t
+        cider-repl-wrap-history t
+        cider-repl-pop-to-buffer-on-connect 'display-only
+        cider-repl-prompt-function 'cider-repl-prompt-custom
+        cider-repl-result-prefix ";; => "
+        cider-repl-display-in-current-window t
+        cider-repl-wrap-history t
+        cider-repl-use-pretty-printing 't
+        cider-pprint-fn 'puget
+        cider-print-options '(("print-color" "true"))
+        cider-repl-use-clojure-font-lock t
+        cider-auto-select-error-buffer nil
+        org-babel-clojure-backend 'cider
+        cider-eldoc-display-context-dependent-info t
+        cider-save-file-on-load t
+        cider-jump-to-pop-to-buffer-actions '((display-buffer-same-window))
+        ;; emidje-load-facts-on-eval t
+        )
+  ;; (eval-after-load 'cider #'emidje-enable-nrepl-middleware)
   )
 
 
@@ -1805,6 +1821,7 @@ narrowed."
 #+END_SRC
 * Projectile
 #+BEGIN_SRC emacs-lisp
+(use-package projectile-ripgrep)
 (use-package projectile
       :ensure t
       :bind ("C-c p" . projectile-command-map)
