@@ -276,9 +276,10 @@
          ("C-_" . undo)
          ("M-_" . undo-tree-redo))
   :config ;; autosave the undo-tree history
-  (setq global-undo-tree-mode 1
-        undo-tree-history-directory-alist `((".*" . ,temporary-file-directory))
-        undo-tree-auto-save-history t))
+  (progn
+   (setq undo-tree-history-directory-alist `((".*" . ,temporary-file-directory))
+         undo-tree-auto-save-history t)
+   (global-undo-tree-mode 1)))
 #+END_SRC
 * Interface tweaks
 #+BEGIN_SRC emacs-lisp
@@ -357,6 +358,10 @@
 (global-set-key (kbd "C-c i") 'string-inflection-all-cycle)
 
 (use-package emojify)
+
+(use-package hl-todo
+  :config
+  (global-hl-todo-mode 1))
 #+END_SRC
 * Themes
 ** UTF-8
@@ -773,6 +778,7 @@
          (clojure-mode . prettify-sets))
   :config
   (progn
+
     (add-to-list 'auto-mode-alist '("\\.edn$" . clojure-mode))
     (add-to-list 'auto-mode-alist '("\\.boot$" . clojure-mode))
     (hack-local-variables)
