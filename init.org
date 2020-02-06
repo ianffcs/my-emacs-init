@@ -233,6 +233,12 @@
 (with-region-or-buffer indent-region)
 (with-region-or-buffer untabify)
 #+END_SRC
+* Persistent-scratch
+#+BEGIN_SRC emacs-lisp
+(use-package persistent-scratch
+  :config
+  (persistent-scratch-setup-default))
+#+END_SRC
 * Dired
 #+BEGIN_SRC emacs-lisp
 ;; dired - reuse current buffer by pressing 'a'
@@ -778,7 +784,28 @@
          (clojure-mode . prettify-sets))
   :config
   (progn
-
+    (eval-after-load 'clojure-mode
+      '(define-clojure-indent
+         (train-n 3)
+         (for-all 1)
+         (fdef 1)
+         (mlet 1)
+         (alet 1)
+         ;;(async 1)
+         (defapi '(2 nil nil (1)))
+         (server 2)
+         (sniptest 1)
+         (reg-event-db 1)
+         (reg-sub 1)
+         (reg-sub-raw 1)
+         (reg-event-fx 1)
+         (reg-fx 1)
+         (reg-cofx 1)
+         (at-media 1)
+         (GET 2)
+         (not-join 1)
+         (recursive-path 2)
+         (wcar 1)))
     (add-to-list 'auto-mode-alist '("\\.edn$" . clojure-mode))
     (add-to-list 'auto-mode-alist '("\\.boot$" . clojure-mode))
     (hack-local-variables)
@@ -873,6 +900,17 @@
                       (clj-kondo-cljc . clojure-joker)
                       (clj-kondo-edn . edn-joker)))
     (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers)))))
+
+(use-package lsp-mode
+  :ensure t
+  :hook ((clojure-mode . lsp))
+  :commands lsp
+  :custom
+  ((lsp-clojure-server-command '("java" "-jar" "/home/ianffcs/Downloads/clj-kondo-lsp-server-2020.01.27-standalone.jar")))
+  :config
+  (dolist (m '(clojure-mode
+               clojurescript-mode))
+    (add-to-list 'lsp-language-id-configuration `(,m . "clojure"))))
 
 ;(use-package emidje
  ; :config (eval-after-load 'cider #'emidje-setup))
@@ -980,7 +1018,7 @@
   (setq pipenv-projectile-after-switch-function
         #'pipenv-projectile-after-switch-extended))
 
-(use-package ein)
+;;(use-package ein)
 
 (use-package hy-mode)
 #+END_SRC
@@ -2108,8 +2146,7 @@
 (setq org-file-apps
       (append '(("\\.pdf\\'" . "evince %s")) org-file-apps))
 
-(use-package org-web-tools
-  :ensure t)
+;;(use-package org-web-tools :ensure t)
 #+END_SRC
 * Calfw
 #+BEGIN_SRC emacs-lisp
