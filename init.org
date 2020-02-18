@@ -766,7 +766,7 @@ These won't work in the terminal version or the virtual console, obvious reasons
 I use qutebrowser, so that's what I'll set up.
 #+BEGIN_SRC emacs-lisp
   (setq browse-url-browser-function 'browse-url-generic
-        browse-url-generic-program "qutebrowser")
+        browse-url-generic-program "firefox")
 #+END_SRC
 ** Clock
 If you prefer the 12hr-format, change the variable to =nil= instead of =t=.
