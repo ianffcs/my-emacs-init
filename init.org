@@ -180,6 +180,9 @@
 #+END_SRC
 * Editor confs
 #+BEGIN_SRC emacs-lisp
+
+(setq ring-bell-function 'ignore)
+
 (setq-default indent-tabs-mode nil)   ;; don't use tabs to indent
 (setq-default tab-width 8)            ;; but maintain correct appearance
 
@@ -238,6 +241,12 @@
 (use-package persistent-scratch
   :config
   (persistent-scratch-setup-default))
+#+END_SRC
+* Async
+#+BEGIN_SRC emacs-lisp
+(use-package async
+  :ensure t
+  :init (dired-async-mode 1))
 #+END_SRC
 * Dired
 #+BEGIN_SRC emacs-lisp
@@ -382,8 +391,14 @@
 #+END_SRC
 ** Fonts
 #+BEGIN_SRC emacs-lisp
+(when window-system
+      (use-package pretty-mode
+      :ensure t
+      :config
+      (global-pretty-mode t)))
 
-(global-prettify-symbols-mode)
+(when window-system
+  (global-prettify-symbols-mode))
 
 ;; (defconst my-default-font "-*-fixed-medium-r-normal-*-15-*-*-*-*-*-*-*")
   ;; (defconst my-default-font "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*")
@@ -535,6 +550,277 @@
 
    (set-frame-alpha 90)
 #+END_SRC
+* Window Manager
+Everything regarding the WM or DE-like functionality is bundled here, remove the entire section if you do not wish to use =exwm=.
+** exwm
+The only time I actually had to use comments, this is for ease of removal if you happen to not like exwm.
+*** Installation
+#+BEGIN_SRC emacs-lisp
+  (use-package exwm
+    :ensure t
+    :config
+
+      ;; necessary to configure exwm manually
+      (require 'exwm-config)
+
+      ;; fringe size, most people prefer 1
+      (fringe-mode 3)
+
+      ;; emacs as a daemon, use "emacsclient <filename>" to seamlessly edit files from the terminal directly in the exwm instance
+      (server-start)
+
+      ;; this fixes issues with ido mode, if you use helm, get rid of it
+      ;;(exwm-config-ido)
+
+      ;; a number between 1 and 9, exwm creates workspaces dynamically so I like starting out with 1
+      (setq exwm-workspace-number 1)
+
+      ;; this is a way to declare truly global/always working keybindings
+      ;; this is a nifty way to go back from char mode to line mode without using the mouse
+      (exwm-input-set-key (kbd "s-r") #'exwm-reset)
+      (exwm-input-set-key (kbd "s-k") #'exwm-workspace-delete)
+      (exwm-input-set-key (kbd "s-w") #'exwm-workspace-swap)
+
+      ;; the next loop will bind s-<number> to switch to the corresponding workspace
+      (dotimes (i 10)
+        (exwm-input-set-key (kbd (format "s-%d" i))
+                            `(lambda ()
+                               (interactive)
+                               (exwm-workspace-switch-create ,i))))
+
+      ;; the simplest launcher, I keep it in only if dmenu eventually stopped working or something
+      (exwm-input-set-key (kbd "s-&")
+                          (lambda (command)
+                            (interactive (list (read-shell-command "$ ")))
+                            (start-process-shell-command command nil command)))
+
+      ;; an easy way to make keybindings work *only* in line mode
+      (push ?\C-q exwm-input-prefix-keys)
+      (define-key exwm-mode-map [?\C-q] #'exwm-input-send-next-key)
+
+      ;; simulation keys are keys that exwm will send to the exwm buffer upon inputting a key combination
+      (exwm-input-set-simulation-keys
+       '(
+         ;; movement
+         ([?\C-b] . left)
+         ([?\M-b] . C-left)
+         ([?\C-f] . right)
+         ([?\M-f] . C-right)
+         ([?\C-p] . up)
+         ([?\C-n] . down)
+         ([?\C-a] . home)
+         ([?\C-e] . end)
+         ([?\M-v] . prior)
+         ([?\C-v] . next)
+         ([?\C-d] . delete)
+         ([?\C-k] . (S-end delete))
+         ;; cut/paste
+         ([?\C-w] . ?\C-x)
+         ([?\M-w] . ?\C-c)
+         ([?\C-y] . ?\C-v)
+         ;; search
+         ([?\C-s] . ?\C-f)))
+
+      ;; this little bit will make sure that XF86 keys work in exwm buffers as well
+      (dolist (k '(XF86AudioLowerVolume
+                 XF86AudioRaiseVolume
+                 XF86PowerOff
+                 XF86AudioMute
+                 XF86AudioPlay
+                 XF86AudioStop
+                 XF86AudioPrev
+                 XF86AudioNext
+                 XF86ScreenSaver
+                 XF68Back
+                 XF86Forward
+                 Scroll_Lock
+                 print))
+      (cl-pushnew k exwm-input-prefix-keys))
+
+      ;; this just enables exwm, it started automatically once everything is ready
+      (exwm-enable))
+#+END_SRC
+
+** Launchers
+Since I do not use a GUI launcher and do not have an external one like dmenu or rofi,
+I figured the best way to launch my most used applications would be direct emacsy
+keybindings.
+
+*** dmenu for emacs
+Who would've thought this was available, together with ido-vertical it's a nice large menu
+with its own cache for most launched applications.
+#+BEGIN_SRC emacs-lisp
+  (use-package dmenu
+    :ensure t
+    :bind
+      ("s-SPC" . 'dmenu))
+#+END_SRC
+
+*** Functions to start processes
+I guess this goes without saying but you absolutely have to change the arguments
+to suit the software that you are using. What good is a launcher for discord if you don't use it at all.
+#+BEGIN_SRC emacs-lisp
+  (defun exwm-async-run (name)
+    (interactive)
+    (start-process name nil name))
+
+  (defun daedreth/launch-discord ()
+    (interactive)
+    (exwm-async-run "discord"))
+
+  (defun daedreth/launch-telegram ()
+    (interactive)
+    (exwm-async-run "telegram-desktop"))
+
+  (defun daedreth/launch-browser ()
+    (interactive)
+    (exwm-async-run "qutebrowser"))
+
+  (defun daedreth/lock-screen ()
+    (interactive)
+    (exwm-async-run "slock"))
+
+  (defun daedreth/shutdown ()
+    (interactive)
+    (start-process "halt" nil "sudo" "halt"))
+#+END_SRC
+
+*** Keybindings to start processes
+These can be modified as well, suit yourself.
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "s-d") 'daedreth/launch-discord)
+  (global-set-key (kbd "s-l") 'daedreth/lock-screen)
+  (global-set-key (kbd "<s-tab>") 'daedreth/launch-browser)
+  (global-set-key (kbd "<XF86ScreenSaver>") 'daedreth/lock-screen)
+  (global-set-key (kbd "<XF86PowerOff>") 'daedreth/shutdown)
+#+END_SRC
+
+** Audio controls
+This is a set of bindings to my XF86 keys that invokes pulsemixer with the correct parameters
+
+*** Volume modifier
+It goes without saying that you are free to modify the modifier as you see fit, 4 is good enough for me though.
+#+BEGIN_SRC emacs-lisp
+(defconst volumeModifier "4")
+#+END_SRC
+
+*** Functions to start processes
+#+BEGIN_SRC emacs-lisp
+  (defun audio/mute ()
+    (interactive)
+    (start-process "audio-mute" nil "pulsemixer" "--toggle-mute"))
+
+  (defun audio/raise-volume ()
+    (interactive)
+    (start-process "raise-volume" nil "pulsemixer" "--change-volume" (concat "+" volumeModifier)))
+
+  (defun audio/lower-volume ()
+    (interactive)
+    (start-process "lower-volume" nil "pulsemixer" "--change-volume" (concat "-" volumeModifier)))
+#+END_SRC
+
+*** Keybindings to start processes
+You can also change those if you'd like, but I highly recommend keeping 'em the same, chances are, they will just work.
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "<XF86AudioMute>") 'audio/mute)
+(global-set-key (kbd "<XF86AudioRaiseVolume>") 'audio/raise-volume)
+(global-set-key (kbd "<XF86AudioLowerVolume>") 'audio/lower-volume)
+#+END_SRC
+
+** Screenshots
+I don't need scrot to take screenshots, or shutter or whatever tools you might have. This is enough.
+These won't work in the terminal version or the virtual console, obvious reasons.
+
+*** Screenshotting the entire screen
+#+BEGIN_SRC emacs-lisp
+  (defun daedreth/take-screenshot ()
+    "Takes a fullscreen screenshot of the current workspace"
+    (interactive)
+    (when window-system
+    (loop for i downfrom 3 to 1 do
+          (progn
+            (message (concat (number-to-string i) "..."))
+            (sit-for 1)))
+    (message "Cheese!")
+    (sit-for 1)
+    (start-process "screenshot" nil "import" "-window" "root"
+               (concat (getenv "HOME") "/" (subseq (number-to-string (float-time)) 0 10) ".png"))
+    (message "Screenshot taken!")))
+  (global-set-key (kbd "<print>") 'daedreth/take-screenshot)
+#+END_SRC
+
+*** Screenshotting a region
+#+BEGIN_SRC emacs-lisp
+  (defun daedreth/take-screenshot-region ()
+    "Takes a screenshot of a region selected by the user."
+    (interactive)
+    (when window-system
+    (call-process "import" nil nil nil ".newScreen.png")
+    (call-process "convert" nil nil nil ".newScreen.png" "-shave" "1x1"
+                  (concat (getenv "HOME") "/" (subseq (number-to-string (float-time)) 0 10) ".png"))
+    (call-process "rm" nil nil nil ".newScreen.png")))
+  (global-set-key (kbd "<Scroll_Lock>") 'daedreth/take-screenshot-region)
+#+END_SRC
+
+** Default browser
+I use qutebrowser, so that's what I'll set up.
+#+BEGIN_SRC emacs-lisp
+  (setq browse-url-browser-function 'browse-url-generic
+        browse-url-generic-program "qutebrowser")
+#+END_SRC
+** Clock
+If you prefer the 12hr-format, change the variable to =nil= instead of =t=.
+
+*** Time format
+#+BEGIN_SRC emacs-lisp
+  (setq display-time-24hr-format t)
+  (setq display-time-format "%H:%M - %d %B %Y")
+#+END_SRC
+
+*** Enabling the mode
+This turns on the clock globally.
+#+BEGIN_SRC emacs-lisp
+  (display-time-mode 1)
+#+END_SRC
+
+** Battery indicator
+A package called =fancy-battery= will be used if we are in GUI emacs, otherwise the built in battery-mode will be used.
+Fancy battery has very odd colors if used in the tty, hence us disabling it.
+#+BEGIN_SRC emacs-lisp
+  (use-package fancy-battery
+    :ensure t
+    :config
+      (setq fancy-battery-show-percentage t)
+      (setq battery-update-interval 15)
+      (if window-system
+        (fancy-battery-mode)
+        (display-battery-mode)))
+#+END_SRC
+
+** System monitor
+A teeny-tiny system monitor that can be enabled or disabled at runtime, useful for checking performance
+with power-hungry processes in ansi-term
+
+symon can be toggled on and off with =Super + h=.
+#+BEGIN_SRC emacs-lisp
+  (use-package symon
+    :ensure t
+    :bind
+    ("s-h" . symon-mode))
+#+END_SRC
+
+** Default Shell
+#+BEGIN_SRC emacs-lisp
+  (defvar my-term-shell "/bin/zsh")
+  (defadvice ansi-term (before force-zsh)
+    (interactive (list my-term-shell)))
+  (ad-activate 'ansi-term)
+#+END_SRC
+** Easy to remember keybinding
+In loving memory of bspwm, Super + Enter opens a new terminal, old habits die hard.
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "<s-return>") 'ansi-term)
+#+END_SRC
 * Smartparens & Parens-thing
 #+BEGIN_SRC emacs-lisp
 (use-package smartparens
@@ -565,7 +851,34 @@
 
   #+END_SRC
 * Movin' around baby
+** split-switch
 #+BEGIN_SRC emacs-lisp
+(use-package switch-window
+  :ensure t
+  :config
+    (setq switch-window-input-style 'minibuffer)
+    (setq switch-window-increase 4)
+    (setq switch-window-threshold 2)
+    (setq switch-window-shortcut-style 'qwerty)
+    (setq switch-window-qwerty-shortcuts
+        '("a" "s" "d" "f" "j" "k" "l" "i" "o"))
+  :bind
+    ([remap other-window] . switch-window))
+
+  (defun split-and-follow-horizontally ()
+    (interactive)
+    (split-window-below)
+    (balance-windows)
+    (other-window 1))
+  (global-set-key (kbd "C-x 2") 'split-and-follow-horizontally)
+
+  (defun split-and-follow-vertically ()
+    (interactive)
+    (split-window-right)
+    (balance-windows)
+    (other-window 1))
+  (global-set-key (kbd "C-x 3") 'split-and-follow-vertically)
+
 (use-package ace-window
   :config
   (global-set-key (kbd "M-o") 'ace-window)
@@ -577,9 +890,165 @@
 
 ;; avy allows us to effectively navigate to visible things
 (use-package avy
+  :bind ("M-s" . avy-goto-char)
   :config
   (setq avy-background t
           avy-style 'at-full))
+#+END_SRC
+
+** Mark-Multiple
+I can barely contain my joy. This extension allows you to quickly mark the next occurence of a region and edit them all at once. Wow!
+#+BEGIN_SRC emacs-lisp
+  (use-package mark-multiple
+    :ensure t
+    :bind ("C-c q" . 'mark-next-like-this))
+#+END_SRC
+** Improved kill-word
+Why on earth does a function called =kill-word= not .. kill a word.
+It instead deletes characters from your cursors position to the end of the word,
+let's make a quick fix and bind it properly.
+#+BEGIN_SRC emacs-lisp
+  (defun daedreth/kill-inner-word ()
+    "Kills the entire word your cursor is in. Equivalent to 'ciw' in vim."
+    (interactive)
+    (forward-char 1)
+    (backward-word)
+    (kill-word 1))
+  (global-set-key (kbd "C-c w k") 'daedreth/kill-inner-word)
+#+END_SRC
+
+** Improved copy-word
+And again, the same as above but we make sure to not delete the source word.
+#+BEGIN_SRC emacs-lisp
+  (defun daedreth/copy-whole-word ()
+    (interactive)
+    (save-excursion
+      (forward-char 1)
+      (backward-word)
+      (kill-word 1)
+      (yank)))
+  (global-set-key (kbd "C-c w c") 'daedreth/copy-whole-word)
+#+END_SRC
+
+** Copy a line
+Regardless of where your cursor is, this quickly copies a line.
+#+BEGIN_SRC emacs-lisp
+  (defun daedreth/copy-whole-line ()
+    "Copies a line without regard for cursor position."
+    (interactive)
+    (save-excursion
+      (kill-new
+       (buffer-substring
+        (point-at-bol)
+        (point-at-eol)))))
+  (global-set-key (kbd "C-c l c") 'daedreth/copy-whole-line)
+#+END_SRC
+
+** Kill a line
+And this quickly deletes a line.
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "C-c l k") 'kill-whole-line)
+#+END_SRC
+** Beacon
+While changing buffers or workspaces, the first thing you do is look for your cursor.
+Unless you know its position, you can not move it efficiently. Every time you change
+buffers, the current position of your cursor will be briefly highlighted now.
+#+BEGIN_SRC emacs-lisp
+  (use-package beacon
+    :ensure t
+    :config
+      (beacon-mode 1))
+#+END_SRC
+** Zapping to char
+A nifty little package that kills all text between your cursor and a selected character.
+A lot more useful than you might think. If you wish to include the selected character in the killed region,
+change =zzz-up-to-char= into =zzz-to-char=.
+#+BEGIN_SRC emacs-lisp
+  (use-package zzz-to-char
+    :ensure t
+    :bind ("M-z" . zzz-up-to-char))
+#+END_SRC
+* buffers stuff
+** Always murder current buffer
+#+BEGIN_SRC emacs-lisp
+  (defun kill-current-buffer ()
+    "Kills the current buffer."
+    (interactive)
+    (kill-buffer (current-buffer)))
+  (global-set-key (kbd "C-x k") 'kill-current-buffer)
+#+END_SRC
+
+# ** Kill buffers without asking for confirmation
+# #+BEGIN_SRC emacs-lisp
+# (setq kill-buffer-query-functions (delq 'process-kill-buffer-query-function kill-buffer-query-functions))
+# #+END_SRC
+
+** Turn switch-to-buffer into ibuffer
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+
+(setq ibuffer-saved-filter-groups
+      (quote (("default"
+               ("dired" (mode . dired-mode))
+               ("org" (name . "^.*org$"))
+               ("magit" (mode . magit-mode))
+               ("IRC" (or (mode . circe-channel-mode) (mode . circe-server-mode)))
+               ("web" (or (mode . web-mode) (mode . js2-mode)))
+               ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
+               ("mu4e" (or (mode . mu4e-compose-mode)
+                           (name . "\*mu4e\*")))
+               ("programming" (or (mode . clojure-mode)
+                                  (mode . clojurescript-mode)
+                                  (mode . python-mode)
+                                  (mode . c++-mode)))
+               ("emacs" (or (name . "^\\*scratch\\*$")
+                            (name . "^\\*Messages\\*$")))))))
+
+(add-hook 'ibuffer-mode-hook
+          (lambda ()
+            (ibuffer-auto-mode 1)
+            (ibuffer-switch-to-saved-filter-groups "default")))
+
+(setq ibuffer-show-empty-filter-groups nil)
+
+;; Don't ask for confirmation to delete marked buffers
+(setq ibuffer-expert t)
+#+END_SRC
+*** expert-mode
+If you feel like you know how ibuffer works and need not to be asked for confirmation after every serious command, enable this as follows.
+#+BEGIN_SRC emacs-lisp
+(setq ibuffer-expert t)
+#+END_SRC
+** close-all-buffers
+It's one of those things where I genuinely have to wonder why there is no built in functionality for it.
+Once in a blue moon I need to kill all buffers, and having ~150 of them open would mean I'd need to spend a few too many
+seconds doing this than I'd like, here's a solution.
+
+This can be invoked using =C-M-s-k=. This keybinding makes sure you don't hit it unless you really want to.
+#+BEGIN_SRC emacs-lisp
+  (defun close-all-buffers ()
+    "Kill all buffers without regard for their origin."
+    (interactive)
+    (mapc 'kill-buffer (buffer-list)))
+  (global-set-key (kbd "C-M-s-k") 'close-all-buffers)
+#+END_SRC
+* Kill ring
+There is a lot of customization to the kill ring, and while I have not used it much before,
+I decided that it was time to change that.
+** Maximum entries on the ring
+The default is 60, I personally need more sometimes.
+#+BEGIN_SRC emacs-lisp
+  (setq kill-ring-max 100)
+#+END_SRC
+
+** popup-kill-ring
+Out of all the packages I tried out, this one, being the simplest, appealed to me most.
+With a simple M-y you can now browse your kill-ring like browsing autocompletion items.
+C-n and C-p totally work for this.
+#+BEGIN_SRC emacs-lisp
+  (use-package popup-kill-ring
+    :ensure t
+    :bind ("M-y" . popup-kill-ring))
 #+END_SRC
 * Autocomplete
 #+BEGIN_SRC emacs-lisp  :tangle no
@@ -686,6 +1155,24 @@
 (load-file (let ((coding-system-for-read 'utf-8))
                 (shell-command-to-string "agda-mode locate")))
 #+END_SRC
+*** Bash
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'shell-mode-hook 'yas-minor-mode)
+  (add-hook 'shell-mode-hook 'flycheck-mode)
+  (add-hook 'shell-mode-hook 'company-mode)
+
+  (defun shell-mode-company-init ()
+    (setq-local company-backends '((company-shell
+                                    company-shell-env
+                                    company-etags
+                                    company-dabbrev-code))))
+
+  (use-package company-shell
+    :ensure t
+    :config
+      (require 'company)
+      (add-hook 'shell-mode-hook 'shell-mode-company-init))
+#+END_SRC
 *** Clisp
 #+BEGIN_src emacs-lisp
 (use-package slime
@@ -749,13 +1236,6 @@
 
 (use-package clojure-mode-extra-font-locking)
 
-(defun prettify-fns ()
-  (font-lock-add-keywords
-   nil `(("(\\(defn\\))"
-          (0 (progn (compose-region (match-beginning 1) (match-end 1)
-                                    "ƒ")
-                    nil))))))
-
 (defun prettify-anonymous-fns ()
   (font-lock-add-keywords
    nil `(("\\(#\\)("
@@ -770,6 +1250,42 @@
                                     "∈")
                     nil))))))
 
+(defun prettify-some-chars ()
+  (dolist (x '((true        т)
+               (false       ғ)
+               (:keys       ӄ)
+               (:strs       ş)
+               (nil         Ø)
+               (partial     Ƥ)
+               (with-redefs я)
+               (comp        º)
+               (apply       ζ)
+               (a-fn1       α)
+               (a-fn2       β)
+               (a-fn3       γ)
+               (no-op       ε)))
+    (font-lock-add-keywords
+     nil `((,(concat "[\[({[:space:]]"
+                               "\\(" (symbol-name (first x)) "\\)"
+                               "[\])}[:space:]]")
+                      (0 (progn (compose-region (match-beginning 1)
+                                                (match-end 1) ,(symbol-name (second x)))
+                                nil)))))
+    (font-lock-add-keywords
+     nil `((,(concat "^"
+                     "\\(" (symbol-name (first x)) "\\)"
+                     "[\])}[:space:]]")
+            (0 (progn (compose-region (match-beginning 1)
+                                      (match-end 1) ,(symbol-name (second x)))
+                      nil)))))
+    (font-lock-add-keywords
+     nil `((,(concat "[\[({[:space:]]"
+                                "\\(" (symbol-name (first x)) "\\)"
+                                "$")
+                       (0 (progn (compose-region (match-beginning 1)
+                                                 (match-end 1) ,(symbol-name (second x)))
+                                 nil)))))))
+
 (use-package clojure-mode
   :hook ((clojure-mode . aggressive-indent-mode)
          (clojure-mode . smartparens-strict-mode)
@@ -779,9 +1295,9 @@
          (clojure-mode . rainbow-delimiters-mode)
          (clojure-mode . highlight-sexp-mode)
          (clojure-mode . highlight-parentheses-mode)
-         (clojure-mode . prettify-fns)
          (clojure-mode . prettify-anonymous-fns)
-         (clojure-mode . prettify-sets))
+         (clojure-mode . prettify-sets)
+         (clojure-mode . prettify-some-chars))
   :config
   (progn
     (eval-after-load 'clojure-mode
@@ -901,16 +1417,16 @@
                       (clj-kondo-edn . edn-joker)))
     (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers)))))
 
-(use-package lsp-mode
-  :ensure t
-  :hook ((clojure-mode . lsp))
-  :commands lsp
-  :custom
-  ((lsp-clojure-server-command '("java" "-jar" "/home/ianffcs/Downloads/clj-kondo-lsp-server-2020.01.27-standalone.jar")))
-  :config
-  (dolist (m '(clojure-mode
-               clojurescript-mode))
-    (add-to-list 'lsp-language-id-configuration `(,m . "clojure"))))
+;; (use-package lsp-mode
+;;   :ensure t
+;;   :hook ((clojure-mode . lsp))
+;;   :commands lsp
+;;   :custom
+;;   ((lsp-clojure-server-command '("java" "-jar" "/home/ianffcs/Downloads/clj-kondo-lsp-server-2020.01.27-standalone.jar")))
+;;   :config
+;;   (dolist (m '(clojure-mode
+;;                clojurescript-mode))
+;;     (add-to-list 'lsp-language-id-configuration `(,m . "clojure"))))
 
 ;(use-package emidje
  ; :config (eval-after-load 'cider #'emidje-setup))
@@ -942,6 +1458,10 @@
 (add-hook 'cider-repl-mode-hook 'set-auto-complete-as-completion-at-point-function)
 (add-hook 'cider-mode-hook 'set-auto-complete-as-completion-at-point-function)
 #+END_SRC
+
+#+RESULTS:
+| set-auto-complete-as-completion-at-point-function | ac-cider-setup | cider-company-enable-fuzzy-completion | highlight-parentheses-mode | rainbow-delimiters-mode | smartparens-strict-mode |
+
 *** Kotlin
 #+BEGIN_SRC emacs-lisp
 (use-package kotlin-mode)
@@ -1059,7 +1579,9 @@
       ;; enable company and eldoc minor modes in rust-mode
       (add-hook 'racer-mode-hook 'company-mode)
       (add-hook 'racer-mode-hook 'eldoc-mode)))
-
+  (add-hook 'rust-mode-hook
+          (lambda ()
+            (local-set-key (kbd "C-c <tab>") #'rust-format-buffer)))
   (add-hook 'rust-mode-hook 'flycheck-mode)
   (add-hook 'flycheck-mode-hook 'flycheck-rust-setup)
   (add-hook 'rust-mode-hook 'racer-mode)
@@ -2218,6 +2740,11 @@
 #+END_SRC
 * Tramp
 #+BEGIN_SRC emacs-lisp
+(use-package sudo-edit
+    :ensure t
+    :bind
+      ("s-e" . sudo-edit))
+
 (use-package counsel-tramp
   :config (setq tramp-default-method "ssh"))
 #+END_SRC
@@ -2440,116 +2967,86 @@ narrowed."
       (projectile-global-mode)
       (setq projectile-completion-system 'ivy))
 #+END_SRC
-* IBuffer
-#+BEGIN_SRC emacs-lisp
-(global-set-key (kbd "C-x C-b") 'ibuffer)
-
-(setq ibuffer-saved-filter-groups
-      (quote (("default"
-               ("dired" (mode . dired-mode))
-               ("org" (name . "^.*org$"))
-               ("magit" (mode . magit-mode))
-               ("IRC" (or (mode . circe-channel-mode) (mode . circe-server-mode)))
-               ("web" (or (mode . web-mode) (mode . js2-mode)))
-               ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
-               ("mu4e" (or (mode . mu4e-compose-mode)
-                           (name . "\*mu4e\*")))
-               ("programming" (or (mode . clojure-mode)
-                                  (mode . clojurescript-mode)
-                                  (mode . python-mode)
-                                  (mode . c++-mode)))
-               ("emacs" (or (name . "^\\*scratch\\*$")
-                            (name . "^\\*Messages\\*$")))))))
-
-(add-hook 'ibuffer-mode-hook
-          (lambda ()
-            (ibuffer-auto-mode 1)
-            (ibuffer-switch-to-saved-filter-groups "default")))
-
-(setq ibuffer-show-empty-filter-groups nil)
-
-;; Don't ask for confirmation to delete marked buffers
-(setq ibuffer-expert t)
-#+END_SRC
 * Regex
 #+BEGIN_SRC emacs-lisp
 (use-package pcre2el
   :ensure t
   :config (pcre-mode))
 #+END_SRC
-* Counsel Spotify
+* Media
+** EMMS with mpd
+There is many backends, many players and codecs for EMMS, we use mpd now.
+*** Basic setup for mpd
+The non XF86 keys are made to be somewhat logical to follow and easy to remember.
+At the bottom part of the configuration, you will notice how XF86 keys are used
+by default, so unless you keyboard is broken it should work out of the box.
+Obviously you might have to adjust /server-name/ and /server-port/ to fit your configuration.
 #+BEGIN_SRC emacs-lisp
-;(setq counsel-spotify-client-id "")
-;(setq counsel-spotify-client-secret "")
-;(use-package counsel-spotify
-;  :ensure t
-;  :config
-;  (require 'counsel-spotify))
+  (use-package emms
+    :ensure t
+    :config
+      (require 'emms-setup)
+      (require 'emms-player-mpd)
+      (emms-all) ; don't change this to values you see on stackoverflow questions if you expect emms to work
+      (setq emms-seek-seconds 5)
+      (setq emms-player-list '(emms-player-mpd))
+      (setq emms-info-functions '(emms-info-mpd))
+      (setq emms-player-mpd-server-name "localhost")
+      (setq emms-player-mpd-server-port "6601")
+    :bind
+      ("s-m p" . emms)
+      ("s-m b" . emms-smart-browse)
+      ("s-m r" . emms-player-mpd-update-all-reset-cache)
+      ("<XF86AudioPrev>" . emms-previous)
+      ("<XF86AudioNext>" . emms-next)
+      ("<XF86AudioPlay>" . emms-pause)
+      ("<XF86AudioStop>" . emms-stop))
 #+END_SRC
-* COMMENT EMMS with mpd
+
+*** MPC Setup
+**** Setting the default port
+We use non-default settings for the socket, to use the built in =mpc= functionality we need to set up a variable.
+Adjust according to your setup.
 #+BEGIN_SRC emacs-lisp
-  ;; (use-package emms
-  ;;   :ensure t
-  ;;   :config
-  ;;   (require 'emms-setup)
-  ;;   (require 'emms-player-mpd)
-  ;;   (emms-all)
-  ;;   (setq emms-seek-seconds 5)
-  ;;   (setq emms-player-list '(emms-player-mpd))
-  ;;   (setq emms-info-functions '(emms-info-mpd))
-  ;;   (setq emms-player-mpd-server-name "localhost")
-  ;;   (setq emms-player-mpd-server-port "6601")
-  ;;   (setq emms-playlist-buffer-name "*Music*")
-  ;;   (setq emms-info-asynchronously t)
-  ;;   (require 'emms-info-libtag) ;;; load functions that will talk to emms-print-metadata which in turn talks to libtag and gets metadata
-  ;;   (setq emms-info-functions '(emms-info-libtag)) ;;; make sure libtag is the only thing delivering metadata
-  ;;   (require 'emms-mode-line)
-  ;;   (emms-mode-line 1)
-  ;;   (require 'emms-playing-time)
-  ;;   (emms-playing-time 1)
-  ;;   :bind
-  ;;   ("s-m p" . emms)
-  ;;   ("s-m b" . emms-smart-browse)
-  ;;   ("s-m r" . emms-player-mpd-update-all-reset-cache)
-  ;;   ("<XF86AudioPrev>" . emms-previous)
-  ;;   ("<XF86AudioNext>" . emms-next)
-  ;;   ("<XF86AudioPlay>" . emms-pause)
-  ;;   ("<XF86AudioStop>" . emms-stop))
-
-  ;; (defun ts/showsong ()
-  ;;  (emms-next-noerror)
-  ;;  (set 'notifyid (dbus-call-method :session "org.kde.knotify" "/Notify" "org.kde.KNotify" "event" "emms_song" "emacs" '(:array (:variant nil)) "Currently Playing" (emms-show) '(:array :byte 0 :byte 0 :byte 0 :byte 0) '(:array) :int64 0))
-  ;;  (run-at-time "5 sec" nil 'dbus-call-method :session "org.kde.knotify" "/Notify" "org.kde.KNotify" "closeNotification" :int32 notifyid)
-  ;;  )
-
-  ;; (setq emms-player-next-function 'ts/showsong)
-
-  ;; (defun mpd/start-music-daemon ()
-  ;; "Start MPD, connects to it and syncs the metadata cache."
-  ;; (interactive)
-  ;; (shell-command "mpd")
-  ;; (mpd/update-database)
-  ;; (emms-player-mpd-connect)
-  ;; (emms-cache-set-from-mpd-all)
-  ;; (message "MPD Started!"))
-  ;; (global-set-key (kbd "s-m c") 'mpd/start-music-daemon)
-
-  ;; (defun mpd/kill-music-daemon ()
-  ;; "Stops playback and kill the music daemon."
-  ;; (interactive)
-  ;; (emms-stop)
-  ;; (call-process "killall" nil nil nil "mpd")
-  ;; (message "MPD Killed!"))
-  ;; (global-set-key (kbd "s-m k") 'mpd/kill-music-daemon)
-
-  ;; (defun mpd/update-database ()
-  ;; "Updates the MPD database synchronously."
-  ;; (interactive)
-  ;; (call-process "mpc" nil nil nil "update")
-  ;; (message "MPD Database Updated!"))
-  ;; (global-set-key (kbd "s-m u") 'mpd/update-database)
+  (setq mpc-host "localhost:6601")
 #+END_SRC
-* Slack
+
+*** Some more fun stuff
+**** Starting the daemon from within emacs
+If you have an absolutely massive music library, it might be a good idea to get rid of =mpc-update=
+and only invoke it manually when needed.
+#+BEGIN_SRC emacs-lisp
+  (defun mpd/start-music-daemon ()
+    "Start MPD, connects to it and syncs the metadata cache."
+    (interactive)
+    (shell-command "mpd")
+    (mpd/update-database)
+    (emms-player-mpd-connect)
+    (emms-cache-set-from-mpd-all)
+    (message "MPD Started!"))
+  (global-set-key (kbd "s-m c") 'mpd/start-music-daemon)
+#+END_SRC
+
+**** Killing the daemon from within emacs
+#+BEGIN_SRC emacs-lisp
+  (defun mpd/kill-music-daemon ()
+    "Stops playback and kill the music daemon."
+    (interactive)
+    (emms-stop)
+    (call-process "killall" nil nil nil "mpd")
+    (message "MPD Killed!"))
+  (global-set-key (kbd "s-m k") 'mpd/kill-music-daemon)
+#+END_SRC
+**** Updating the database easily.
+#+BEGIN_SRC emacs-lisp
+  (defun mpd/update-database ()
+    "Updates the MPD database synchronously."
+    (interactive)
+    (call-process "mpc" nil nil nil "update")
+    (message "MPD Database Updated!"))
+  (global-set-key (kbd "s-m u") 'mpd/update-database)
+#+END_SRC
+* COMMENT Slack
 #+BEGIN_SRC emacs-lisp
 (use-package slack
   :commands (slack-start)
@@ -2600,10 +3097,6 @@ narrowed."
   (define-key org-jira-map (kbd "C-c wu") 'org-jira-update-worklogs-from-org-clocks)
   (define-key org-jira-map (kbd "C-c tj") 'org-jira-todo-to-jira)
   (define-key org-jira-map (kbd "C-c if") 'org-jira-get-issues-by-fixversion))
-#+END_SRC
-* MPC Setup
-#+BEGIN_SRC emacs-lisp
-(setq mpc-host "localhost:6601")
 #+END_SRC
 * Telega
 #+BEGIN_SRC emacs-lisp
