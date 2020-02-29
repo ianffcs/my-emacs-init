@@ -1162,6 +1162,24 @@ C-n and C-p totally work for this.
 #+BEGIN_SRC emacs-lisp
 (use-package nvm)
 #+END_SRC
+*** LSP Mode
+#+BEGIN_SRC emacs-lisp
+(use-package lsp-mode
+  :ensure t
+  :hook (;;(clojure-mode . lsp)
+         (haskell-mode . lsp))
+  ;;   :custom
+  ;;   ((lsp-clojure-server-command '("java" "-jar" "/home/ianffcs/Downloads/clj-kondo-lsp-server-2020.01.27-standalone.jar")))
+  ;;   :config
+  ;;   (dolist (m '(clojure-mode
+  ;;                clojurescript-mode))
+  ;;     (add-to-list 'lsp-language-id-configuration `(,m . "clojure")))
+  :commands lsp)
+
+(use-package lsp-ui
+  :ensure t
+  :commands lsp-ui-mode)
+#+END_SRC
 ** By Lang Configuration
 *** Agda
 #+BEGIN_SRC emacs-lisp
@@ -1428,17 +1446,6 @@ C-n and C-p totally work for this.
                       (clj-kondo-edn . edn-joker)))
     (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers)))))
 
-;; (use-package lsp-mode
-;;   :ensure t
-;;   :hook ((clojure-mode . lsp))
-;;   :commands lsp
-;;   :custom
-;;   ((lsp-clojure-server-command '("java" "-jar" "/home/ianffcs/Downloads/clj-kondo-lsp-server-2020.01.27-standalone.jar")))
-;;   :config
-;;   (dolist (m '(clojure-mode
-;;                clojurescript-mode))
-;;     (add-to-list 'lsp-language-id-configuration `(,m . "clojure"))))
-
 ;(use-package emidje
  ; :config (eval-after-load 'cider #'emidje-setup))
 
@@ -1605,38 +1612,31 @@ C-n and C-p totally work for this.
 (use-package haskell-mode
   :ensure t)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; (use-package lsp-mode                                                          ;;
-;;   :ensure t                                                                    ;;
-;;   :hook (haskell-mode . lsp)                                                   ;;
-;;   :commands lsp)                                                               ;;
-;;                                                                                ;;
-;; (use-package lsp-ui                                                            ;;
-;;   :ensure t                                                                    ;;
-;;   :commands lsp-ui-mode)                                                       ;;
-;;                                                                                ;;
-;; (use-package lsp-haskell                                                       ;;
-;;  :ensure t                                                                     ;;
-;;  :config                                                                       ;;
-;;  (setq lsp-haskell-process-path-hie "ghcide")                                  ;;
-;;  (setq lsp-haskell-process-args-hie '())                                       ;;
-;;  ;; Comment/uncomment this line to see interactions between lsp client/server. ;;
-;;  ;;(setq lsp-log-io t)                                                         ;;
-;;  )                                                                             ;;
-;;                                                                                ;;
-;; (use-package eglot                                                             ;;
-;;   :ensure t                                                                    ;;
-;;   :config                                                                      ;;
-;;   (add-to-list 'eglot-server-programs '(haskell-mode . ("ghcide" "--lsp"))))   ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(use-package lsp-haskell
+ :ensure t
+ :config
+ (setq interactive-haskell-mode 1
+       lsp-haskell-process-path-hie "ghcide"
+       lsp-haskell-process-args-hie '())
+  ;; Comment/uncomment this line to see interactions between lsp client/server.
+ ;; (setq lsp-log-io t)
+ )
 
-(use-package intero
-  :ensure t :config
-  (progn
-    (add-hook 'haskell-mode-hook 'intero-mode)))
+(use-package eglot
+  :ensure t
+  :config
+  (add-to-list 'eglot-server-programs '(haskell-mode . ("ghcide" "--lsp"))))
 
-(setq flycheck-check-syntax-automatically '(save new-line))
-(flycheck-add-next-checker 'intero '(warning . haskell-hlint))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; (use-package intero                                            ;;
+;;   :ensure t :config                                            ;;
+;;   (progn                                                       ;;
+;;     (add-hook 'haskell-mode-hook 'intero-mode)))               ;;
+;;                                                                ;;
+;; (setq flycheck-check-syntax-automatically '(save new-line))    ;;
+;; (flycheck-add-next-checker 'intero '(warning . haskell-hlint)) ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 #+END_SRC
 *** WebMode
