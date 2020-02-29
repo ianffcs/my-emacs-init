@@ -5,7 +5,6 @@
 * Meta
 #+BEGIN_SRC emacs-lisp
   ;;;; Initialization
-
    (defun tangle-init ()
      "If the current buffer is 'init.org' the code-blocks are
      tangled, and the tangled file is compiled."
@@ -167,8 +166,7 @@
   (setq ivy-display-style 'fancy))
 
 (use-package swiper
-  :bind (("C-s" . swiper-isearch)
-         ("C-r" . swiper-isearch))
+  :bind (("C-s" . swiper-isearch))
   :config
   (ivy-mode 1))
 
@@ -391,11 +389,13 @@
 #+END_SRC
 ** Fonts
 #+BEGIN_SRC emacs-lisp
-(when window-system
-      (use-package pretty-mode
-      :ensure t
-      :config
-      (global-pretty-mode t)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; (when window-system            ;;
+;;       (use-package pretty-mode ;;
+;;       :ensure t                ;;
+;;       :config                  ;;
+;;       (global-pretty-mode t))) ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (when window-system
   (global-prettify-symbols-mode))
@@ -1065,6 +1065,19 @@ C-n and C-p totally work for this.
   :config
   (projectile-mode t))
 #+END_SRC
+* Yasnippet
+#+BEGIN_SRC emacs-lisp
+(use-package yasnippet
+  :ensure t
+  :init
+  (yas-global-mode 1))
+
+(use-package auto-yasnippet
+  :ensure t)
+
+(use-package yasnippet-snippets
+  :after (yas-global-mode))
+#+END_SRC
 * Langs
 ** General
 *** TODO Prog mode
@@ -1085,11 +1098,11 @@ C-n and C-p totally work for this.
 #+END_SRC
 *** Flycheck confs
 #+BEGIN_SRC emacs-lisp
-(use-package flycheck)
-
-(use-package flycheck-joker)
-
-(use-package flycheck-clj-kondo)
+(use-package flycheck
+  :ensure t
+  :init
+  (global-flycheck-mode t)
+  :diminish nil)
 #+END_SRC
 *** Semantic confs
 #+BEGIN_SRC emacs-lisp
@@ -1297,7 +1310,8 @@ C-n and C-p totally work for this.
          (clojure-mode . highlight-parentheses-mode)
          (clojure-mode . prettify-anonymous-fns)
          (clojure-mode . prettify-sets)
-         (clojure-mode . prettify-some-chars))
+         ;; (clojure-mode . prettify-some-chars)
+)
   :config
   (progn
     (eval-after-load 'clojure-mode
@@ -1364,28 +1378,31 @@ C-n and C-p totally work for this.
          cider-repl-mode-map
          ("C-c M-o" . cider-repl-clear-buffer))
   :config
-  (setq cider-repl-pop-to-buffer-on-connect nil
-        cider-repl-use-clojure-font-lock nil
-        cider-annotate-completion-candidates t
-        cider-prompt-for-symbol nil
-        cider-repl-use-pretty-printing t
-        cider-repl-wrap-history t
-        cider-repl-pop-to-buffer-on-connect 'display-only
-        cider-repl-prompt-function 'cider-repl-prompt-custom
-        cider-repl-result-prefix ";; => "
-        cider-repl-display-in-current-window t
-        cider-repl-wrap-history t
-        cider-repl-use-pretty-printing 't
-        cider-pprint-fn 'puget
-        cider-print-options '(("print-color" "true"))
-        cider-repl-use-clojure-font-lock t
-        cider-auto-select-error-buffer nil
-        org-babel-clojure-backend 'cider
-        cider-eldoc-display-context-dependent-info t
-        cider-save-file-on-load t
-        cider-jump-to-pop-to-buffer-actions '((display-buffer-same-window))
-        ;; emidje-load-facts-on-eval t
-        )
+  (progn
+    (setq cider-repl-pop-to-buffer-on-connect nil
+          cider-repl-use-clojure-font-lock nil
+          cider-annotate-completion-candidates t
+          cider-prompt-for-symbol nil
+          cider-repl-use-pretty-printing t
+          cider-repl-wrap-history t
+          cider-repl-pop-to-buffer-on-connect 'display-only
+          cider-repl-prompt-function 'cider-repl-prompt-custom
+          cider-repl-result-prefix ";; => "
+          cider-repl-display-in-current-window t
+          cider-repl-wrap-history t
+          cider-repl-use-pretty-printing 't
+          cider-pprint-fn 'puget
+          cider-print-options '(("print-color" "true"))
+          cider-repl-use-clojure-font-lock t
+          cider-auto-select-error-buffer nil
+          org-babel-clojure-backend 'cider
+          cider-eldoc-display-context-dependent-info t
+          cider-save-file-on-load t
+          cider-jump-to-pop-to-buffer-actions '((display-buffer-same-window))
+          ;; emidje-load-facts-on-eval t
+          )
+    (define-key clojure-mode-map (kbd "C-t") 'cider-test-rerun-test)
+    )
   ;; (eval-after-load 'cider #'emidje-enable-nrepl-middleware)
   )
 
@@ -1396,12 +1413,6 @@ C-n and C-p totally work for this.
                                                 (clj-refactor-mode 1)
                                                 (yas-minor-mode 1)
                                                 (cljr-add-keybindings-with-prefix "C-c C-m")))))
-
-(use-package flycheck
-  :ensure t
-  :config
-  (global-flycheck-mode)
-  :diminish nil)
 
 (use-package flycheck-joker
   :after clojure-mode
@@ -1458,10 +1469,6 @@ C-n and C-p totally work for this.
 (add-hook 'cider-repl-mode-hook 'set-auto-complete-as-completion-at-point-function)
 (add-hook 'cider-mode-hook 'set-auto-complete-as-completion-at-point-function)
 #+END_SRC
-
-#+RESULTS:
-| set-auto-complete-as-completion-at-point-function | ac-cider-setup | cider-company-enable-fuzzy-completion | highlight-parentheses-mode | rainbow-delimiters-mode | smartparens-strict-mode |
-
 *** Kotlin
 #+BEGIN_SRC emacs-lisp
 (use-package kotlin-mode)
@@ -1598,6 +1605,31 @@ C-n and C-p totally work for this.
 (use-package haskell-mode
   :ensure t)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; (use-package lsp-mode                                                          ;;
+;;   :ensure t                                                                    ;;
+;;   :hook (haskell-mode . lsp)                                                   ;;
+;;   :commands lsp)                                                               ;;
+;;                                                                                ;;
+;; (use-package lsp-ui                                                            ;;
+;;   :ensure t                                                                    ;;
+;;   :commands lsp-ui-mode)                                                       ;;
+;;                                                                                ;;
+;; (use-package lsp-haskell                                                       ;;
+;;  :ensure t                                                                     ;;
+;;  :config                                                                       ;;
+;;  (setq lsp-haskell-process-path-hie "ghcide")                                  ;;
+;;  (setq lsp-haskell-process-args-hie '())                                       ;;
+;;  ;; Comment/uncomment this line to see interactions between lsp client/server. ;;
+;;  ;;(setq lsp-log-io t)                                                         ;;
+;;  )                                                                             ;;
+;;                                                                                ;;
+;; (use-package eglot                                                             ;;
+;;   :ensure t                                                                    ;;
+;;   :config                                                                      ;;
+;;   (add-to-list 'eglot-server-programs '(haskell-mode . ("ghcide" "--lsp"))))   ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (use-package intero
   :ensure t :config
   (progn
@@ -1605,6 +1637,7 @@ C-n and C-p totally work for this.
 
 (setq flycheck-check-syntax-automatically '(save new-line))
 (flycheck-add-next-checker 'intero '(warning . haskell-hlint))
+
 #+END_SRC
 *** WebMode
 #+BEGIN_SRC emacs-lisp
@@ -2747,17 +2780,6 @@ C-n and C-p totally work for this.
 
 (use-package counsel-tramp
   :config (setq tramp-default-method "ssh"))
-#+END_SRC
-* Yasnippet
-#+BEGIN_SRC emacs-lisp
-(use-package yasnippet
-  :ensure t
-  :init
-  (yas-global-mode 1))
-(use-package auto-yasnippet
-  :ensure t)
-(use-package yasnippet-snippets
-  :after (yas-global-mode))
 #+END_SRC
 * Iedit and narrow/widen dwin
 #+BEGIN_SRC emacs-lisp
