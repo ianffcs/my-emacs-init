@@ -519,7 +519,7 @@
       mouse-wheel-scroll-amount     '(1)
       mouse-wheel-progressive-speed nil)
 
-  (menu-bar-mode -99)
+  (menu-bar-mode -1)
   (tool-bar-mode -1)
 
 (set-cursor-color "#ffffff")
@@ -1328,8 +1328,7 @@ C-n and C-p totally work for this.
          (clojure-mode . highlight-parentheses-mode)
          (clojure-mode . prettify-anonymous-fns)
          (clojure-mode . prettify-sets)
-         (clojure-mode . prettify-some-chars)
-)
+         (clojure-mode . prettify-some-chars))
   :config
   (progn
     (eval-after-load 'clojure-mode
@@ -1353,7 +1352,14 @@ C-n and C-p totally work for this.
          (GET 2)
          (not-join 1)
          (recursive-path 2)
-         (wcar 1)))
+         (wcar 1)
+         (implement '(1 (1)))
+         (letfn     '(1 ((:defn)) nil))
+         (proxy     '(2 nil nil (1)))
+         (reify     '(:defn (1)))
+         (deftype   '(2 nil nil (1)))
+         (defrecord '(2 nil nil (1)))
+         (specify   '(1 (1)))))
     (add-to-list 'auto-mode-alist '("\\.edn$" . clojure-mode))
     (add-to-list 'auto-mode-alist '("\\.boot$" . clojure-mode))
     (hack-local-variables)
