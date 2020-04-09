@@ -550,12 +550,6 @@
   :config
   (setq ibuffer-sidebar-use-custom-font t)
   (setq ibuffer-sidebar-face `(:family "Helvetica" :height 140)))
-
-(defun sidebar-toggle ()
-  "Toggle both `dired-sidebar' and `ibuffer-sidebar'."
-  (interactive)
-  (dired-sidebar-toggle-sidebar)
-  (ibuffer-sidebar-toggle-sidebar))
 #+END_SRC
 * Dired
 #+BEGIN_SRC emacs-lisp
@@ -589,11 +583,13 @@
   ;(setq dired-sidebar-theme 'vscode)
   )
 
-(defun +sidebar-toggle ()
+(defun sidebar-toggle ()
   "Toggle both `dired-sidebar' and `ibuffer-sidebar'."
   (interactive)
   (dired-sidebar-toggle-sidebar)
   (ibuffer-sidebar-toggle-sidebar))
+
+(global-set-key (kbd "C-x <menu>") 'sidebar-toggle)
 #+END_SRC
 * Window Manager
 Everything regarding the WM or DE-like functionality is bundled here, remove the entire section if you do not wish to use =exwm=.
