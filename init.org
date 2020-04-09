@@ -84,17 +84,6 @@
 (setq custom-file (expand-file-name (concat user-emacs-directory "custom/custom.el")))
 (load custom-file)
 #+END_SRC
-* Private
-#+BEGIN_SRC emacs-lisp
-(defconst private-dir (expand-file-name "private" user-emacs-directory))
-(defconst temp-dir (format "%s/cache" private-dir))
-
-(unless (file-exists-p private-dir)
-  (make-directory private-dir :parents))
-
-(unless (file-exists-p temp-dir)
-  (make-directory temp-dir :parents))
-#+END_SRC
 * Mac custom keyboard
 #+BEGIN_SRC emacs-lisp
   (defun paste-from-osx ()
@@ -2477,6 +2466,17 @@ C-n and C-p totally work for this.
   (setq epg-gpg-program "/usr/bin/gpg2")
   (setq password-cache-expiry (* 15 60))
   (setq epa-file-cache-passphrase-for-symmetric-encryption t))
+#+END_SRC
+* Private
+#+BEGIN_SRC emacs-lisp
+(defconst private-dir (expand-file-name "private" user-emacs-directory))
+(defconst temp-dir (format "%s/cache" private-dir))
+
+(unless (file-exists-p private-dir)
+  (make-directory private-dir :parents))
+
+(unless (file-exists-p temp-dir)
+  (make-directory temp-dir :parents))
 #+END_SRC
 * Org
 ** Org General confs
