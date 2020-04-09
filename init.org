@@ -142,40 +142,6 @@
 (setq exec-path
       (append exec-path '("/home/ianffcs/.nvm/versions/node/v12.11.1/bin")))
 #+END_SRC
-* Completion Framework Ivy
-#+BEGIN_SRC emacs-lisp
-(use-package counsel
-  :bind
-  (("M-x" . counsel-M-x)
-   ("M-y" . counsel-yank-pop)
-   :map ivy-minibuffer-map
-   ("M-y" . ivy-next-line)
-   ("C-x C-f" . counsel-find-file))
-  :config       (define-key read-expression-map (kbd "C-r") 'counsel-expression-history))
-
-(use-package smex)
-
-(use-package ivy
-  :diminish (ivy-mode)
-  :bind (("C-x b" . ivy-switch-buffer)
-         ("C-c C-r" . ivy-resume))
-  :config
-  (ivy-mode 1)
-  (setq ivy-use-virtual-buffers t)
-  (setq ivy-count-format "%d/%d ")
-  (setq ivy-display-style 'fancy))
-
-(use-package swiper
-  :bind (("C-s" . swiper-isearch))
-  :config
-  (ivy-mode 1))
-
-(use-package anzu
-  :config
-  (global-anzu-mode)
-  (global-set-key (kbd "M-%") 'anzu-query-replace)
-  (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp))
-#+END_SRC
 * Editor confs
 #+BEGIN_SRC emacs-lisp
 
@@ -245,19 +211,6 @@
 (use-package async
   :ensure t
   :init (dired-async-mode 1))
-#+END_SRC
-* Dired
-#+BEGIN_SRC emacs-lisp
-;; dired - reuse current buffer by pressing 'a'
-(put 'dired-find-alternate-file 'disabled nil)
-
-;; always delete and copy recursively
-(setq dired-recursive-deletes 'always)
-(setq dired-recursive-copies 'always)
-
-;; if there is a dired buffer displayed in the next window, use its
-;; current subdir, instead of the current subdir of this dired buffer
-(setq dired-dwim-target t)
 #+END_SRC
 * Backup
 #+BEGIN_SRC emacs-lisp
@@ -549,6 +502,98 @@
      (set-frame-parameter (selected-frame) 'alpha value))
 
    (set-frame-alpha 90)
+#+END_SRC
+* Completion Framework Ivy
+#+BEGIN_SRC emacs-lisp
+(use-package counsel
+  :bind
+  (("M-x" . counsel-M-x)
+   ("M-y" . counsel-yank-pop)
+   :map ivy-minibuffer-map
+   ("M-y" . ivy-next-line)
+   ("C-x C-f" . counsel-find-file))
+  :config       (define-key read-expression-map (kbd "C-r") 'counsel-expression-history))
+
+(use-package smex)
+
+(use-package ivy
+  :diminish (ivy-mode)
+  :bind (("C-x b" . ivy-switch-buffer)
+         ("C-c C-r" . ivy-resume))
+  :config
+  (ivy-mode 1)
+  (setq ivy-use-virtual-buffers t)
+  (setq ivy-count-format "%d/%d ")
+  (setq ivy-display-style 'fancy))
+
+(use-package swiper
+  :bind (("C-s" . swiper-isearch))
+  :config
+  (ivy-mode 1))
+
+(use-package anzu
+  :config
+  (global-anzu-mode)
+  (global-set-key (kbd "M-%") 'anzu-query-replace)
+  (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp))
+#+END_SRC
+* IBuffer
+#+BEGIN_SRC emacs-lisp
+(use-package ibuffer-tramp)
+
+(use-package ibuffer-projectile)
+
+(use-package ibuffer-git)
+
+(use-package ibuffer-sidebar
+  :commands (ibuffer-sidebar-toggle-sidebar)
+  :config
+  (setq ibuffer-sidebar-use-custom-font t)
+  (setq ibuffer-sidebar-face `(:family "Helvetica" :height 140)))
+
+(defun sidebar-toggle ()
+  "Toggle both `dired-sidebar' and `ibuffer-sidebar'."
+  (interactive)
+  (dired-sidebar-toggle-sidebar)
+  (ibuffer-sidebar-toggle-sidebar))
+#+END_SRC
+* Dired
+#+BEGIN_SRC emacs-lisp
+;; dired - reuse current buffer by pressing 'a'
+(put 'dired-find-alternate-file 'disabled nil)
+
+;; always delete and copy recursively
+(setq dired-recursive-deletes 'always)
+(setq dired-recursive-copies 'always)
+
+;; if there is a dired buffer displayed in the next window, use its
+;; current subdir, instead of the current subdir of this dired buffer
+(setq dired-dwim-target t)
+
+(use-package dired-sidebar
+  :bind (("C-x C-n" . dired-sidebar-toggle-sidebar))
+  :ensure t
+  :commands (dired-sidebar-toggle-sidebar)
+  :init
+  (add-hook 'dired-sidebar-mode-hook
+            (lambda ()
+              (unless (file-remote-p default-directory)
+                (auto-revert-mode))))
+  :config
+  (push 'toggle-window-split dired-sidebar-toggle-hidden-commands)
+  (push 'rotate-windows dired-sidebar-toggle-hidden-commands)
+
+  (setq dired-sidebar-subtree-line-prefix "__"
+        dired-sidebar-use-term-integration t
+        dired-sidebar-use-custom-font t)
+  ;(setq dired-sidebar-theme 'vscode)
+  )
+
+(defun +sidebar-toggle ()
+  "Toggle both `dired-sidebar' and `ibuffer-sidebar'."
+  (interactive)
+  (dired-sidebar-toggle-sidebar)
+  (ibuffer-sidebar-toggle-sidebar))
 #+END_SRC
 * Window Manager
 Everything regarding the WM or DE-like functionality is bundled here, remove the entire section if you do not wish to use =exwm=.
@@ -2419,83 +2464,6 @@ C-n and C-p totally work for this.
                                                                                                                    (call-interactively 'gud-refresh)
                                                                                                                    (chan-gogud-exec-function #'go-guru-implements)))
                                                   ))
-#+END_SRC
-* Treemacs
-#+BEGIN_SRC emacs-lisp
-(use-package treemacs
-  :ensure t
-  :defer t
-  :init
-  (with-eval-after-load 'winum
-    (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
-  :config
-  (progn
-    (setq treemacs-collapse-dirs   (if (executable-find "python") 3 0)
-          treemacs-deferred-git-apply-delay      0.5
-          treemacs-display-in-side-window        t
-          treemacs-file-event-delay              5000
-          treemacs-file-follow-delay             0.2
-          treemacs-follow-after-init             t
-          treemacs-git-command-pipe              ""
-          treemacs-goto-tag-strategy             'refetch-index
-          treemacs-indentation                   2
-          treemacs-indentation-string            " "
-          treemacs-is-never-other-window         nil
-          treemacs-max-git-entries               5000
-          treemacs-no-png-images                 nil
-          treemacs-no-delete-other-windows       t
-          treemacs-project-follow-cleanup        nil
-          treemacs-persist-file                  (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
-          treemacs-recenter-distance             0.1
-          treemacs-recenter-after-file-follow    nil
-          treemacs-recenter-after-tag-follow     nil
-          treemacs-recenter-after-project-jump   'always
-          treemacs-recenter-after-project-expand 'on-distance
-          treemacs-show-cursor                   nil
-          treemacs-show-hidden-files             t
-          treemacs-silent-filewatch              nil
-          treemacs-silent-refresh                nil
-          treemacs-sorting                       'alphabetic-desc
-          treemacs-space-between-root-nodes      t
-          treemacs-tag-follow-cleanup            t
-          treemacs-tag-follow-delay              1.5
-          treemacs-width                         35)
-    (treemacs-follow-mode t)
-    (treemacs-filewatch-mode t)
-    (treemacs-fringe-indicator-mode t)
-    (pcase (cons (not (null (executable-find "git")))
-                 (not (null (executable-find "python3"))))
-      (`(t . t)
-       (treemacs-git-mode 'deferred))
-      (`(t . _)
-       (treemacs-git-mode 'simple))))
-  :bind
-  (:map global-map
-        ("M-0"       . treemacs-select-window)
-        ("C-x t 1"   . treemacs-delete-other-windows)
-        ("C-x t t"   . treemacs)
-        ("C-x t B"   . treemacs-bookmark)
-        ("C-x t C-t" . treemacs-find-file)
-        ("C-x t M-t" . treemacs-find-tag)))
-
-(use-package treemacs-projectile
-  :defer t
-  :ensure t
-  :config
-  (setq treemacs-header-function #'treemacs-projectile-create-heade))
-
-;; (use-package treemacs-icons-dired
-;;   :after treemacs dired
-;;   :ensure t
-;;   :config (treemacs-icons-dired-mode))
-
-(use-package treemacs-magit
-  :after treemacs magit
-  :ensure t)
-
-;(use-package treemacs-evil
-  ;:ensure t)
-  ; (treemacs-reset-icons)
 #+END_SRC
 * Pretty Mode
 #+BEGIN_SRC emacs-lisp
