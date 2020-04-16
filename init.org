@@ -113,7 +113,6 @@ deprecated?)
             mac-right-option-modifier 'control
             ;mac-option-key-is-control t
   ))
-
 #+END_SRC
 * Linux specific settings
 #+BEGIN_SRC emacs-lisp
@@ -505,7 +504,7 @@ Let's set up autocompletions.
   (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
-(add-hook 'prog-mode-hook 'linum-mode)
+;(add-hook 'prog-mode-hook 'linum-mode)
 
 (defun set-frame-alpha (value)
   "Set the transparency of the frame. 0 = transparent/100 = opaque"
@@ -545,17 +544,6 @@ Simplistic and small modeline for my needs, specially on EXWM.
 #+end_src
 * Completion Framework Ivy
 #+BEGIN_SRC emacs-lisp
-(use-package counsel
-  :bind
-  (("M-x" . counsel-M-x)
-   ("M-y" . counsel-yank-pop)
-   :map ivy-minibuffer-map
-   ("M-y" . ivy-next-line)
-   ("C-x C-f" . counsel-find-file))
-  :config       (define-key read-expression-map (kbd "C-r") 'counsel-expression-history))
-
-(use-package smex)
-
 (use-package ivy
   :diminish (ivy-mode)
   :bind (("C-x b" . ivy-switch-buffer)
@@ -576,6 +564,16 @@ Simplistic and small modeline for my needs, specially on EXWM.
   (global-anzu-mode)
   (global-set-key (kbd "M-%") 'anzu-query-replace)
   (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp))
+
+(use-package counsel
+  :bind
+  (("M-x" . counsel-M-x)
+   ("M-y" . counsel-yank-pop)
+   :map ivy-minibuffer-map
+   ("M-y" . ivy-next-line))
+  :config
+  (define-key read-expression-map (kbd "C-r") 'counsel-expression-history)
+  (global-set-key (kbd "C-x C-f") 'counsel-find-file))
 #+END_SRC
 ** Ivy-rich
 
@@ -2502,7 +2500,6 @@ It is also interesting to have pretty symbols for our LaTeX files.
 
   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
   (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
-
   (defun do-org-show-all-inline-images ()
     (interactive)
     (org-display-inline-images t t))
@@ -2560,7 +2557,7 @@ It is also interesting to have pretty symbols for our LaTeX files.
 ** Appearance
 #+BEGIN_SRC emacs-lisp
 (use-package org-superstar
-  :hook (org-mode . org-superstar-mode))
+  :config (progn (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1)))))
 
 (use-package fill-column-indicator
   :config (progn
@@ -2681,34 +2678,6 @@ Using =mathletters= from =ucs= also helps a lot.
 (add-to-list 'org-latex-default-packages-alist
              '("mathletters" "ucs" nil))
 #+end_src
-** Org Reveal.js
-#+BEGIN_SRC emacs-lisp
-(use-package org-re-reveal
-  :init (setq org-reveal-mathjax t
-              org-reveal-root "https://cdn.jsdelivr.net/npm/reveal.js@3.9.2/js/reveal.min.js"
-              org-reveal-root "http://cdn.jsdelivr.net/reveal.js@3.9.2/"))
-
-;; (require 'oer-reveal-publish)
-;; (oer-reveal-setup-submodules t)
-;; (oer-reveal-generate-include-files t)
-;; (oer-reveal-publish-setq-defaults)
-
-(use-package org-re-reveal-ref)
-
-(require 'org-ref)
-(require 'org-re-reveal-ref)
-(setq org-ref-default-bibliography '("references.bib")
-      org-ref-bibliography-entry-format
-      '(("article" . "%a, %t, <i>%j %v(%n)</i>, %p (%y). <a href=\"%U\">%U</a>")
-        ("book" . "%a, %t, %u, %y. <a href=\"%U\">%U</a>")
-        ("inproceedings" . "%a, %t, %b, %y. <a href=\"%U\">%U</a>")
-        ("incollection" . "%a, %t, %b, %u, %y. <a href=\"%U\">%U</a>")
-        ("misc" . "%a, %t, %i, %y.  <a href=\"%U\">%U</a>")
-        ("phdthesis" . "%a, %t, %s, %y.  <a href=\"%U\">%U</a>")
-        ("techreport" . "%a, %t, %i, %u (%y).")
-        ("proceedings" . "%e, %t in %S, %u (%y).")
-        ))
-#+END_SRC
 ** Epub
 
 Export Org filex to Epub format.
@@ -2762,27 +2731,54 @@ Categories=System;
 MimeType=x-scheme-handler/org-protocol;
 #+END_EXAMPLE
 
-** Org-ref
+** COMMENT Org-ref
 
 Org-ref is the best tool for managing bibliography.
 Bibliography location is stored on a sensitive file.
 
 #+begin_src emacs-lisp
   (use-package org-ref
-    :config (progn
+    ;:config (progn
               ;(load-sensible-file "org-ref.el")
-              (require 'org-ref-pdf)
-              (require 'org-ref-bibtex)
-              (require 'org-ref-url-utils)))
+     ;         (require 'org-ref-pdf)
+      ;        (require 'org-ref-bibtex)
+       ;       (require 'org-ref-url-utils))
+  )
 #+end_src
 
 I also need a different citation type to conform with ABNT rules. This
 makes sure that ABNTeX2's =\citeonline{}= works.
 
 #+begin_src emacs-lisp
-(org-ref-define-citation-link "citeonline" ?o)
+;;(org-ref-define-citation-link "citeonline" ?o)
 #+end_src
 
+** Org Reveal.js
+#+BEGIN_SRC emacs-lisp
+(use-package org-re-reveal
+  :init (setq org-reveal-mathjax t
+              org-reveal-root "https://cdn.jsdelivr.net/npm/reveal.js@3.9.2/js/reveal.min.js"
+              org-reveal-root "http://cdn.jsdelivr.net/reveal.js@3.9.2/"))
+
+;; (require 'oer-reveal-publish)
+;; (oer-reveal-setup-submodules t)
+;; (oer-reveal-generate-include-files t)
+;; (oer-reveal-publish-setq-defaults)
+
+;(use-package org-re-reveal-ref)
+
+(setq org-ref-default-bibliography '("references.bib")
+      org-ref-bibliography-entry-format
+      '(("article" . "%a, %t, <i>%j %v(%n)</i>, %p (%y). <a href=\"%U\">%U</a>")
+        ("book" . "%a, %t, %u, %y. <a href=\"%U\">%U</a>")
+        ("inproceedings" . "%a, %t, %b, %y. <a href=\"%U\">%U</a>")
+        ("incollection" . "%a, %t, %b, %u, %y. <a href=\"%U\">%U</a>")
+        ("misc" . "%a, %t, %i, %y.  <a href=\"%U\">%U</a>")
+        ("phdthesis" . "%a, %t, %s, %y.  <a href=\"%U\">%U</a>")
+        ("techreport" . "%a, %t, %i, %u (%y).")
+        ("proceedings" . "%e, %t in %S, %u (%y).")
+        ))
+#+END_SRC
 ** Presentations
 
 I use Epresentation which makes Emacs fullscreen in org.
@@ -3575,13 +3571,12 @@ directive to this topic so it doesn't tangle.
                   (exwm-config-default))))
 #+end_src
 
-Require packages and add =ido= at start.
+Require packages at start.
 
 #+begin_src emacs-lisp
 (with-exwm
  (require 'exwm)
- (require 'exwm-config)
- (ido-mode 1))
+ (require 'exwm-config))
 #+end_src
 
 Also enable time on modeline.
