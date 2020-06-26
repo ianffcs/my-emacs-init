@@ -18,7 +18,6 @@
 
    (add-hook 'after-save-hook 'tangle-init)
 #+END_SRC
-
 * Personal Keymap
 #+BEGIN_SRC emacs-lisp
 (setq user-full-name "Ian Fernandez"
@@ -100,11 +99,29 @@ deprecated?)
 
   (setq use-package-always-ensure t)
 
+
+;;straight
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+(straight-use-package 'use-package)
+(defvar straight-use-package-by-default)
+(setq straight-use-package-by-default t)
+
 ;; auto-package-update
 (use-package auto-package-update
   :config
-  (auto-package-update-maybe)
-  (setq auto-package-update-delete-old-versions t))
+  (auto-package-update-maybe))
 #+END_SRC
 * Custom
 #+BEGIN_SRC emacs-lisp
@@ -437,6 +454,17 @@ Smooth mouse scrolling
 
 (set-frame-alpha 90)
 #+END_SRC
+** Minor modes
+This package implements a menu that lists all enabled minor modes. Emacs mode line can become pretty long, so this can be handy, and perhaps I don’t need to use :diminish everywhere anymore.
+#+BEGIN_SRC emacs-lisp
+(use-package minions
+  :commands minions-mode
+  :init (minions-mode 1))
+#+END_SRC
+** Tabs
+#+BEGIN_SRC emacs-lisp
+
+#+END_SRC
 ** Time
 #+BEGIN_SRC emacs-lisp
 (use-package time
@@ -757,24 +785,8 @@ This queries YouTube stuff from Emacs and plays it on the browser.
              recentf-show-file-shortcuts-flag nil
              recentf-auto-cleanup 'never)
        :config
+       (add-to-list 'recentf-exclude "\\.gpg\\")
        (recentf-mode t))
-   #+END_SRC
-** Uniquify
-
-   Uniquify buffer names dependent on file name. Emacs's traditional
-   method for making buffer names unique adds <2>, <3>, etc to the end
-   of (all but one of) the buffers. This settings change the default
-   behavior.
-
-   #+BEGIN_SRC emacs-lisp
-     (use-package uniquify
-       :ensure nil
-       :config
-       (setq uniquify-buffer-name-style 'post-forward-angle-brackets
-             uniquify-separator " * "
-             uniquify-after-kill-buffer-p t
-             uniquify-strip-common-suffix t
-             uniquify-ignore-buffers-re "^\\*"))
    #+END_SRC
 ** Registers
 
@@ -824,37 +836,6 @@ Clean all the registers you saved.
   (set-register ?t '(file . "~/org/todo.org"))
   (set-register ?c '(file . "~/.emacs.d/docs/cheatsheet.org"))
 
-#+end_src
-** Abbreviation
-
-#+begin_src emacs-lisp
-  (use-package abbrev
-    :ensure nil
-    :delight abbrev-mode
-    :config
-    (setq-default abbrev-mode t))
-
-  (defun bk/add-region-local-abbrev (start end)
-    "Go from START to END and add the selected text to a local abbrev."
-    (interactive "r")
-    (if (use-region-p)
-        (let ((num-words (count-words-region start end)))
-          (add-mode-abbrev num-words)
-          (deactivate-mark))
-      (message "No selected region!")))
-
-  (global-set-key (kbd "C-x a l") 'bk/add-region-local-abbrev)
-
-  (defun bk/add-region-global-abbrev (start end)
-    "Go from START to END and add the selected text to global abbrev."
-    (interactive "r")
-    (if (use-region-p)
-        (let ((num-words (count-words-region start end)))
-          (add-abbrev global-abbrev-table "Global" num-words)
-          (deactivate-mark))
-      (message "No selected region!")))
-
-  (global-set-key (kbd "C-x a g") 'bk/add-region-global-abbrev)
 #+end_src
 ** Imenu
 
@@ -1850,10 +1831,6 @@ Company is a text completion framework for Emacs. The name stands for
 #+BEGIN_SRC emacs-lisp
 (use-package company
   :delight company-mode
-  :bind (("\C-n" . company-select-next)
-         ("\C-p" . company-select-previous)
-         ("\C-d" . company-doc-show-buffer)
-         ("M-." . company-show-location))
   :init
   (setq company-show-numbers t
         company-dabbrev-downcase nil
@@ -1863,7 +1840,9 @@ Company is a text completion framework for Emacs. The name stands for
         company-require-match 'never
         company-tooltip-align-annotations t
         company-transformers '(company-sort-by-occurrence)
-        company-idle-delay 0.5)
+        company-idle-delay 0.5
+        company-tooltip-align-annotations t
+        company-tooltip-flip-when-above t)
   :config
   (setq company-idle-delay 0)
   (setq company-minimum-prefix-length 3)
@@ -2003,6 +1982,30 @@ Then we override =dabbrev-expand='s keybinding to use
             (dap-tooltip-mode 1)
             (tooltip-mode 1)))
 #+END_SRC
+*** Hideshow
+This built in mode provides code folding. I use transient to create little interactive menu for easy interaction.
+#+BEGIN_SRC emacs-lisp
+(use-package hideshow
+  :straight nil
+  :after transient
+  :hook (prog-mode . hs-minor-mode)
+  :bind (:map prog-mode-map
+         ("<f6>" . hideshow-menu))
+  :config
+  (define-transient-command hideshow-menu ()
+    "Hideshow commands."
+    [:description
+     "Hide"
+     ("ha" "all" hs-hide-all)
+     ("hb" "block" hs-hide-block)]
+    [:description
+     "Show"
+     ("sa" "all" hs-show-all)
+     ("sb" "block" hs-show-block)]
+    (interactive)
+    (when (bound-and-true-p hs-minor-mode)
+      (transient-setup 'aorst/hideshow-menu nil nil))))
+#+END_SRC
 ** By Lang Configuration
 *** Agda
 #+BEGIN_SRC emacs-lisp
@@ -2029,14 +2032,26 @@ Then we override =dabbrev-expand='s keybinding to use
 #+END_SRC
 *** Clisp
 #+BEGIN_src emacs-lisp
+(use-package slime-company
+  :after slime-mode)
+
 (use-package slime
-  :hook ((slime-mode . smartparens-strict-mode)
-         (slime-mode . rainbow-parens-mode)
-         (slime-mode . highlight-parentheses-mode))
-  :bind (("M-TAB" . company-complete)
+  :hook ((slime-mode . lisp-mode)
+         (slime-mode . smartparens-strict-mode)
+         (slime-mode . rainbow-delimiters-mode)
+         (slime-mode . highlight-parentheses-mode)
+         (slime-repl-mode . smartparens-strict-mode)
+         (slime-repl-mode . rainbow-delimiters-mode)
+         (slime-repl-mode . highlight-parentheses-mode))
+  :bind (:map slime-mode
+         ("M-TAB" . company-complete)
+         ("C-c M-j" . slime)
          ("C-c C-d C-s" . slime-describe-symbol)
          ("C-c C-d C-f" . slime-describe-function)
-         ("C-c C-s" . slime-selector))
+         ("C-c C-s" . slime-selector)
+         ("C-x C-e" . slime-eval-last-expression)
+         ("C-c C-p" . slime-eval-print-last-expression)
+         ("C-c C-c" . slime-eval-last-expression-in-repl))
   :mode
   ("\\.lisp$" . slime-mode)
   :init
@@ -2057,8 +2072,6 @@ Then we override =dabbrev-expand='s keybinding to use
         common-lisp-hyperspec-issuex-table (concat common-lisp-hyperspec-root "Data/Map_IssX.txt"))
   :config (progn
             (lambda () (whitespace-mode -1))))
-
-(use-package slime-company)
 
 (defun slime-description-fontify ()
   (with-current-buffer "*slime-description*"
@@ -2118,8 +2131,6 @@ Then we override =dabbrev-expand='s keybinding to use
 
 (use-package clojure-mode-extra-font-locking)
 
-(use-package ac-cider)
-
 (use-package cider
   :hook ((cider-repl-mode . subword-mode)
          (cider-repl-mode . company-mode)
@@ -2153,7 +2164,7 @@ Then we override =dabbrev-expand='s keybinding to use
           cider-repl-wrap-history t
           cider-repl-pop-to-buffer-on-connect 'display-only
           cider-repl-prompt-function 'cider-repl-prompt-custom
-          cider-repl-result-prefix ";; =>"
+          ;;cider-repl-result-prefix ";; =>"
           cider-repl-display-in-current-window t
           cider-repl-wrap-history t
           cider-repl-use-pretty-printing 't
@@ -2171,6 +2182,8 @@ Then we override =dabbrev-expand='s keybinding to use
   ;; (eval-after-load 'cider #'emidje-enable-nrepl-middleware)
   )
 
+(use-package cljr-ivy
+ :after ivy-mode)
 ;; (defun prettify-some-chars ()
 ;;   (dolist (x '((true        т)
 ;;                (false       ғ)
@@ -2234,6 +2247,7 @@ Then we override =dabbrev-expand='s keybinding to use
          ;; (clojure-mode . prettify-some-chars)
          )
   :mode (("\\.clj$" . clojure-mode)
+         ("\\.cljs$" . clojure-mode)
          ("\\.edn$" . clojure-mode)
          ("\\.boot$" . clojure-mode))
   :config
@@ -2272,27 +2286,11 @@ Then we override =dabbrev-expand='s keybinding to use
     (define-key clojure-mode-map (kbd "C-t") 'cider-test-rerun-test)
     (setq clojure-align-forms-automatically 1)))
 
-(use-package clojurescript-mode
-  :hook ((clojurescript-mode . aggressive-indent-mode)
-         (clojurescript-mode . smartparens-strict-mode)
-         (clojurescript-mode . subword-mode)
-         (clojurescript-mode . cider-mode)
-         (clojurescript-mode . clj-refactor-mode)
-         (clojurescript-mode . rainbow-delimiters-mode)
-         (clojurescript-mode . highlight-sexp-mode)
-         (clojurescript-mode . highlight-parentheses-mode)
-         ;; (clojurescript-mode . prettify-some-chars)
-         )
-  :mode (("\\.cljs$" . clojure-mode))
-  :config
-  (progn
-    (hack-local-variables)
-    (setq clojure-align-forms-automatically 1)))
-
 (defun cider-repl-prompt-custom (namespace)
   "Return a prompt string that mentions NAMESPACE."
   (format "λ %s\n" namespace))
 
+(use-package ac-cider)
 
 (use-package clj-refactor
   :config (progn (setq cljr-suppress-middleware-warnings t)
@@ -2300,6 +2298,17 @@ Then we override =dabbrev-expand='s keybinding to use
                                                 (clj-refactor-mode 1)
                                                 (yas-minor-mode 1)
                                                 (cljr-add-keybindings-with-prefix "C-c C-m")))))
+(use-package emidje
+ ; :config (eval-after-load 'cider #'emidje-setup)
+ )
+
+(use-package kaocha-runner
+  :config
+  (define-key clojure-mode-map (kbd "C-c k t") 'kaocha-runner-run-test-at-point)
+  (define-key clojure-mode-map (kbd "C-c k r") 'kaocha-runner-run-tests)
+  (define-key clojure-mode-map (kbd "C-c k a") 'kaocha-runner-run-all-tests)
+  (define-key clojure-mode-map (kbd "C-c k w") 'kaocha-runner-show-warnings)
+  (define-key clojure-mode-map (kbd "C-c k h") 'kaocha-runner-hide-windows))
 
 (use-package flycheck-joker
   :after clojure-mode
@@ -2314,18 +2323,6 @@ Then we override =dabbrev-expand='s keybinding to use
                       (clj-kondo-cljc . clojure-joker)
                       (clj-kondo-edn . edn-joker)))
     (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers)))))
-
-(use-package emidje
- ; :config (eval-after-load 'cider #'emidje-setup)
- )
-
-(use-package kaocha-runner
-  :config
-  (define-key clojure-mode-map (kbd "C-c k t") 'kaocha-runner-run-test-at-point)
-  (define-key clojure-mode-map (kbd "C-c k r") 'kaocha-runner-run-tests)
-  (define-key clojure-mode-map (kbd "C-c k a") 'kaocha-runner-run-all-tests)
-  (define-key clojure-mode-map (kbd "C-c k w") 'kaocha-runner-show-warnings)
-  (define-key clojure-mode-map (kbd "C-c k h") 'kaocha-runner-hide-windows))
 
 (defun set-auto-complete-as-completion-at-point-function ()
   (setq completion-at-point-functions '(auto-complete)))
@@ -2719,7 +2716,9 @@ It is also interesting to have pretty symbols for our LaTeX files.
 *** Go
 #+BEGIN_SRC emacs-lisp
 (use-package go-mode
-  :hook ((before-save-hook . gofmt-before-save))
+  :hook ((go-mode . smartparens-strict-mode)
+         (go-mode . rainbow-delimiters-mode)
+         (before-save-hook . gofmt-before-save))
   :init (add-hook 'go-mode-hook
                   (lambda ()
                     ;;(setq gofmt-command "goimports")
@@ -2736,6 +2735,11 @@ It is also interesting to have pretty symbols for our LaTeX files.
                           company-idle-delay .3
                           company-echo-delay 0
                           company-begin-commands '(self-insert-command))
+                    (defun go-run-save-file ()
+                      (interactive)
+                      (save-buffer)
+                      (go-run))
+                    (local-set-key (kbd "C-c C-c") 'go-run-save-file)
                     (local-set-key (kbd "M-.") 'godef-jump)
                     (local-set-key (kbd "M-b") 'pop-tag-mark)
                     (local-set-key (kbd "C-c r w") 'lsp-workspace-restart)
@@ -2754,6 +2758,7 @@ It is also interesting to have pretty symbols for our LaTeX files.
                     (local-set-key (kbd "C-c t f") 'go-test-current-test)
                     (local-set-key (kbd "C-c t a") 'go-test-current-file)
                     (lsp)
+                    (gofmt-before-save)
                     (go-guru-hl-identifier-mode)
                     (set (make-local-variable 'company-backends) '(company-go))
                     (company-mode)))
@@ -2766,9 +2771,9 @@ It is also interesting to have pretty symbols for our LaTeX files.
 
 (use-package go-eldoc
   :init (lambda ()
-           (set-face-attribute 'eldoc-highlight-function-argument nil
-                                              :underline t :foreground "green"
-                                              :weight 'bold))
+          (set-face-attribute 'eldoc-highlight-function-argument nil
+                              :underline t :foreground "green"
+                              :weight 'bold))
   :config
   (add-hook 'go-mode-hook 'go-eldoc-setup))
 
@@ -2794,6 +2799,37 @@ It is also interesting to have pretty symbols for our LaTeX files.
 (use-package gotest
   :ensure t)
 #+END_SRC
+* Desktop-mode restore Buffers
+#+BEGIN_SRC emacs-lisp
+(use-package desktop
+  :if window-system
+  :straight nil
+  :hook ((after-init . desktop-restore)
+         (desktop-after-read . desktop-remove))
+  :custom
+  (desktop-path `(,user-emacs-directory))
+  (desktop-dirname user-emacs-directory)
+  (desktop-base-file-name "desktop")
+  (desktop-base-lock-name "desktop.lock")
+  (desktop-save t)
+  (desktop-load-locked-desktop t)
+  :init
+  (defun desktop-remove ()
+    (let ((desktop desktop-dirname))
+      (desktop-remove)
+      (setq desktop-dirname desktop)))
+  (defun saved-desktop-p ()
+    "Check if desktop exists."
+    (file-exists-p (concat desktop-dirname "/" desktop-base-file-name)))
+  (defun desktop-restore ()
+    "Restore a saved emacs session."
+    (interactive)
+    (desktop-save-mode t)
+    (if (saved-desktop-p)
+        (desktop-read)
+      (message "No desktop found."))))
+#+END_SRC
+
 * Pretty Mode
 #+BEGIN_SRC emacs-lisp
 (use-package pretty-mode
@@ -3371,10 +3407,11 @@ My journal files are kept in a sensible file =sensitive/journal.el=.
                                   (get-buffer "*dashboard*"))
           dashboard-center-content t
           dashboard-startup-banner 'logo
+          dashboard-set-init-info t
           dashboard-set-navigator t
           dashboard-items '((recents  . 5)
                             (bookmarks . 5)
-                            (projects . 5)
+                            (projects . 10)
                             (agenda . 5)
                             (registers . 5)))))
 #+END_SRC
