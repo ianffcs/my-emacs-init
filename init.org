@@ -2,6 +2,11 @@
 #+BABEL: :cache yes
 #+PROPERTY: header-args :tangle yes
 #+STARTUP: overview inlineimages
+* Exemplo
+| a | b | c | d | e |
+|---+---+---+---+---|
+| 1 | 2 | 3 | 4 | 5 |
+
 * Meta
 #+BEGIN_SRC emacs-lisp
 ;;;; Initialization
@@ -88,8 +93,6 @@ deprecated?)
                ("melpa" . "https://melpa.org/packages/")
                ("org" . "https://orgmode.org/elpa/")))
 
-  (package-initialize)
-
   ;;;; use-package
   (unless (package-installed-p 'use-package)
     (package-refresh-contents)
@@ -117,7 +120,6 @@ deprecated?)
 (straight-use-package 'use-package)
 (defvar straight-use-package-by-default)
 (setq straight-use-package-by-default t)
-
 ;; auto-package-update
 (use-package auto-package-update
   :config
@@ -952,12 +954,14 @@ Let's set up autocompletions.
 (add-to-list 'completion-styles 'initials t)
 #+end_src
 * COMMENT Authentication Source / Security
-
-   Auth Source is a generic interface for common backends such as your
+Auth Source is a generic interface for common backends such as your
    operating sysetm's keychain and your local ~/.authinfo file. Auth
    Source solves the problem of mapping passwords and usernames to hosts.
-
-   Debugging auth issues
+** COMMENT Keepass
+#+BEGIN_SRC emacs-lisp
+(use-package keepass-mode)
+#+END_SRC
+** COMMENT Debugging auth issues
    #+BEGIN_SRC emacs-lisp
      (setq auth-source-debug t)
    #+END_SRC
@@ -966,10 +970,8 @@ Let's set up autocompletions.
    #+BEGIN_SRC emacs-lisp
      (setq auth-sources '((:source "~/.emacs.d/secrets/.authinfo")))
    #+END_SRC
-
-   GPG
-
-   #+BEGIN_SRC emacs-lisp
+** COMMENT GPG
+#+BEGIN_SRC emacs-lisp
 (use-package pinentry :ensure t)
 (use-package epa
     :config
@@ -983,7 +985,8 @@ Let's set up autocompletions.
   (setq epg-gpg-program "/usr/bin/gpg2")
   (setq password-cache-expiry (* 15 60))
   (setq epa-file-cache-passphrase-for-symmetric-encryption t))
-   #+END_SRC
+  #+END_SRC
+
 * Help
 Is good to know how to ask for help in Emacs
 #+BEGIN_SRC emacs-lisp
@@ -1951,6 +1954,7 @@ Then we override =dabbrev-expand='s keybinding to use
   :hook ((clojure-mode . lsp)
          (haskell-mode . lsp)
          (elixir-mode . lsp)
+         (python-mode . lsp)
          (go-mode . lsp)
          (c++-mode . lsp))
   :custom ((lsp-clojure-server-command '("java" "-jar" "/home/ianffcs/Downloads/clj-kondo-lsp-server-2020.06.21-standalone.jar")))
@@ -2162,9 +2166,10 @@ This built in mode provides code folding. I use transient to create little inter
           cider-prompt-for-symbol nil
           cider-repl-use-pretty-printing t
           cider-repl-wrap-history t
-          cider-repl-pop-to-buffer-on-connect 'display-only
+          cider-repl-pop-to-buffer-on-connect nil
           cider-repl-prompt-function 'cider-repl-prompt-custom
           ;;cider-repl-result-prefix ";; =>"
+          cider-repl-require-ns-on-set t
           cider-repl-display-in-current-window t
           cider-repl-wrap-history t
           cider-repl-use-pretty-printing 't
@@ -2333,20 +2338,20 @@ This built in mode provides code folding. I use transient to create little inter
 #+END_SRC
 *** Elixir
 #+BEGIN_SRC  emacs-lisp
+(use-package alchemist)
+
 (use-package elixir-mode
   :hook ((elixir-mode . aggressive-indent-mode)
          (elixir-mode . smartparens-strict-mode)
          (elixir-mode . subword-mode)
          (elixir-mode . rainbow-delimiters-mode)
-         (elixir-mode . highlight-parentheses-mode))
+         (elixir-mode . highlight-parentheses-mode)
+         (elixir-mode . alchemist-mode))
   :mode (("\\.ex'" . elixir-mode)
          ("\\.exs\\'" . elixir-mode)
          ("\\.lex\\'" . elixir-mode))
   :init (add-hook 'elixir-mode-hook
                   (lambda () (add-hook 'before-save-hook 'elixir-format nil t))))
-
-(use-package alchemist
-   :bind ("C-x C-e". alchemist-iex-send-last-sexp))
 
 (use-package exunit)
 #+END_SRC
@@ -2404,6 +2409,13 @@ Language Server automatically.
   :config (setq python-shell-interpreter "python3"
                 py-python-command "python3"))
 
+(use-package lsp-python-ms
+  :ensure t
+  :init (setq lsp-python-ms-auto-install-server t)
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-python-ms)
+                          (lsp))))  ; or lsp-deferred
+
 (use-package elpy
   :hook ((python-mode . elpy-mode)
          (python-mode . elpy-enable))
@@ -2412,8 +2424,6 @@ Language Server automatically.
   :bind (:map elpy-mode-map
               ("M-." . elpy-goto-definition)
               ("M-," . pop-tag-mark)
-              ("<M-left>" . nil)
-              ("<M-right>" . nil)
               ("<M-S-left>" . elpy-nav-indent-shift-left)
               ("<M-S-right>" . elpy-nav-indent-shift-right)
               ("C-c i" . elpy-autopep8-fix-code)
@@ -2799,7 +2809,7 @@ It is also interesting to have pretty symbols for our LaTeX files.
 (use-package gotest
   :ensure t)
 #+END_SRC
-* Desktop-mode restore Buffers
+* COMMENT Desktop-mode restore Buffers
 #+BEGIN_SRC emacs-lisp
 (use-package desktop
   :if window-system
@@ -3232,29 +3242,37 @@ makes sure that ABNTeX2's =\citeonline{}= works.
 
 ** Org Reveal.js
 #+BEGIN_SRC emacs-lisp
+(setq org-reveal-mathjax t
+              org-reveal-root "https://cdn.jsdelivr.net/npm/reveal.js@4.0.2/js/reveal.min.js"
+              org-re-reveal-root "http://cdn.jsdelivr.net/reveal.js@4.0.2/")
 (use-package org-re-reveal
-  :init (setq org-reveal-mathjax t
-              org-reveal-root "https://cdn.jsdelivr.net/npm/reveal.js@3.9.2/js/reveal.min.js"
-              org-reveal-root "http://cdn.jsdelivr.net/reveal.js@3.9.2/"))
+  :config (setq org-ref-default-bibliography '("references.bib")
+                org-ref-bibliography-entry-format
+                '(("article" . "%a, %t, <i>%j %v(%n)</i>, %p (%y). <a href=\"%U\">%U</a>")
+                  ("book" . "%a, %t, %u, %y. <a href=\"%U\">%U</a>")
+                  ("inproceedings" . "%a, %t, %b, %y. <a href=\"%U\">%U</a>")
+                  ("incollection" . "%a, %t, %b, %u, %y. <a href=\"%U\">%U</a>")
+                  ("misc" . "%a, %t, %i, %y.  <a href=\"%U\">%U</a>")
+                  ("phdthesis" . "%a, %t, %s, %y.  <a href=\"%U\">%U</a>")
+                  ("techreport" . "%a, %t, %i, %u (%y).")
+                  ("proceedings" . "%e, %t in %S, %u (%y)."))))
+
+(use-package org-ref
+  :after org-re-reveal)
+
+(use-package org-re-reveal-ref
+  :after org-re-reveal)
+
+(setq reveal-path
+      (concat user-emacs-directory "elpa/emacs-reveal"))
+(use-package emacs-reveal
+  :straight (:type built-in)
+  :load-path reveal-path)
 
 ;; (require 'oer-reveal-publish)
 ;; (oer-reveal-setup-submodules t)
 ;; (oer-reveal-generate-include-files t)
 ;; (oer-reveal-publish-setq-defaults)
-
-;(use-package org-re-reveal-ref)
-
-(setq org-ref-default-bibliography '("references.bib")
-      org-ref-bibliography-entry-format
-      '(("article" . "%a, %t, <i>%j %v(%n)</i>, %p (%y). <a href=\"%U\">%U</a>")
-        ("book" . "%a, %t, %u, %y. <a href=\"%U\">%U</a>")
-        ("inproceedings" . "%a, %t, %b, %y. <a href=\"%U\">%U</a>")
-        ("incollection" . "%a, %t, %b, %u, %y. <a href=\"%U\">%U</a>")
-        ("misc" . "%a, %t, %i, %y.  <a href=\"%U\">%U</a>")
-        ("phdthesis" . "%a, %t, %s, %y.  <a href=\"%U\">%U</a>")
-        ("techreport" . "%a, %t, %i, %u (%y).")
-        ("proceedings" . "%e, %t in %S, %u (%y).")
-        ))
 #+END_SRC
 ** Presentations
 
@@ -3340,6 +3358,32 @@ My journal files are kept in a sensible file =sensitive/journal.el=.
 (setq org-crypt-key "9CD4DA20")
 
 ;;(use-package org-web-tools :ensure t)
+#+END_SRC
+* Org-Jira
+#+BEGIN_SRC emacs-lisp
+(use-package org-jira
+  :config
+  (local-set-key (kbd "C-c pg") 'org-jira-get-projects)
+  (local-set-key (kbd "C-c ib") 'org-jira-browse-issue)
+  (local-set-key (kbd "C-c ig") 'org-jira-get-issues)
+  (local-set-key (kbd "C-c ij") 'org-jira-get-issues-from-custom-jql)
+  (local-set-key (kbd "C-c ih") 'org-jira-get-issues-headonly)
+  (local-set-key (kbd "C-c iu") 'org-jira-update-issue)
+  (local-set-key (kbd "C-c iw") 'org-jira-progress-issue)
+  (local-set-key (kbd "C-c in") 'org-jira-progress-issue-next)
+  (local-set-key (kbd "C-c ia") 'org-jira-assign-issue)
+  (local-set-key (kbd "C-c ir") 'org-jira-refresh-issue)
+  (local-set-key (kbd "C-c iR") 'org-jira-refresh-issues-in-buffer)
+  (local-set-key (kbd "C-c ic") 'org-jira-create-issue)
+  (local-set-key (kbd "C-c ik") 'org-jira-copy-current-issue-key)
+  (local-set-key (kbd "C-c sc") 'org-jira-create-subtask)
+  (local-set-key (kbd "C-c sg") 'org-jira-get-subtasks)
+  (local-set-key (kbd "C-c cc") 'org-jira-add-comment)
+  (local-set-key (kbd "C-c cu") 'org-jira-update-comment)
+  (local-set-key (kbd "C-c wu") 'org-jira-update-worklogs-from-org-clocks)
+  (local-set-key (kbd "C-c tj") 'org-jira-todo-to-jira)
+  (local-set-key (kbd "C-c if") 'org-jira-get-issues-by-fixversion)
+  (setq jiralib-url "https://paygo.atlassian.net"))
 #+END_SRC
 * Calfw
 #+BEGIN_SRC emacs-lisp
@@ -3472,7 +3516,7 @@ narrowed."
          :config
          (which-key-mode))
 #+END_SRC
-* Better Shell
+* COMMENT Better Shell
 #+BEGIN_SRC emacs-lisp
 (use-package better-shell
   :ensure t
@@ -3853,7 +3897,7 @@ and only invoke it manually when needed.
     (message "MPD Database Updated!"))
   (global-set-key (kbd "s-m u") 'mpd/update-database)
 #+END_SRC
-* COMMENT Slack
+* Slack
 Configuring Slack client.
 
 Sensible stuff goes into =sensitive/slack.el=.
@@ -3864,11 +3908,32 @@ Sensible stuff goes into =sensitive/slack.el=.
   :init
   (setq slack-buffer-emojify      t
         slack-prefer-current-team t)
-  :config (load-sensible-file "slack.el"))
+  :config
+  (load "~/.emacs.d/sensitive/slack-teams.el"))
 
-(el-get-bundle yuya373/helm-slack)
-(require 'helm-slack)
-(global-set-key (kbd "C-c n s") #'helm-slack)
+(defun slack-shorten-room-names ()
+  "Shortens the room name in Slack buffers."
+  (cl-defmethod slack-buffer-name ((this slack-message-buffer))
+    (slack-if-let* ((team (slack-buffer-team this))
+                    (room (slack-buffer-room this))
+                    (room-name (slack-room-name room team)))
+                   room-name)))
+
+(add-hook 'slack-mode-hook 'slack-shorten-room-names)
+
+;; Use company-slack to complete usernames in Slack modes
+(defun slack-mode-tweaks ()
+  (set (make-local-variable 'company-backends) '(company-slack-backend company-dabbrev company-files))
+  (set (make-local-variable 'company-minimum-prefix-length) 3)
+  )
+
+(add-hook 'slack-message-buffer-mode-hook 'slack-mode-tweaks)
+(add-hook 'slack-message-compose-buffer-mode-hook 'slack-mode-tweaks)
+(add-hook 'slack-message-edit-buffer-mode-hook 'slack-mode-tweaks)
+(add-hook 'slack-thread-message-buffer-mode-hook 'slack-mode-tweaks)
+
+;; Disable auto-fill-mode
+(add-hook 'slack-mode-hook 'turn-off-auto-fill)
 #+end_src
 
 We use the =alert= package for notifications.
@@ -3910,11 +3975,14 @@ We use the =alert= package for notifications.
   (define-key org-jira-map (kbd "C-c tj") 'org-jira-todo-to-jira)
   (define-key org-jira-map (kbd "C-c if") 'org-jira-get-issues-by-fixversion))
 #+END_SRC
-* COMMENT Telega
+* Telega
 #+BEGIN_SRC emacs-lisp
 (use-package telega
+  :load-path  "~/telega.el"
+  :commands (telega)
+  :defer t
   :config (progn
-            (telega-notifications-mode 1) ; DBus notifications
+            ;;(telega-notifications-mode 1) ; DBus notifications
             (setq telega-use-images t))
   :hook ((telega-chat-mode-hook
           .
