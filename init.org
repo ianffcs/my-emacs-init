@@ -2,11 +2,7 @@
 #+BABEL: :cache yes
 #+PROPERTY: header-args :tangle yes
 #+STARTUP: overview inlineimages
-* Exemplo
-| a | b | c | d | e |
-|---+---+---+---+---|
-| 1 | 2 | 3 | 4 | 5 |
-
+* Table of contents :toc:
 * Meta
 #+BEGIN_SRC emacs-lisp
 ;;;; Initialization
