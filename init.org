@@ -2,7 +2,6 @@
 #+BABEL: :cache yes
 #+PROPERTY: header-args :tangle yes
 #+STARTUP: overview inlineimages
-* Table of contents :toc:
 * Meta
 #+BEGIN_SRC emacs-lisp
 ;;;; Initialization
@@ -18,6 +17,12 @@
       )))
 
    (add-hook 'after-save-hook 'tangle-init)
+#+END_SRC
+* COMMENT if debug is needed
+#+BEGIN_SRC emacs-lisp
+(setq debug-on-error t
+      debug-on-signal nil
+      debug-on-quit nil)
 #+END_SRC
 * Personal Keymap
 #+BEGIN_SRC emacs-lisp
@@ -211,78 +216,23 @@ thus overriding the thing you copied earlier. We can have a kill ring solution:
 #+END_SRC
 ** Fonts
 #+BEGIN_SRC emacs-lisp
-(when window-system
-  (use-package pretty-mode)
+  (when window-system
+    (use-package pretty-mode))
 
-;; (defconst my-default-font "-*-fixed-medium-r-normal-*-15-*-*-*-*-*-*-*")
-;; (defconst my-default-font "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*")
-;; (defconst my-default-font "-b&h-lucidatypewriter-medium-r-normal-sans-14-*-*-*-*-*-iso8859-1")
-;; (defconst my-default-font "FantasqueSansMono Nerd Font-10")
-;; (defconst my-default-font "Monoid-9")
-;; (defconst my-default-font "Fixed-10")
-;;(defconst my-default-font "Dina-10")
-;; (defconst my-default-font "Iosevka-9")
-;; (defconst my-default-font "Terminus-10")
-(defconst my-default-font "Fira Code-10")
-;; (defconst my-default-font "Hack-10")
-
-
-(defun fira-code-mode--make-alist (list)
-  "Generate prettify-symbols alist from LIST."
-  (let ((idx -1))
-    (mapcar
-     (lambda (s)
-       (setq idx (1+ idx))
-       (let* ((code (+ #Xe100 idx))
-          (width (string-width s))
-          (prefix ())
-          (suffix '(?\s (Br . Br)))
-          (n 1))
-     (while (< n width)
-       (setq prefix (append prefix '(?\s (Br . Bl))))
-       (setq n (1+ n)))
-     (cons s (append prefix suffix (list (decode-char 'ucs code))))))
-     list)))
-
-(defconst fira-code-mode--ligatures
-  '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\"
-    "{-" "[]" "::" ":::" ":=" "!!" "!=" "!==" "-}"
-    "--" "---" "-->" "->" "->>" "-<" "-<<" "-~"
-    "#{" "#[" "##" "###" "####" "#(" "#?" "#_" "#_("
-    ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*"
-    "/**" "/=" "/==" "/>" "//" "///" "&&" "||" "||="
-    "|=" "|>" "^=" "$>" "++" "+++" "+>" "=:=" "=="
-    "===" "==>" "=>" "=>>" "<=" "=<<" "=/=" ">-" ">="
-    ">=>" ">>" ">>-" ">>=" ">>>" "<*" "<*>" "<|" "<|>"
-    "<$" "<$>" "<!--" "<-" "<--" "<->" "<+" "<+>" "<="
-    "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<" "<~"
-    "<~~" "</" "</>" "~@" "~-" "~=" "~>" "~~" "~~>" "%%"
-    "x" ":" "+" "+" "*"))
-
-(defvar fira-code-mode--old-prettify-alist)
-
-(defun fira-code-mode--enable ()
-  "Enable Fira Code ligatures in current buffer."
-  (setq-local fira-code-mode--old-prettify-alist prettify-symbols-alist)
-  (setq-local prettify-symbols-alist (append (fira-code-mode--make-alist fira-code-mode--ligatures) fira-code-mode--old-prettify-alist))
-  (prettify-symbols-mode t))
-
-(defun fira-code-mode--disable ()
-  "Disable Fira Code ligatures in current buffer."
-  (setq-local prettify-symbols-alist fira-code-mode--old-prettify-alist)
-  (prettify-symbols-mode -1))
-
-(define-minor-mode fira-code-mode
-  "Fira Code ligatures minor mode"
-  :lighter " Fira Code"
-  (setq-local prettify-symbols-unprettify-at-point 'right-edge)
-  (if fira-code-mode
-      (fira-code-mode--enable)
-    (fira-code-mode--disable)))
-
-(defun fira-code-mode--setup ()
-  "Setup Fira Code Symbols"
-  (set-fontset-font t '(#Xe100 . #Xe16f) "Fira Code Symbol")))
+  ;; (defconst my-default-font "-*-fixed-medium-r-normal-*-15-*-*-*-*-*-*-*")
+  ;; (defconst my-default-font "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*")
+  ;; (defconst my-default-font "-b&h-lucidatypewriter-medium-r-normal-sans-14-*-*-*-*-*-iso8859-1")
+  ;; (defconst my-default-font "FantasqueSansMono Nerd Font-10")
+  ;; (defconst my-default-font "Monoid-9")
+  ;; (defconst my-default-font "Fixed-10")
+  ;;(defconst my-default-font "Dina-10")
+  ;; (defconst my-default-font "Iosevka-9")
+  ;; (defconst my-default-font "Terminus-10")
+  (defconst my-default-font "Fira Code-10")
+  ;; (defconst my-default-font "Hack-10")
+  (use-package fira-code-mode
+    :custom (fira-code-mode-disabled-ligatures '("[]" "#{" "#(" "#_" "#_(" "x")) ;; List of ligatures to turn off
+    :hook prog-mode)
 #+END_SRC
 ** Visual
 Find out what face something at point have.
@@ -459,10 +409,6 @@ This package implements a menu that lists all enabled minor modes. Emacs mode li
   :commands minions-mode
   :init (minions-mode 1))
 #+END_SRC
-** Tabs
-#+BEGIN_SRC emacs-lisp
-
-#+END_SRC
 ** Time
 #+BEGIN_SRC emacs-lisp
 (use-package time
@@ -475,26 +421,25 @@ This package implements a menu that lists all enabled minor modes. Emacs mode li
   (display-time-mode t))
    #+END_SRC
 ** Fringe
+Control the fringe around the frame.
+#+BEGIN_SRC emacs-lisp
+(fringe-mode '(10 . 1))
+#+END_SRC
 
-    Control the fringe around the frame.
-    #+BEGIN_SRC emacs-lisp
-      (fringe-mode '(10 . 1))
-    #+END_SRC
-
-    Preview line numbers when prompting for line number.
-    #+BEGIN_SRC emacs-lisp
-      (define-advice goto-line (:before (&rest _) preview-line-number)
-        "Preview line number when prompting for goto-line."
-        (interactive
-         (lambda (spec)
-           (if (and (boundp 'display-line-numbers)
-                    (not display-line-numbers))
-               (unwind-protect
-                   (progn (display-line-numbers-mode)
-                          (advice-eval-interactive-spec spec))
-                 (display-line-numbers-mode -1))
-             (advice-eval-interactive-spec spec)))))
-    #+END_SRC
+Preview line numbers when prompting for line number.
+#+BEGIN_SRC emacs-lisp
+(define-advice goto-line (:before (&rest _) preview-line-number)
+  "Preview line number when prompting for goto-line."
+  (interactive
+   (lambda (spec)
+     (if (and (boundp 'display-line-numbers)
+              (not display-line-numbers))
+         (unwind-protect
+             (progn (display-line-numbers-mode)
+                    (advice-eval-interactive-spec spec))
+           (display-line-numbers-mode -1))
+       (advice-eval-interactive-spec spec)))))
+#+END_SRC
 ** Extra-stuff
 #+BEGIN_SRC emacs-lisp
 (use-package mode-icons
@@ -716,10 +661,11 @@ Bibtex files for bibliography. It also defines
 ** Ivy-YouTube
 
 This queries YouTube stuff from Emacs and plays it on the browser.
-
 #+begin_src emacs-lisp
-(use-package ivy-youtube)
+(use-package ivy-youtube
+  :bind (("C-c y" . ivy-youtube)))
 #+end_src
+
 * Editor confs
 #+BEGIN_SRC emacs-lisp
 
@@ -856,78 +802,78 @@ Clean all the registers you saved.
 
 #+BEGIN_SRC emacs-lisp
 (use-package ibuffer
-       :ensure nil
-       :init
-       (setq ibuffer-expert t)
-       (setq ibuffer-show-empty-filter-groups nil)
-       (setq ibuffer-saved-filter-groups
-             '(("Main"
-                ("Directories" (mode . dired-mode))
-                ("Rest" (mode . restclient-mode))
-                ("Docker" (or
-                           (mode . docker-compose-mode)
-                           (mode . dockerfile-mode)))
-                ("Programming" (or
-                                (mode . clojure-mode)
-                                (mode . emacs-lisp-mode)
-                                (mode . python-mode)))
-                ("Browser" (or
-                            (name . "qutebrowser:\*")
-                            (name . "Firefox:\*")
-                            ))
-                ("Slack" (name . "*Slack"))
-                ("Org" (mode . org-mode))
-                ("Markdown" (or
-                             (mode . markdown-mode)
-                             (mode . gfm-mode)))
-                ("Git" (or
-                        (mode . magit-blame-mode)
-                        (mode . magit-cherry-mode)
-                        (mode . magit-diff-mode)
-                        (mode . magit-log-mode)
-                        (mode . magit-process-mode)
-                        (mode . magit-status-mode)))
-                ("Emacs" (or
-                          (name . "^\\*Help\\*$")
-                          (name . "^\\*Custom.*")
-                          (name . "^\\*Org Agenda\\*$")
-                          (name . "^\\*info\\*$")
-                          (name . "^\\*scratch\\*$")
-                          (name . "^\\*Backtrace\\*$")
-                          (name . "^\\*Messages\\*$"))))))
-       :config
-       (add-hook 'ibuffer-mode-hook
-                 (lambda ()
-                   (ibuffer-auto-mode 1)
-                   (ibuffer-switch-to-saved-filter-groups "Main"))))
+  :ensure nil
+  :init
+  (setq ibuffer-expert t)
+  (setq ibuffer-show-empty-filter-groups t)
+  (setq ibuffer-saved-filter-groups
+        '(("Main"
+           ("Directories" (mode . dired-mode))
+           ("Rest" (mode . restclient-mode))
+           ("Docker" (or
+                      (mode . docker-compose-mode)
+                      (mode . dockerfile-mode)))
+           ("Programming" (or
+                           (mode . clojure-mode)
+                           (mode . emacs-lisp-mode)
+                           (mode . python-mode)))
+           ("Browser" (or
+                       (name . "qutebrowser:\*")
+                       (name . "Firefox:\*")))
+           ("Slack" (name . "*Slack"))
+           ("Org" (mode . org-mode))
+           ("Markdown" (or
+                        (mode . markdown-mode)
+                        (mode . gfm-mode)))
+           ("Git" (or
+                   (mode . magit-blame-mode)
+                   (mode . magit-cherry-mode)
+                   (mode . magit-diff-mode)
+                   (mode . magit-log-mode)
+                   (mode . magit-process-mode)
+                   (mode . magit-status-mode)))
+           ("Emacs" (or
+                     (name . "^\\*Help\\*$")
+                     (name . "^\\*Custom.*")
+                     (name . "^\\*Org Agenda\\*$")
+                     (name . "^\\*info\\*$")
+                     (name . "^\\*ielm\\*$")
+                     (name . "^\\*scratch\\*$")
+                     (name . "^\\*Backtrace\\*$")
+                     (name . "^\\*Messages\\*$"))))))
+     :config
+     (add-hook 'ibuffer-mode-hook
+           (lambda ()
+             (ibuffer-auto-mode 1)
+             (ibuffer-switch-to-saved-filter-groups "Main"))))
 
-;; Package =ibuffer-vc= let you filter the Ibuffer by projects
-;; definitions (in my case, every folder that has a =.git= folder
-;; inside is considered a project).
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+
+  ;; Package =ibuffer-vc= let you filter the Ibuffer by projects
+  ;; definitions (in my case, every folder that has a =.git= folder
+  ;; inside is considered a project).
 
 
 (use-package ibuffer-vc
-       :ensure t
-       :after ibuffer
-       :config
-       (define-key ibuffer-mode-map (kbd "/ V") 'ibuffer-vc-set-filter-groups-by-vc-root))
+  :ensure t
+  :after ibuffer
+  :bind (("/ V" . 'ibuffer-vc-set-filter-groups-by-vc-root)))
 
-;;  Increasing the width of each column in ibuffer. Some buffers names
-;;  are very large in EXWM.
+  ;;  Increasing the width of each column in ibuffer. Some buffers names
+  ;;  are very large in EXWM.
 
 
 (setq ibuffer-formats
-      '((mark modified read-only " "
-              (name 60 60 :left :elide) ; change: 60s were originally 18s
-              " "
-              (size 9 -1 :right)
-              " "
-              (mode 16 16 :left :elide)
-              " " filename-and-process)
-             (mark " "
-                   (name 16 -1)
-                   " " filename)))
-
+    '((mark modified read-only " "
+            (name 60 60 :left :elide) ; change: 60s were originally 18s
+            " "
+            (size 9 -1 :right)
+            " "
+            (mode 16 16 :left :elide)
+            " " filename-and-process)
+      (mark " "
+            (name 16 -1)
+            " " filename)))
 
 (use-package ibuffer-tramp)
 
@@ -940,15 +886,17 @@ Clean all the registers you saved.
   :config
   (setq ibuffer-sidebar-use-custom-font t)
   (setq ibuffer-sidebar-face `(:family "Helvetica" :height 140)))
+
+(setq kill-buffer-query-functions
+      (delq 'process-kill-buffer-query-function kill-buffer-query-functions))
+
+(defun close-all-buffers ()
+    "Kill all buffers without regard for their origin."
+    (interactive)
+    (mapc 'kill-buffer (buffer-list)))
+
+(global-set-key (kbd "C-M-s-k") 'close-all-buffers)
 #+END_SRC
-** Autocompletion
-
-Let's set up autocompletions.
-
-#+begin_src emacs-lisp
-(setq tab-always-indent 'complete)
-(add-to-list 'completion-styles 'initials t)
-#+end_src
 * COMMENT Authentication Source / Security
 Auth Source is a generic interface for common backends such as your
    operating sysetm's keychain and your local ~/.authinfo file. Auth
@@ -1565,71 +1513,6 @@ the *winner-boring-buffers*.
             "*esh command on file*"))
     :bind (("C-x 4 u" . winner-undo)
            ("C-x 4 U" . winner-redo)))
-#+END_SRC
-
-* buffers stuff
-** Always murder current buffer
-#+BEGIN_SRC emacs-lisp
-(defun kill-current-buffer ()
-    "Kills the current buffer."
-    (interactive)
-    (kill-buffer (current-buffer)))
-
-(global-set-key (kbd "C-x k") 'kill-current-buffer)
-#+END_SRC
-** Kill buffers without asking for confirmation
-#+BEGIN_SRC emacs-lisp
-(setq kill-buffer-queray-functions (delq 'process-kill-buffer-query-function kill-buffer-query-functions))
-#+END_SRC
-
-** Turn switch-to-buffer into ibuffer
-#+BEGIN_SRC emacs-lisp
-(global-set-key (kbd "C-x C-b") 'ibuffer)
-
-(setq ibuffer-saved-filter-groups
-      (quote (("default"
-               ("dired" (mode . dired-mode))
-               ("org" (name . "^.*org$"))
-               ("magit" (mode . magit-mode))
-               ("IRC" (or (mode . circe-channel-mode) (mode . circe-server-mode)))
-               ("web" (or (mode . web-mode) (mode . js2-mode)))
-               ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
-               ("mu4e" (or (mode . mu4e-compose-mode)
-                           (name . "\*mu4e\*")))
-               ("programming" (or (mode . clojure-mode)
-                                  (mode . clojurescript-mode)
-                                  (mode . python-mode)
-                                  (mode . c++-mode)))
-               ("emacs" (or (name . "^\\*scratch\\*$")
-                            (name . "^\\*Messages\\*$")))))))
-
-(add-hook 'ibuffer-mode-hook
-          (lambda ()
-            (ibuffer-auto-mode 1)
-            (ibuffer-switch-to-saved-filter-groups "default")))
-
-(setq ibuffer-show-empty-filter-groups nil)
-
-;; Don't ask for confirmation to delete marked buffers
-(setq ibuffer-expert t)
-#+END_SRC
-*** expert-mode
-If you feel like you know how ibuffer works and need not to be asked for confirmation after every serious command, enable this as follows.
-#+BEGIN_SRC emacs-lisp
-(setq ibuffer-expert t)
-#+END_SRC
-** close-all-buffers
-It's one of those things where I genuinely have to wonder why there is no built in functionality for it.
-Once in a blue moon I need to kill all buffers, and having ~150 of them open would mean I'd need to spend a few too many
-seconds doing this than I'd like, here's a solution.
-
-This can be invoked using =C-M-s-k=. This keybinding makes sure you don't hit it unless you really want to.
-#+BEGIN_SRC emacs-lisp
-  (defun close-all-buffers ()
-    "Kill all buffers without regard for their origin."
-    (interactive)
-    (mapc 'kill-buffer (buffer-list)))
-  (global-set-key (kbd "C-M-s-k") 'close-all-buffers)
 #+END_SRC
 * COMMENT Manage external services
 
@@ -2941,6 +2824,7 @@ It is also interesting to have pretty symbols for our LaTeX files.
          ("C-c a" . org-agenda))
   :config
   (setq ;org-default-notes-file (concat org-directory "~/sync/orgfiles/notes.org.gpg")
+   org-catch-invisible-edits 'smart ;; or show
    org-export-html-postamble nil
    org-hide-leading-stars t
    org-startup-indented t
@@ -3239,8 +3123,8 @@ makes sure that ABNTeX2's =\citeonline{}= works.
 ** Org Reveal.js
 #+BEGIN_SRC emacs-lisp
 (setq org-reveal-mathjax t
-              org-reveal-root "https://cdn.jsdelivr.net/npm/reveal.js@4.0.2/js/reveal.min.js"
-              org-re-reveal-root "http://cdn.jsdelivr.net/reveal.js@4.0.2/")
+      org-reveal-root "https://cdn.jsdelivr.net/npm/reveal.js@4.0.2/js/reveal.min.js"
+      org-re-reveal-root "~/reveal")
 (use-package org-re-reveal
   :config (setq org-ref-default-bibliography '("references.bib")
                 org-ref-bibliography-entry-format
