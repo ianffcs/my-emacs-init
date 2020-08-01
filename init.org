@@ -216,19 +216,23 @@ thus overriding the thing you copied earlier. We can have a kill ring solution:
 #+END_SRC
 ** Fonts
 #+BEGIN_SRC emacs-lisp
+;; (defconst my-default-font "-*-fixed-medium-r-normal-*-15-*-*-*-*-*-*-*")
+;; (defconst my-default-font "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*")
+;; (defconst my-default-font "-b&h-lucidatypewriter-medium-r-normal-sans-14-*-*-*-*-*-iso8859-1")
+;; (defconst my-default-font "FantasqueSansMono Nerd Font-10")
+;; (defconst my-default-font "Monoid-9")
+;; (defconst my-default-font "Fixed-10")
+;;(defconst my-default-font "Dina-10")
+;; (defconst my-default-font "Iosevka-9")
+;; (defconst my-default-font "Terminus-10")
+
+(if window-system
+    (defconst my-default-font "Fira Code-10")
+    (defconst my-default-font "Terminus-10"))
+
 (when window-system
   (use-package pretty-mode)
 
-  ;; (defconst my-default-font "-*-fixed-medium-r-normal-*-15-*-*-*-*-*-*-*")
-  ;; (defconst my-default-font "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*")
-  ;; (defconst my-default-font "-b&h-lucidatypewriter-medium-r-normal-sans-14-*-*-*-*-*-iso8859-1")
-  ;; (defconst my-default-font "FantasqueSansMono Nerd Font-10")
-  ;; (defconst my-default-font "Monoid-9")
-  ;; (defconst my-default-font "Fixed-10")
-  ;;(defconst my-default-font "Dina-10")
-  ;; (defconst my-default-font "Iosevka-9")
-  ;; (defconst my-default-font "Terminus-10")
-  (defconst my-default-font "Fira Code-10")
   ;; (defconst my-default-font "Hack-10")
   (use-package fira-code-mode
     :custom (fira-code-mode-disabled-ligatures '("[]" "#{" "#(" "#_" "#_(" "x")) ;; List of ligatures to turn off
@@ -1131,33 +1135,8 @@ several cursors that all do the same thing as you type.
   (setq ispell-program-name "aspell" ; use aspell instead of ispell
         ispell-extra-args '("--sug-mode=ultra")))
 #+END_SRC
-* COMMENT Modeline
-** Telephone-line
-
-(Unfortunately, Org Journal doesn't work fine with it... I still need
-to mitigate the problem, but I'll just disable it for now)
-
-#+begin_src emacs-lisp
-  (use-package telephone-line
-    :config (progn
-              (setq telephone-line-primary-left-separator    'telephone-line-cubed-left
-                    telephone-line-secondary-left-separator  'telephone-line-cubed-hollow-left
-                    telephone-line-primary-right-separator   'telephone-line-cubed-right
-                    telephone-line-secondary-right-separator 'telephone-line-cubed-hollow-right
-                    telephone-line-height                    24
-                    telephone-line-evil-use-short-tag        t))
-    (telephone-line-mode 1))
-#+end_src
-
-*** COMMENT Mini-modeline
-
-Simplistic and small modeline for my needs, specially on EXWM.
-
-#+begin_src emacs-lisp
-(use-package mini-modeline
-  :config (mini-modeline-mode t))
-#+end_src
 * Dired
+** Dired sidebar config
 #+BEGIN_SRC emacs-lisp
 ;; dired - reuse current buffer by pressing 'a'
 (put 'dired-find-alternate-file 'disabled nil)
@@ -1365,7 +1344,7 @@ dired.
 
 ;; avy allows us to effectively navigate to visible things
 (use-package avy
-  :bind ("M-s a" . avy-goto-char)
+  :bind (("M-s a" . avy-goto-char))
   :config
   (setq avy-background t
           avy-style 'at-full))
@@ -1404,32 +1383,32 @@ Why on earth does a function called =kill-word= not .. kill a word.
 It instead deletes characters from your cursors position to the end of the word,
 let's make a quick fix and bind it properly.
 #+BEGIN_SRC emacs-lisp
-  (defun daedreth/kill-inner-word ()
+  (defun kill-inner-word ()
     "Kills the entire word your cursor is in. Equivalent to 'ciw' in vim."
     (interactive)
     (forward-char 1)
     (backward-word)
     (kill-word 1))
-  (global-set-key (kbd "C-c w k") 'daedreth/kill-inner-word)
+  (global-set-key (kbd "C-c w k") 'kill-inner-word)
 #+END_SRC
 
 ** Improved copy-word
 And again, the same as above but we make sure to not delete the source word.
 #+BEGIN_SRC emacs-lisp
-  (defun daedreth/copy-whole-word ()
+  (defun copy-whole-word ()
     (interactive)
     (save-excursion
       (forward-char 1)
       (backward-word)
       (kill-word 1)
       (yank)))
-  (global-set-key (kbd "C-c w c") 'daedreth/copy-whole-word)
+  (global-set-key (kbd "C-c w c") 'copy-whole-word)
 #+END_SRC
 
 ** Copy a line
 Regardless of where your cursor is, this quickly copies a line.
 #+BEGIN_SRC emacs-lisp
-  (defun daedreth/copy-whole-line ()
+  (defun copy-whole-line ()
     "Copies a line without regard for cursor position."
     (interactive)
     (save-excursion
@@ -1437,7 +1416,7 @@ Regardless of where your cursor is, this quickly copies a line.
        (buffer-substring
         (point-at-bol)
         (point-at-eol)))))
-  (global-set-key (kbd "C-c l c") 'daedreth/copy-whole-line)
+  (global-set-key (kbd "C-c l c") 'copy-whole-line)
 #+END_SRC
 
 ** Kill a line
@@ -1525,24 +1504,6 @@ the *winner-boring-buffers*.
      (use-package prodigy
        :ensure t
        :config
-       (prodigy-define-service
-         :name "Captalys VPN"
-         :command "captalys-vpn"
-         :tags '(captalys)
-         :stop-signal 'sigkill
-         :kill-process-buffer-on-stop t)
-
-       (prodigy-define-service
-         :name "Blog"
-         :command "lein ring server"
-         :cwd "~/bartuka-blog"
-         :stop-signal 'sigkill
-         :tags '(blog)
-         :kill-process-buffer-on-stop t)
-
-       (prodigy-define-tag
-         :name 'captalys
-         :ready-message "Initialization Sequence Completed")
        (prodigy-define-tag
          :name 'blog
          :ready-message "Started server on port 3000"))
@@ -2062,6 +2023,8 @@ This built in mode provides code folding. I use transient to create little inter
           cider-jump-to-pop-to-buffer-actions '((display-buffer-same-window))
           ;; emidje-load-facts-on-eval t
           )
+    (when window-system
+      (setq pretty-mode t))
     )
   ;; (eval-after-load 'cider #'emidje-enable-nrepl-middleware)
   )
@@ -2733,15 +2696,6 @@ It is also interesting to have pretty symbols for our LaTeX files.
         (desktop-read)
       (message "No desktop found."))))
 #+END_SRC
-
-* Pretty Mode
-#+BEGIN_SRC emacs-lisp
-(use-package pretty-mode
-  :ensure t
-  :config
-  (add-hook 'clojure-mode-hook #'turn-on-pretty-mode))
-#+END_SRC
-
 * Private
 #+BEGIN_SRC emacs-lisp
 (defconst private-dir (expand-file-name "private" user-emacs-directory))
@@ -3185,7 +3139,7 @@ etc. See the documentation [[https://github.com/weirdNox/org-noter][here]].
 (use-package org-noter)
 #+end_src
 
-** COMMENT Org-roam
+** Org-roam
 
 The variable =org-roam-directory= is determined in =sensitive/org-roam.el=.
 
@@ -3204,7 +3158,7 @@ The variable =org-roam-directory= is determined in =sensitive/org-roam.el=.
               :map org-mode-map
               (("C-c n i" . org-roam-insert))))
 #+end_src
-** COMMENT Deft
+** Deft
 
 Since I'm using Deft exclusively for =org-roam= stuff, I'll put it here.
 It'll provide a nice interface for browsing and filtering notes.
@@ -3243,7 +3197,7 @@ My journal files are kept in a sensible file =sensitive/journal.el=.
 
 #+end_src
 
-** Org Crypt
+** COMMENT Org Crypt
 #+BEGIN_SRC emacs-lisp
 (require 'org-crypt)
 (org-crypt-use-before-save-magic)
@@ -3278,8 +3232,7 @@ My journal files are kept in a sensible file =sensitive/journal.el=.
   (local-set-key (kbd "C-c wu") 'org-jira-update-worklogs-from-org-clocks)
   (local-set-key (kbd "C-c tj") 'org-jira-todo-to-jira)
   (local-set-key (kbd "C-c if") 'org-jira-get-issues-by-fixversion)
-  (setq jiralib-url "https://paygo.atlassian.net"))
-#+END_SRC
+  )
 * Calfw
 #+BEGIN_SRC emacs-lisp
 (use-package calfw)
@@ -3547,10 +3500,9 @@ whitespaces and windows should be side-by-side.
 #+END_SRC
 
 ** Time machine
-
-    #+begin_src emacs-lisp
-      (use-package git-timemachine :ensure t)
-    #+end_src
+#+begin_src emacs-lisp
+(use-package git-timemachine :ensure t)
+ #+end_src
 ** Visual identification
 Show differences between local and remote repo.
  #+BEGIN_SRC emacs-lisp
@@ -3604,12 +3556,10 @@ This is for Projectile usage with Ivy/Counsel.
 #+end_src
 * Searchers
 ** Wgrep
-
-   #+BEGIN_SRC emacs-lisp
-     (use-package wgrep
-       :ensure t)
-   #+END_SRC
-
+#+BEGIN_SRC emacs-lisp
+(use-package wgrep
+  :ensure t)
+#+END_SRC
 ** Ripgrep
 #+BEGIN_SRC emacs-lisp
 (use-package projectile-ripgrep)
@@ -3628,7 +3578,7 @@ This is for Projectile usage with Ivy/Counsel.
           :flags ("--hidden -g !.git"))
 ;;        :bind ("M-s g" . bk/search-git-root-or-DIR)
 )
-    #+END_SRC
+#+END_SRC
 ** Occur
 
    Let's use an =occur= snippet from [[https://oremacs.com/2015/01/26/occur-dwim/][(or emacs]]. It will offer as the
@@ -3653,7 +3603,7 @@ This is for Projectile usage with Ivy/Counsel.
      (global-set-key (kbd "M-s o") 'occur-dwim)
    #+END_SRC
 
-** COMMENT Google this
+** Google this
 
    Artur Malabarba has a nice package called =google-this= which
    provides a set of functions for querying google from emacs.
