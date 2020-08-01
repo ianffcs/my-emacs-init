@@ -216,19 +216,23 @@ thus overriding the thing you copied earlier. We can have a kill ring solution:
 #+END_SRC
 ** Fonts
 #+BEGIN_SRC emacs-lisp
+;; (defconst my-default-font "-*-fixed-medium-r-normal-*-15-*-*-*-*-*-*-*")
+;; (defconst my-default-font "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*")
+;; (defconst my-default-font "-b&h-lucidatypewriter-medium-r-normal-sans-14-*-*-*-*-*-iso8859-1")
+;; (defconst my-default-font "FantasqueSansMono Nerd Font-10")
+;; (defconst my-default-font "Monoid-9")
+;; (defconst my-default-font "Fixed-10")
+;;(defconst my-default-font "Dina-10")
+;; (defconst my-default-font "Iosevka-9")
+;; (defconst my-default-font "Terminus-10")
+
+(if window-system
+    (defconst my-default-font "Fira Code-10")
+    (defconst my-default-font "Terminus-10"))
+
 (when window-system
   (use-package pretty-mode)
 
-  ;; (defconst my-default-font "-*-fixed-medium-r-normal-*-15-*-*-*-*-*-*-*")
-  ;; (defconst my-default-font "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*")
-  ;; (defconst my-default-font "-b&h-lucidatypewriter-medium-r-normal-sans-14-*-*-*-*-*-iso8859-1")
-  ;; (defconst my-default-font "FantasqueSansMono Nerd Font-10")
-  ;; (defconst my-default-font "Monoid-9")
-  ;; (defconst my-default-font "Fixed-10")
-  ;;(defconst my-default-font "Dina-10")
-  ;; (defconst my-default-font "Iosevka-9")
-  ;; (defconst my-default-font "Terminus-10")
-  (defconst my-default-font "Fira Code-10")
   ;; (defconst my-default-font "Hack-10")
   (use-package fira-code-mode
     :custom (fira-code-mode-disabled-ligatures '("[]" "#{" "#(" "#_" "#_(" "x")) ;; List of ligatures to turn off
@@ -1131,33 +1135,8 @@ several cursors that all do the same thing as you type.
   (setq ispell-program-name "aspell" ; use aspell instead of ispell
         ispell-extra-args '("--sug-mode=ultra")))
 #+END_SRC
-* COMMENT Modeline
-** Telephone-line
-
-(Unfortunately, Org Journal doesn't work fine with it... I still need
-to mitigate the problem, but I'll just disable it for now)
-
-#+begin_src emacs-lisp
-  (use-package telephone-line
-    :config (progn
-              (setq telephone-line-primary-left-separator    'telephone-line-cubed-left
-                    telephone-line-secondary-left-separator  'telephone-line-cubed-hollow-left
-                    telephone-line-primary-right-separator   'telephone-line-cubed-right
-                    telephone-line-secondary-right-separator 'telephone-line-cubed-hollow-right
-                    telephone-line-height                    24
-                    telephone-line-evil-use-short-tag        t))
-    (telephone-line-mode 1))
-#+end_src
-
-*** COMMENT Mini-modeline
-
-Simplistic and small modeline for my needs, specially on EXWM.
-
-#+begin_src emacs-lisp
-(use-package mini-modeline
-  :config (mini-modeline-mode t))
-#+end_src
 * Dired
+** Dired sidebar config
 #+BEGIN_SRC emacs-lisp
 ;; dired - reuse current buffer by pressing 'a'
 (put 'dired-find-alternate-file 'disabled nil)
@@ -1365,7 +1344,7 @@ dired.
 
 ;; avy allows us to effectively navigate to visible things
 (use-package avy
-  :bind ("M-s a" . avy-goto-char)
+  :bind (("M-s a" . avy-goto-char))
   :config
   (setq avy-background t
           avy-style 'at-full))
@@ -1404,32 +1383,32 @@ Why on earth does a function called =kill-word= not .. kill a word.
 It instead deletes characters from your cursors position to the end of the word,
 let's make a quick fix and bind it properly.
 #+BEGIN_SRC emacs-lisp
-  (defun daedreth/kill-inner-word ()
+  (defun kill-inner-word ()
     "Kills the entire word your cursor is in. Equivalent to 'ciw' in vim."
     (interactive)
     (forward-char 1)
     (backward-word)
     (kill-word 1))
-  (global-set-key (kbd "C-c w k") 'daedreth/kill-inner-word)
+  (global-set-key (kbd "C-c w k") 'kill-inner-word)
 #+END_SRC
 
 ** Improved copy-word
 And again, the same as above but we make sure to not delete the source word.
 #+BEGIN_SRC emacs-lisp
-  (defun daedreth/copy-whole-word ()
+  (defun copy-whole-word ()
     (interactive)
     (save-excursion
       (forward-char 1)
       (backward-word)
       (kill-word 1)
       (yank)))
-  (global-set-key (kbd "C-c w c") 'daedreth/copy-whole-word)
+  (global-set-key (kbd "C-c w c") 'copy-whole-word)
 #+END_SRC
 
 ** Copy a line
 Regardless of where your cursor is, this quickly copies a line.
 #+BEGIN_SRC emacs-lisp
-  (defun daedreth/copy-whole-line ()
+  (defun copy-whole-line ()
     "Copies a line without regard for cursor position."
     (interactive)
     (save-excursion
@@ -1437,7 +1416,7 @@ Regardless of where your cursor is, this quickly copies a line.
        (buffer-substring
         (point-at-bol)
         (point-at-eol)))))
-  (global-set-key (kbd "C-c l c") 'daedreth/copy-whole-line)
+  (global-set-key (kbd "C-c l c") 'copy-whole-line)
 #+END_SRC
 
 ** Kill a line
@@ -1525,24 +1504,6 @@ the *winner-boring-buffers*.
      (use-package prodigy
        :ensure t
        :config
-       (prodigy-define-service
-         :name "Captalys VPN"
-         :command "captalys-vpn"
-         :tags '(captalys)
-         :stop-signal 'sigkill
-         :kill-process-buffer-on-stop t)
-
-       (prodigy-define-service
-         :name "Blog"
-         :command "lein ring server"
-         :cwd "~/bartuka-blog"
-         :stop-signal 'sigkill
-         :tags '(blog)
-         :kill-process-buffer-on-stop t)
-
-       (prodigy-define-tag
-         :name 'captalys
-         :ready-message "Initialization Sequence Completed")
        (prodigy-define-tag
          :name 'blog
          :ready-message "Started server on port 3000"))
@@ -2062,6 +2023,8 @@ This built in mode provides code folding. I use transient to create little inter
           cider-jump-to-pop-to-buffer-actions '((display-buffer-same-window))
           ;; emidje-load-facts-on-eval t
           )
+    (when window-system
+      (setq pretty-mode t))
     )
   ;; (eval-after-load 'cider #'emidje-enable-nrepl-middleware)
   )
@@ -2733,15 +2696,6 @@ It is also interesting to have pretty symbols for our LaTeX files.
         (desktop-read)
       (message "No desktop found."))))
 #+END_SRC
-
-* Pretty Mode
-#+BEGIN_SRC emacs-lisp
-(use-package pretty-mode
-  :ensure t
-  :config
-  (add-hook 'clojure-mode-hook #'turn-on-pretty-mode))
-#+END_SRC
-
 * Private
 #+BEGIN_SRC emacs-lisp
 (defconst private-dir (expand-file-name "private" user-emacs-directory))
@@ -3185,7 +3139,7 @@ etc. See the documentation [[https://github.com/weirdNox/org-noter][here]].
 (use-package org-noter)
 #+end_src
 
-** COMMENT Org-roam
+** Org-roam
 
 The variable =org-roam-directory= is determined in =sensitive/org-roam.el=.
 
@@ -3204,7 +3158,7 @@ The variable =org-roam-directory= is determined in =sensitive/org-roam.el=.
               :map org-mode-map
               (("C-c n i" . org-roam-insert))))
 #+end_src
-** COMMENT Deft
+** Deft
 
 Since I'm using Deft exclusively for =org-roam= stuff, I'll put it here.
 It'll provide a nice interface for browsing and filtering notes.
@@ -3243,7 +3197,7 @@ My journal files are kept in a sensible file =sensitive/journal.el=.
 
 #+end_src
 
-** Org Crypt
+** COMMENT Org Crypt
 #+BEGIN_SRC emacs-lisp
 (require 'org-crypt)
 (org-crypt-use-before-save-magic)
@@ -3278,8 +3232,7 @@ My journal files are kept in a sensible file =sensitive/journal.el=.
   (local-set-key (kbd "C-c wu") 'org-jira-update-worklogs-from-org-clocks)
   (local-set-key (kbd "C-c tj") 'org-jira-todo-to-jira)
   (local-set-key (kbd "C-c if") 'org-jira-get-issues-by-fixversion)
-  (setq jiralib-url "https://paygo.atlassian.net"))
-#+END_SRC
+  )
 * Calfw
 #+BEGIN_SRC emacs-lisp
 (use-package calfw)
@@ -3547,10 +3500,9 @@ whitespaces and windows should be side-by-side.
 #+END_SRC
 
 ** Time machine
-
-    #+begin_src emacs-lisp
-      (use-package git-timemachine :ensure t)
-    #+end_src
+#+begin_src emacs-lisp
+(use-package git-timemachine :ensure t)
+ #+end_src
 ** Visual identification
 Show differences between local and remote repo.
  #+BEGIN_SRC emacs-lisp
@@ -3604,12 +3556,10 @@ This is for Projectile usage with Ivy/Counsel.
 #+end_src
 * Searchers
 ** Wgrep
-
-   #+BEGIN_SRC emacs-lisp
-     (use-package wgrep
-       :ensure t)
-   #+END_SRC
-
+#+BEGIN_SRC emacs-lisp
+(use-package wgrep
+  :ensure t)
+#+END_SRC
 ** Ripgrep
 #+BEGIN_SRC emacs-lisp
 (use-package projectile-ripgrep)
@@ -3628,7 +3578,7 @@ This is for Projectile usage with Ivy/Counsel.
           :flags ("--hidden -g !.git"))
 ;;        :bind ("M-s g" . bk/search-git-root-or-DIR)
 )
-    #+END_SRC
+#+END_SRC
 ** Occur
 
    Let's use an =occur= snippet from [[https://oremacs.com/2015/01/26/occur-dwim/][(or emacs]]. It will offer as the
@@ -3653,7 +3603,7 @@ This is for Projectile usage with Ivy/Counsel.
      (global-set-key (kbd "M-s o") 'occur-dwim)
    #+END_SRC
 
-** COMMENT Google this
+** Google this
 
    Artur Malabarba has a nice package called =google-this= which
    provides a set of functions for querying google from emacs.
@@ -3719,7 +3669,7 @@ This is for Projectile usage with Ivy/Counsel.
   :ensure t
   :config (pcre-mode))
 #+END_SRC
-* Media
+* COMMENT Media
 ** EMMS with mpd
 There is many backends, many players and codecs for EMMS, we use mpd now.
 *** Basic setup for mpd
@@ -3728,25 +3678,24 @@ At the bottom part of the configuration, you will notice how XF86 keys are used
 by default, so unless you keyboard is broken it should work out of the box.
 Obviously you might have to adjust /server-name/ and /server-port/ to fit your configuration.
 #+BEGIN_SRC emacs-lisp
-  (use-package emms
-    :ensure t
-    :config
-      (require 'emms-setup)
-      (require 'emms-player-mpd)
-      (emms-all) ; don't change this to values you see on stackoverflow questions if you expect emms to work
-      (setq emms-seek-seconds 5)
-      (setq emms-player-list '(emms-player-mpd))
-      (setq emms-info-functions '(emms-info-mpd))
-      (setq emms-player-mpd-server-name "localhost")
-      (setq emms-player-mpd-server-port "6601")
-    :bind
-      ("s-m p" . emms)
-      ("s-m b" . emms-smart-browse)
-      ("s-m r" . emms-player-mpd-update-all-reset-cache)
-      ("<XF86AudioPrev>" . emms-previous)
-      ("<XF86AudioNext>" . emms-next)
-      ("<XF86AudioPlay>" . emms-pause)
-      ("<XF86AudioStop>" . emms-stop))
+(use-package emms
+  :ensure t
+  :config
+  (require 'emms-setup)
+  (require 'emms-player-mpd)
+  (emms-all) ; don't change this to values you see on stackoverflow questions if you expect emms to work
+  (setq emms-seek-seconds 5
+        emms-player-list '(emms-player-mpd)
+        emms-info-functions '(emms-info-mpd)
+        emms-player-mpd-server-name "localhost"
+        emms-player-mpd-server-port "6680")
+  :bind (("s-m p" . emms)
+         ("s-m b" . emms-smart-browse)
+         ("s-m r" . emms-player-mpd-update-all-reset-cache)
+         ("<XF86AudioPrev>" . emms-previous)
+         ("<XF86AudioNext>" . emms-next)
+         ("<XF86AudioPlay>" . emms-pause)
+         ("<XF86AudioStop>" . emms-stop)))
 #+END_SRC
 
 *** MPC Setup
@@ -3917,123 +3866,6 @@ Oh, and I also use Olivetti for centering and making it look good.
               (add-hook 'nov-mode-hook 'visual-line-mode)
               (add-hook 'nov-mode-hook 'visual-fill-column-mode)))
 #+end_src
-* COMMENT Mu4e
-
-Mu4e is my favorite e-mail application. Fortunately, it can be
-installed from my distribution's package manager.
-
-Personal stuff should be in =sensitive/mail.el=.
-
-#+begin_src emacs-lisp
-(when (eq system-type 'gnu/linux)
-  (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
-
-  (require 'mu4e)
-  (require 'smtpmail)
-
-  (use-package mu4e-alert
-    :config (progn
-              (mu4e-alert-set-default-style 'libnotify)
-              (add-hook 'after-init-hook #'mu4e-alert-enable-notifications)
-              (add-hook 'after-init-hook #'mu4e-alert-enable-mode-line-display)))
-
-  (setq mail-user-agent                   'mu4e-user-agent
-        message-send-mail-function        'smtpmail-send-it
-        message-kill-buffer-on-exit       t
-        mu4e-change-filenames-when-moving t
-        mu4e-view-show-images             t)
-
-  (when (fboundp 'imagemagick-register-types)
-    (imagemagick-register-types))
-
-  (load-sensible-file "mail.el"))
-#+end_src
-
-Let's make sure that mu4e messages wrap on column 80, just like Org. I
-also like the usage of format=flowed.
-
-#+begin_src emacs-lisp
-(add-hook 'message-mode-hook 'auto-fill-mode)
-(setq mu4e-compose-format-flowed t)
-#+end_src
-** Extra configuration
-
-I think it is interesting to describe other stuff I did here. I use
-ProtonMail Bridge to help me manage my mail, and it is synced using
-=mbsync=. To make it work, it is important to have some more
-configuration.
-
-Here is my =.mbsyncrc= file.
-
-#+begin_example
-IMAPAccount protonmail
-Host 127.0.0.1
-Port PROTONMAIL-BRIDGE-GIVEN-IMAP-PORT
-User mymail@example.com
-PassCmd "gpg2 -q -d /path/to/authinfo.gpg | awk 'FNR == 1 {print $8}'"
-SSLType NONE
-
-IMAPStore remote
-Account protonmail
-
-MaildirStore local
-Subfolders Verbatim
-Path  /path/to/my/mail/box
-Inbox /path/to/my/mail/box/INBOX/
-
-Channel inbox
-Master :remote:
-Slave :local:
-Patterns * !"Drafts" !"All Mail"
-Create Slave
-SyncState *
-Sync All
-Expunge Both
-
-Group protonmail
-Channel inbox
-#+end_example
-
-Oh, and Bridge can be a real bitch when handling your passwords, since
-it requires =pass= or =gnome-keyring=; I use the latter. Also, make sure
-you have DBus working (yeah, I know, I know. DBus sucks).
-
-And here is how I defined my Mu4e context for ProtonMail. I have
-omitted the sensitive parts, but this should give you a heads-up on
-how to setup the =mu4e-contexts= variable.
-
-#+begin_src emacs-lisp :tangle no
-;; This code snippet SHOULD NOT BE TANGLED with the rest of the
-;; configuration. Edit the sensitive/mail.el file if you need
-;; to modify this code.
-
-(setq mu4e-compose-signature "My Awesome Signature"
-      mu4e-maildir-shortcuts '(("/INBOX"   . ?i)
-                               ("/Sent"    . ?s)
-                               ("/Drafts"  . ?d)
-                               ("/Archive" . ?a)
-                               ("/Trash"   . ?t)))
-
-(setq mu4e-contexts
-      `(,(make-mu4e-context
-          :name "Protonmail"
-          :vars
-          `((mu4e-maildir          . ,(expand-file-name "/path/to/my/mail/box"))
-            (user-mail-address     . "mymail@example.com")
-            (user-full-name        . "My Name")
-            (mu4e-attachment-dir   . "/path/to/attachment/download/dir")
-            (mu4e-trash-folder     . "/Trash")
-            (mu4e-refile-folder    . "/Archive")
-            (mu4e-drafts-folder    . "/Drafts")
-            (mu4e-sent-folder      . "/Sent")
-            (mu4e-get-mail-command . "mbsync protonmail")
-            (smtpmail-smtp-user    . "mymail@example.com")
-            (smtpmail-stream-type  . starttls)
-            (smtpmail-auth-credentials . "/path/to/authinfo.gpg")
-            (smtpmail-smtp-server  . "127.0.0.1")
-            (smtpmail-smtp-service . PROTONMAIL-BRIDGE-GIVEN-SMTP-PORT)))))
-#+end_src
-
 * COMMENT Elfeed
 
 Elfeed is an RSS/Atom feed reader. The location of the Elfeed file is
@@ -4102,34 +3934,8 @@ Mingus controls MPD.
 #+begin_src emacs-lisp
 (use-package mingus)
 #+end_src
-
-* COMMENT EMMS
-
-Here we configure EMMS by using the MPV backend.
-
-#+begin_src emacs-lisp
-(use-package emms
-  :config
-  (progn (require 'emms-setup)
-         (require 'emms-player-mpv)
-         (emms-all)
-         (setq emms-seek-seconds           5
-               emms-player-list            '(emms-player-mpv)
-               emms-info-functions         '(emms-info-cueinfo
-                                             emms-info-ogginfo
-                                             emms-info-mp3info
-                                             emms-info-metaflac)
-               emms-browser-covers         'emms-browser-cache-thumbnail)
-         (add-to-list 'emms-player-mpv-parameters "--no-audio-display"))
-  :bind
-  ("<XF86AudioPrev>" . emms-previous)
-  ("<XF86AudioNext>" . emms-next)
-  ("<XF86AudioPlay>" . emms-pause)
-  ("<XF86AudioStop>" . emms-stop))
-#+end_src
-
 * COMMENT EXWM
-
+** Startup
 Configuration for EXWM.
 
 #+begin_src emacs-lisp
