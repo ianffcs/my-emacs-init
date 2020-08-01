@@ -216,8 +216,8 @@ thus overriding the thing you copied earlier. We can have a kill ring solution:
 #+END_SRC
 ** Fonts
 #+BEGIN_SRC emacs-lisp
-  (when window-system
-    (use-package pretty-mode))
+(when window-system
+  (use-package pretty-mode)
 
   ;; (defconst my-default-font "-*-fixed-medium-r-normal-*-15-*-*-*-*-*-*-*")
   ;; (defconst my-default-font "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*")
@@ -232,7 +232,7 @@ thus overriding the thing you copied earlier. We can have a kill ring solution:
   ;; (defconst my-default-font "Hack-10")
   (use-package fira-code-mode
     :custom (fira-code-mode-disabled-ligatures '("[]" "#{" "#(" "#_" "#_(" "x")) ;; List of ligatures to turn off
-    :hook prog-mode)
+    :hook prog-mode))
 #+END_SRC
 ** Visual
 Find out what face something at point have.
@@ -2174,25 +2174,36 @@ This built in mode provides code folding. I use transient to create little inter
   "Return a prompt string that mentions NAMESPACE."
   (format "λ %s\n" namespace))
 
-(use-package ac-cider)
-
 (use-package clj-refactor
-  :config (progn (setq cljr-suppress-middleware-warnings t)
-                 (add-hook 'clojure-mode-hook (lambda ()
-                                                (clj-refactor-mode 1)
-                                                (yas-minor-mode 1)
-                                                (cljr-add-keybindings-with-prefix "C-c C-m")))))
-(use-package emidje
- ; :config (eval-after-load 'cider #'emidje-setup)
- )
+  :config
+  (setq cljr-suppress-middleware-warnings t)
+  (add-hook 'clojure-mode-hook
+            (lambda () (clj-refactor-mode 1)
+                  (yas-minor-mode 1)
+                  (cljr-add-keybindings-with-prefix "C-c C-m"))))
 
 (use-package kaocha-runner
   :config
-  (define-key clojure-mode-map (kbd "C-c k t") 'kaocha-runner-run-test-at-point)
-  (define-key clojure-mode-map (kbd "C-c k r") 'kaocha-runner-run-tests)
-  (define-key clojure-mode-map (kbd "C-c k a") 'kaocha-runner-run-all-tests)
-  (define-key clojure-mode-map (kbd "C-c k w") 'kaocha-runner-show-warnings)
-  (define-key clojure-mode-map (kbd "C-c k h") 'kaocha-runner-hide-windows))
+  (define-key
+    clojure-mode-map
+    (kbd "C-c k t")
+    'kaocha-runner-run-test-at-point)
+  (define-key
+    clojure-mode-map
+    (kbd "C-c k r")
+    'kaocha-runner-run-tests)
+  (define-key
+    clojure-mode-map
+    (kbd "C-c k a")
+    'kaocha-runner-run-all-tests)
+  (define-key
+    clojure-mode-map
+    (kbd "C-c k w")
+    'kaocha-runner-show-warnings)
+  (define-key
+    clojure-mode-map
+    (kbd "C-c k h")
+    'kaocha-runner-hide-windows))
 
 (use-package flycheck-joker
   :after clojure-mode
@@ -2202,6 +2213,10 @@ This built in mode provides code folding. I use transient to create little inter
   :ensure t
   :after clojure-mode
   :config
+  (dolist (checker
+           '(clj-kondo-clj clj-kondo-cljs clj-kondo-cljc clj-kondo-edn))
+    (setq flycheck-checkers
+          (cons checker (delq checker flycheck-checkers))))
   (dolist (checkers '((clj-kondo-clj . clojure-joker)
                       (clj-kondo-cljs . clojurescript-joker)
                       (clj-kondo-cljc . clojure-joker)
