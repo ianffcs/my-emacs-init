@@ -24,9 +24,9 @@ It used to be like this, but for now I'm using init.el to startup my config file
 * Personal Keymap
 #+BEGIN_SRC emacs-lisp
 (setq user-full-name "Ian Fernandez"
-      user-mail-address "ianffcs@tutanota.com")
+      user-mail-address "d.ian.b@live.com")
 (global-set-key (kbd "<menu>")
-          (lambda () (interactive) (find-file "~/.emacs.d/init.org")))
+          (lambda () (interactive) (find-file "~/.emacs.d/README.org")))
 
 (defalias 'cquit 'cider-quit)
 (defalias 'yes-or-no-p 'y-or-n-p)
