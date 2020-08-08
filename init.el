@@ -12,7 +12,7 @@
 
 (require 'org)
 (setq vc-follow-symlinks t)
-(org-babel-load-file (expand-file-name "~/.emacs.d/init.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/README.org"))
 
 (add-hook 'after-init-hook
           `(lambda ()
@@ -27,5 +27,3 @@
 ;; Local Variables:
 ;; coding: utf-8
 ;; no-byte-compile: t
-;; End:
-;;; init.el ends here
