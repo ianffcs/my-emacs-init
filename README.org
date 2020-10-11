@@ -1669,7 +1669,8 @@ Company is a text completion framework for Emacs. The name stands for
   :config
   (setq company-idle-delay 0)
   (setq company-minimum-prefix-length 3)
-  (global-company-mode t))
+  (global-company-mode)
+  (global-auto-complete-mode))
 
 ;; (use-package company-irony
 ;;   :ensure t
@@ -1789,6 +1790,8 @@ Then we override =dabbrev-expand='s keybinding to use
         (setq lsp-clojure-server-command '("bash" "-c" "clojure-lsp") ;; Optional: In case `clojure-lsp` is not in your PATH
               lsp-enable-indentation nil)
          (defvar lsp-elixir--config-options (make-hash-table))
+         (setq lsp-haskell-process-path-hie "ghcide")
+         (setq lsp-haskell-process-args-hie '())
          (add-hook
           'lsp-after-initialize-hook
           (lambda ()
@@ -1970,20 +1973,17 @@ This built in mode provides code folding. I use transient to create little inter
 (use-package cider
   :hook ((cider-repl-mode . subword-mode)
          (cider-repl-mode . company-mode)
-         (cider-repl-mode . ac-cider-setup)
          (cider-repl-mode . smartparens-strict-mode)
          (cider-repl-mode . rainbow-delimiters-mode)
          (cider-repl-mode . set-auto-complete-as-completion-at-point-function)
-         (cider-repl-mode . cider-company-enable-fuzzy-completion)
          (cider-repl-mode . eldoc-mode)
          ;;(cider-repl-mode . prettify-some-chars)
          (cider-mode . subword-mode)
          (cider-mode . company-mode)
-         ;;(cider-mode . eldoc-mode)
+         (cider-mode . eldoc-mode)
          (cider-mode . smartparens-strict-mode)
          (cider-mode . rainbow-delimiters-mode)
          (cider-mode . set-auto-complete-as-completion-at-point-function)
-         (cider-mode . cider-company-enable-fuzzy-completion)
          (cider-mode . highlight-parentheses-mode))
   :bind (:map
          cider-mode-map
@@ -1993,6 +1993,8 @@ This built in mode provides code folding. I use transient to create little inter
          ("C-c M-o" . cider-repl-clear-buffer))
   :config
   (progn
+    (add-hook 'cider-repl-mode-hook #'cider-company-enable-fuzzy-completion)
+    (add-hook 'cider-mode-hook #'cider-company-enable-fuzzy-completion)
     (setq cider-repl-pop-to-buffer-on-connect nil
           cider-repl-use-clojure-font-lock nil
           cider-annotate-completion-candidates t
@@ -3260,6 +3262,7 @@ My journal files are kept in a sensible file =sensitive/journal.el=.
   (local-set-key (kbd "C-c tj") 'org-jira-todo-to-jira)
   (local-set-key (kbd "C-c if") 'org-jira-get-issues-by-fixversion)
   )
+  #+END_SRC
 * Calfw
 #+BEGIN_SRC emacs-lisp
 (use-package calfw)
