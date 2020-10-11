@@ -126,10 +126,9 @@ deprecated?)
 #+END_SRC
 * Custom
 #+BEGIN_SRC emacs-lisp
-(unless (file-exists-p (concat user-emacs-directory "custom"))
+(unless (file-exists-p (concat user-emacs-directory "custom/custom.el"))
  (make-directory (concat user-emacs-directory "custom"))
- (dired-create-empty-file (concat user-emacs-directory "custom/custom.el"))
- )
+ (make-empty-file (concat user-emacs-directory "custom/custom.el")))
 
 (setq custom-file (expand-file-name (concat user-emacs-directory "custom/custom.el")))
 (load custom-file)
