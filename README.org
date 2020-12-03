@@ -2103,6 +2103,7 @@ This built in mode provides code folding. I use transient to create little inter
          (train-n 3)
          (for-all 1)
          (fdef 1)
+         (defresolver 1)
          (mlet 1)
          (alet 1)
          ;;(async 1)
@@ -2600,6 +2601,7 @@ It is also interesting to have pretty symbols for our LaTeX files.
                  (kill-buffer "*Shell Command Output*")))
       (setq org-plantuml-jar-path plantuml-target
             plantuml-jar-path plantuml-target
+            plantuml-default-exec-mode 'jar
             plantuml-output-type "svg"))))
 
 (use-package flycheck-plantuml
