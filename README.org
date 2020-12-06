@@ -1672,10 +1672,9 @@ Company is a text completion framework for Emacs. The name stands for
         company-tooltip-align-annotations t
         company-tooltip-flip-when-above t)
   :config
-  (setq company-idle-delay 0)
-  (setq company-minimum-prefix-length 3)
-  (global-company-mode)
-  (global-auto-complete-mode))
+  (setq company-idle-delay 0
+        company-minimum-prefix-length 3)
+  (global-company-mode))
 
 ;; (use-package company-irony
 ;;   :ensure t
@@ -2855,6 +2854,10 @@ It is also interesting to have pretty symbols for our LaTeX files.
                    ("\\.x?html?\\'" . "/usr/bin/firefox %s")
                    ;;("\\.pdf\\'" . "/usr/bin/zathura %s")
                    )
+   org-display-inline-images t
+   org-redisplay-inline-images t
+   org-startup-with-inline-images "inlineimages"
+   org-confirm-elisp-link-function nil
    org-hide-emphasis-markers t
    org-babel-clojure-nrepl-timeout nil
    org-export-allow-bind-keywords t
@@ -3149,12 +3152,6 @@ makes sure that ABNTeX2's =\citeonline{}= works.
 (use-package org-re-reveal-ref
   :after org-re-reveal)
 
-(setq reveal-path
-      (concat user-emacs-directory "elpa/emacs-reveal"))
-(use-package emacs-reveal
-  :straight (:type built-in)
-  :load-path reveal-path)
-
 ;; (require 'oer-reveal-publish)
 ;; (oer-reveal-setup-submodules t)
 ;; (oer-reveal-generate-include-files t)
@@ -3184,16 +3181,18 @@ The variable =org-roam-directory= is determined in =sensitive/org-roam.el=.
 (defconst personal-keybindings '())
 
 (use-package org-roam
-  :hook (after-init . org-roam-mode)
-  :straight (:host github :repo "jethrokuan/org-roam" :branch "develop")
-  :config (load-sensible-file "org-roam.el")
-  :bind (:map org-roam-mode-map
+      :ensure t
+      :hook
+      (after-init . org-roam-mode)
+      :custom
+      (org-roam-directory "~/org-files/")
+      :bind (:map org-roam-mode-map
               (("C-c n l" . org-roam)
                ("C-c n f" . org-roam-find-file)
-               ("C-c n b" . org-roam-switch-to-buffer)
-               ("C-c n g" . org-roam-show-graph))
+               ("C-c n g" . org-roam-graph))
               :map org-mode-map
-              (("C-c n i" . org-roam-insert))))
+              (("C-c n i" . org-roam-insert))
+              (("C-c n I" . org-roam-insert-immediate))))
 #+end_src
 ** Deft
 
@@ -3204,7 +3203,7 @@ It'll provide a nice interface for browsing and filtering notes.
 (use-package deft
   :after org-roam
   :bind
-  ("C-c n d" . deft)
+  ("C-c n d" . #'deft)
   :custom
   (deft-recursive t)
   (deft-use-filter-string-for-filename t)
