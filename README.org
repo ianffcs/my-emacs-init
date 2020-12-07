@@ -305,6 +305,7 @@ invasive graphical elements.
 #+BEGIN_SRC emacs-lisp
 (add-hook 'window-setup-hook 'toggle-frame-maximized t)
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
+(add-to-list 'initial-frame-alist '(fullscreen . maximized))
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
