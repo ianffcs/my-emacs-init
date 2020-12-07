@@ -220,27 +220,36 @@ thus overriding the thing you copied earlier. We can have a kill ring solution:
 #+END_SRC
 ** Fonts
 #+BEGIN_SRC emacs-lisp
-;; (defconst my-default-font "-*-fixed-medium-r-normal-*-15-*-*-*-*-*-*-*")
-;; (defconst my-default-font "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*")
-;; (defconst my-default-font "-b&h-lucidatypewriter-medium-r-normal-sans-14-*-*-*-*-*-iso8859-1")
-;; (defconst my-default-font "FantasqueSansMono Nerd Font-10")
-;; (defconst my-default-font "Monoid-9")
-;; (defconst my-default-font "Fixed-10")
-;;(defconst my-default-font "Dina-10")
-;; (defconst my-default-font "Iosevka-9")
-;; (defconst my-default-font "Terminus-10")
+(use-package fira-code-mode
+ :custom (fira-code-mode-disabled-ligatures '("[]" "#{" "#(" "#_" "#_(" "x")) ;; List of ligatures to turn off
+ :hook prog-mode)
 
-(if window-system
-    (defconst my-default-font "Fira Code-10")
-    (defconst my-default-font "Terminus-10"))
+(defvar monospace-font "Fira Code-10"
+  "Preferred monospace font.")
+(defvar monospace-serif-font "Terminus-10"
+  "Preferred monospace serif font.")
+(defvar sans-serif-font "Fira Sans-10"
+  "Preferred sans serif font.")
 
-(when window-system
-  (use-package pretty-mode)
+(defun set-font-if-installed (face font)
+  "Set FONT as FACE's family if it is detected in the system."
+  (if (member monospace-font (font-family-list))
+      (set-face-attribute 'face nil :family font)
+    (message "Font %s not installed!" font)))
 
-  ;; (defconst my-default-font "Hack-10")
-  (use-package fira-code-mode
-    :custom (fira-code-mode-disabled-ligatures '("[]" "#{" "#(" "#_" "#_(" "x")) ;; List of ligatures to turn off
-    :hook prog-mode))
+(defun do-set-font ()
+  "Actually set fonts.
+Will only run on the first creation of a graphic frame, otherwise
+font presence cannot be detected."
+  (when (display-multi-font-p)
+    (set-font-if-installed 'fixed-pitch-serif monospace-serif-font)
+    (set-font-if-installed 'variable-pitch sans-serif-font)
+    (set-font-if-installed 'default monospace-font)
+    (remove-hook 'server-after-make-frame-hook 'do-set-font)))
+
+(if (daemonp)
+    (add-hook 'server-after-make-frame-hook 'do-set-font)
+  (do-set-font))
 #+END_SRC
 ** Visual
 Find out what face something at point have.
@@ -256,8 +265,7 @@ Find out what face something at point have.
 
 #+BEGIN_SRC emacs-lisp
 (defconst my-frame-alist
-  `((font                 . ,my-default-font)
-    (scroll-bar           . -1)
+  `((scroll-bar           . -1)
     (height               . 60)
     (width                . 95)
     (alpha                . 95)
@@ -295,10 +303,11 @@ Find out what face something at point have.
 Since I never use the mouse with GNU Emacs, I prefer not to use
 invasive graphical elements.
 #+BEGIN_SRC emacs-lisp
-(when window-system
-  (menu-bar-mode -1)
-  (tool-bar-mode -1)
-  (scroll-bar-mode -1))
+(add-hook 'window-setup-hook 'toggle-frame-maximized t)
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
 #+END_SRC
 
 Emacs convention is to show help and other inline documentation in
@@ -3134,6 +3143,7 @@ makes sure that ABNTeX2's =\citeonline{}= works.
 (setq org-reveal-mathjax t
       org-reveal-root "https://cdn.jsdelivr.net/npm/reveal.js@4.0.2/js/reveal.min.js"
       org-re-reveal-root "~/reveal")
+
 (use-package org-re-reveal
   :config (setq org-ref-default-bibliography '("references.bib")
                 org-ref-bibliography-entry-format
@@ -3202,8 +3212,6 @@ It'll provide a nice interface for browsing and filtering notes.
 #+begin_src emacs-lisp
 (use-package deft
   :after org-roam
-  :bind
-  ("C-c n d" . #'deft)
   :custom
   (deft-recursive t)
   (deft-use-filter-string-for-filename t)
