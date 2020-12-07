@@ -224,17 +224,17 @@ thus overriding the thing you copied earlier. We can have a kill ring solution:
  :custom (fira-code-mode-disabled-ligatures '("[]" "#{" "#(" "#_" "#_(" "x")) ;; List of ligatures to turn off
  :hook prog-mode)
 
-(defvar monospace-font "Fira Code-10"
+(defvar monospace-font "Fira Mono"
   "Preferred monospace font.")
-(defvar monospace-serif-font "Terminus-10"
+(defvar monospace-serif-font "Terminus"
   "Preferred monospace serif font.")
-(defvar sans-serif-font "Fira Sans-10"
+(defvar sans-serif-font "Fira Sans"
   "Preferred sans serif font.")
 
 (defun set-font-if-installed (face font)
   "Set FONT as FACE's family if it is detected in the system."
   (if (member monospace-font (font-family-list))
-      (set-face-attribute 'face nil :family font)
+      (set-face-attribute face nil :family font)
     (message "Font %s not installed!" font)))
 
 (defun do-set-font ()
@@ -1582,6 +1582,8 @@ C-n and C-p totally work for this.
          sp-autoskip-closing-pair 'always
          sp-hybrid-kill-entire-symbol nil)
     (sp-use-paredit-bindings)))
+
+(use-package aggressive-indent)
 
 (use-package eldoc
   :init
