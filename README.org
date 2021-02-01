@@ -1808,6 +1808,7 @@ Then we override =dabbrev-expand='s keybinding to use
          (defvar lsp-elixir--config-options (make-hash-table))
          (setq lsp-haskell-process-path-hie "ghcide")
          (setq lsp-haskell-process-args-hie '())
+         (setq lsp-lens-enable t)
          (add-hook
           'lsp-after-initialize-hook
           (lambda ()
@@ -1882,6 +1883,9 @@ This built in mode provides code folding. I use transient to create little inter
     :config
       (require 'company)
       (add-hook 'shell-mode-hook 'shell-mode-company-init))
+
+(use-package vterm
+    :ensure t)
 #+END_SRC
 *** Clisp
 #+BEGIN_src emacs-lisp
@@ -2226,6 +2230,13 @@ This built in mode provides code folding. I use transient to create little inter
 
 (use-package exunit)
 #+END_SRC
+*** Forth
+#+BEGIN_SRC elisp
+(use-package forth-mode
+  :config (progn
+            (define-key forth-mode-map (kbd "C-x C-e") #'forth-eval-last-expression)
+            (define-key forth-mode-map (kbd "C-c C-c") #'forth-eval-region)))
+#+END_SRC
 *** Kotlin
 #+BEGIN_SRC emacs-lisp
 (use-package kotlin-mode)
@@ -2324,9 +2335,7 @@ Language Server automatically.
 #+END_SRC
 *** Rust
 #+BEGIN_SRC emacs-lisp
-  ;; rustic
-  ;; https://github.com/brotzeit/rustic
-;(use-package rustic)
+(use-package rustic)
 #+END_SRC
 *** Haskell
 #+BEGIN_SRC emacs-lisp
@@ -2808,8 +2817,7 @@ It is also interesting to have pretty symbols for our LaTeX files.
          libnotify nil))
     #+END_SRC
 
-*** COMMENT Telegram notifications
-
+*** Telegram notifications
     Let's start by telling alert *not* to notify anything.
     #+BEGIN_SRC emacs-lisp
       (add-to-list 'alert-user-configuration
@@ -2821,30 +2829,151 @@ It is also interesting to have pretty symbols for our LaTeX files.
     #+BEGIN_SRC emacs-lisp
       (add-to-list
              'alert-user-configuration
-             '(((:message . "@bartuka\\|Wanderson")
+             '(((:message . "@ianffcs\\|Ian")
                 (:category . "telega"))
                libnotify nil))
     #+END_SRC
+* Version Control Systems
+** Ediff
+Sane config for =ediff= which is basically removing noisy
+highlights, avoiding crazy multi-frames setup, ignoring some
+whitespaces and windows should be side-by-side.
+
+#+BEGIN_SRC emacs-lisp
+(use-package ediff
+  :init
+  (setq ediff-highlight-all-diffs nil)
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+  (setq ediff-diff-options "-w")
+  (setq ediff-split-window-function 'split-window-horizontally))
+#+END_SRC
+** Magit
+#+BEGIN_SRC emacs-lisp
+(use-package magit
+  :ensure t
+  :defer t
+  :bind ("C-x g" . magit-status)
+  :init
+  (setq magit-diff-options (quote ("--word-diff"))
+        magit-diff-refine-hunk 'all
+        ;;magit-completing-read-function 'magit-ido-completing-read
+        ;; highlight individual word and letter changes when hunk diff displays
+        magit-diff-refine-hunk t
+        ;; don't tell me when magit reverts buffers
+        magit-revert-buffers 'silent
+        ;; always show the verbose diff in commit windows
+        magit-commit-arguments '("--verbose")
+
+        ;; timeout when magit takes a while to call out to git
+        magit-process-popup-time 10)
+  :config
+  (add-to-list 'magit-no-confirm 'stage-all-changes)
+  ;;(add-hook 'magit-mode-hook 'turn-on-magit-gitflow)
+)
+
+;(use-package magit-gitflow)
+
+(use-package git-gutter
+  :ensure t
+  :init
+  (global-git-gutter-mode +1))
+
+(use-package browse-at-remote :ensure t)
+(use-package gitconfig-mode :ensure t)
+(use-package gitignore-templates :ensure t)
+#+END_SRC
+*** Gitconfig
+[[https://github.com/magit/git-modes][gitconfig]] is a major mode for editing =gitconfig= files.
+#+BEGIN_SRC emacs-lisp
+(use-package gitconfig-mode
+  :config
+  (require 'gitconfig-mode))
+#+END_SRC
+*** Gitignore
+[[https://github.com/magit/git-modes][git-modes]] has a major mode for editing =gitignore= files.
+#+BEGIN_SRC emacs-lisp
+(use-package gitignore-mode
+  :config
+  (require 'gitignore-mode))
+#+END_SRC
+
+** Time machine
+#+begin_src emacs-lisp
+(use-package git-timemachine :ensure t)
+ #+end_src
+** Visual identification
+Show differences between local and remote repo.
+ #+BEGIN_SRC emacs-lisp
+ (use-package diff-hl
+   :init
+   (setq diff-hl-side 'left)
+   :config
+   (add-hook 'dired-mode-hook 'diff-hl-dired-mode)
+   (diff-hl-flydiff-mode)
+   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+   (global-diff-hl-mode)
+
+   (custom-set-faces
+    '(diff-hl-change ((t (:background "#3a81c3"))))
+    '(diff-hl-insert ((t (:background "#7ccd7c"))))
+    '(diff-hl-delete ((t (:background "#ee6363"))))))
+#+END_SRC
+** Undo Tree
+#+BEGIN_SRC emacs-lisp
+(use-package undo-tree
+  :ensure t
+  :bind (("C-x u" . undo-tree-visualize)
+         ("C-_" . undo)
+         ("M-_" . undo-tree-redo))
+  :config ;; autosave the undo-tree history
+  (progn
+   (setq undo-tree-history-directory-alist `((".*" . ,temporary-file-directory))
+         undo-tree-auto-save-history t)
+   (global-undo-tree-mode 1)))
+#+END_SRC
+** Projectile
+#+BEGIN_SRC emacs-lisp
+(use-package projectile
+      :ensure t
+      :bind ("C-c p" . projectile-command-map)
+      :config
+      (projectile-global-mode)
+      (setq projectile-completion-system 'ivy)
+      (progn (projectile-mode +1)
+                 (define-key projectile-mode-map
+                   (kbd "C-c p") 'projectile-command-map)
+                 (add-to-list
+                  'projectile-globally-ignored-directories
+                  "node_modules")))
+#+END_SRC
+This is for Projectile usage with Ivy/Counsel.
+
+#+begin_src emacs-lisp
+(use-package counsel-projectile
+  :config (counsel-projectile-mode))
+#+end_src
 * Org
 ** Org General confs
 #+BEGIN_SRC emacs-lisp
 (use-package org
   :ensure org-plus-contrib
+  :init (org-crypt-use-before-save-magic)
   :hook ((org-mode . toggle-word-wrap)
          (org-mode . org-indent-mode)
          (org-mode . turn-on-visual-line-mode)
          (org-mode . (lambda () (display-line-numbers-mode -1)))
          (org-mode . auto-revert-mode))
   :bind (("C-c l" . org-store-link)
-         ("C-c a" . org-agenda))
+         ("C-c a" . org-agenda)
+         ("C-c d" . org-decrypt-entry))
   :mode (("\\.org$" . org-mode))
   :config
-  (setq ;org-default-notes-file (concat org-directory "~/sync/orgfiles/notes.org.gpg")
+  (setq
+   org-default-notes-files "~/sync/orgfiles/notes.org.gpg"
    org-catch-invisible-edits 'smart ;; or show
    org-export-html-postamble nil
    org-hide-leading-stars t
    org-startup-indented t
-   org-journal-dir "~/sync/orgfiles"
    org-display-inline-images t
    org-redisplay-inline-images t
    org-startup-with-inline-images "inlineimages"
@@ -2873,7 +3002,10 @@ It is also interesting to have pretty symbols for our LaTeX files.
    org-hide-emphasis-markers t
    org-babel-clojure-nrepl-timeout nil
    org-export-allow-bind-keywords t
-   org-confirm-babel-evaluate       t)
+   org-confirm-babel-evaluate       t
+   org-tags-exclude-from-inheritance (quote ("crypt"))
+   org-crypt-key "A6A63F72F3FA0BE546769D9013C0FCE929207C95"
+   auto-save-default nil)
 
   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
   (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
@@ -2885,8 +3017,8 @@ It is also interesting to have pretty symbols for our LaTeX files.
 
   (use-package ob-restclient)
   (use-package ob-hy)
-  (use-package ob-ipython)
   (use-package ob-prolog)
+  (use-package ob-ipython)
   (use-package ob-async
     :init (setq ob-async-no-async-languages-alist '("ipython")))
   (use-package ox-reveal)
@@ -2894,11 +3026,16 @@ It is also interesting to have pretty symbols for our LaTeX files.
   (org-defkey org-mode-map "\C-x\C-e" 'cider-eval-last-sexp)
   (org-defkey org-mode-map "\C-c\C-d" 'cider-doc))
 
+(use-package toc-org
+  :after org
+  :hook (org-mode . toc-org-enable))
+
     ;; (use-package org-gcal
          ;; :init (load-library "~/.gcal.el.gpg")
          ;; :config (setq org-gcal-file-alist '(("maximoiann@gmail.com" .  "~/sync/orgfiles/personal_cal.org")
                              ;; ("ian@crowd.br.com" . "~/sync/orgfiles/work_cal.org"))))
 ;; organize journal confs after
+;;(use-package org-web-tools :ensure t)
 #+END_SRC
 ** Agenda
 #+BEGIN_SRC emacs-lisp
@@ -2912,14 +3049,6 @@ It is also interesting to have pretty symbols for our LaTeX files.
         calendar-longitude -46.63611
         calendar-location-name "Sao_Paulo, Brazil")
   (setq calendar-holiday-marker t))
-
-(setq org-agenda-include-diary t
-      calendar-week-start-day 0
-      calendar-day-name-array ["Domingo" "Segunda" "Terça" "Quarta"
-                               "Quinta" "Sexta" "Sábado"]
-      calendar-month-name-array ["Janeiro" "Fevereiro" "Março" "Abril"
-                                 "Maio" "Junho" "Julho" "Agosto"
-                                 "Setembro" "Outubro" "Novembro" "Dezembro"])
 
 (add-to-list 'org-agenda-custom-commands
              '("Y" "Agenda anual de aniversários e feriados" agenda "Visão Anual"
@@ -3119,28 +3248,15 @@ Categories=System;
 MimeType=x-scheme-handler/org-protocol;
 #+END_EXAMPLE
 
-** COMMENT Org-ref
-
-Org-ref is the best tool for managing bibliography.
-Bibliography location is stored on a sensitive file.
-
+** Org-ref
 #+begin_src emacs-lisp
   (use-package org-ref
-    ;:config (progn
-              ;(load-sensible-file "org-ref.el")
-     ;         (require 'org-ref-pdf)
-      ;        (require 'org-ref-bibtex)
-       ;       (require 'org-ref-url-utils))
-  )
+    :config
+    (setq reftex-default-bibliography "~/sync/bibliography.bib"
+          org-ref-bibliography-notes "~/sync/bibliography/notes.org"
+          org-ref-default-bibliography '("~/sync/bibliography/references.bib")
+          org-ref-pdf-directory "~/sync/bibliography/bibtex-pdfs/"))
 #+end_src
-
-I also need a different citation type to conform with ABNT rules. This
-makes sure that ABNTeX2's =\citeonline{}= works.
-
-#+begin_src emacs-lisp
-;;(org-ref-define-citation-link "citeonline" ?o)
-#+end_src
-
 ** Org Reveal.js
 #+BEGIN_SRC emacs-lisp
 (setq org-reveal-mathjax t
@@ -3187,18 +3303,13 @@ etc. See the documentation [[https://github.com/weirdNox/org-noter][here]].
 #+end_src
 
 ** Org-roam
-
-The variable =org-roam-directory= is determined in =sensitive/org-roam.el=.
-
 #+begin_src emacs-lisp
-(defconst personal-keybindings '())
-
 (use-package org-roam
       :ensure t
       :hook
       (after-init . org-roam-mode)
       :custom
-      (org-roam-directory "~/org-files/")
+      (org-roam-directory "~/sync/orgfiles/")
       :bind (:map org-roam-mode-map
               (("C-c n l" . org-roam)
                ("C-c n f" . org-roam-find-file)
@@ -3208,10 +3319,6 @@ The variable =org-roam-directory= is determined in =sensitive/org-roam.el=.
               (("C-c n I" . org-roam-insert-immediate))))
 #+end_src
 ** Deft
-
-Since I'm using Deft exclusively for =org-roam= stuff, I'll put it here.
-It'll provide a nice interface for browsing and filtering notes.
-
 #+begin_src emacs-lisp
 (use-package deft
   :after org-roam
@@ -3223,15 +3330,15 @@ It'll provide a nice interface for browsing and filtering notes.
 #+end_src
 ** Org-journal
 
-Org-journal is useful for keeping up notes on a journal.
-My journal files are kept in a sensible file =sensitive/journal.el=.
-
 #+begin_src emacs-lisp
 ;;(load-sensible-file "journal.el")
 
 (defvar org-journal-loaded nil)
 
 (use-package org-journal
+  :after org
+  :bind (("C-c T" . org-journal-new-entry)
+         ("C-c Y" . journal-file-yesterday))
   :init
   (defun org-journal-load-files ()
     (interactive)
@@ -3239,22 +3346,14 @@ My journal files are kept in a sensible file =sensitive/journal.el=.
       (setq org-agenda-file-regexp "\\`[^.].*\\.org'\\|[0-9]$")
       (add-to-list 'org-agenda-files org-journal-dir)
       (setq org-journal-loaded t)))
-  :config (setq org-journal-loaded nil
-                org-agenda-include-diary t))
+  :config
+  (setq org-journal-date-format "%e %b %Y (%A)"
+        org-journal-dir "~/sync/orgfiles"
+        org-journal-enable-encryption t
+        org-journal-file-format "%Y%m%d"
+        org-journal-time-format ""))
 
 #+end_src
-
-** COMMENT Org Crypt
-#+BEGIN_SRC emacs-lisp
-(require 'org-crypt)
-(org-crypt-use-before-save-magic)
-(setq org-tags-exclude-from-inheritance (quote ("crypt")))
-;; GPG key to use for encryption
-;; Either the Key ID or set to nil to use symmetric encryption.
-(setq org-crypt-key "9CD4DA20")
-
-;;(use-package org-web-tools :ensure t)
-#+END_SRC
 * Org-Jira
 #+BEGIN_SRC emacs-lisp
 (use-package org-jira
@@ -3483,125 +3582,6 @@ narrowed."
   (keyfreq-mode 1)
   (keyfreq-autosave-mode 1))
 #+END_SRC
-* Version Control Systems
-** Ediff
-Sane config for =ediff= which is basically removing noisy
-highlights, avoiding crazy multi-frames setup, ignoring some
-whitespaces and windows should be side-by-side.
-
-#+BEGIN_SRC emacs-lisp
-(use-package ediff
-  :init
-  (setq ediff-highlight-all-diffs nil)
-  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-  (setq ediff-diff-options "-w")
-  (setq ediff-split-window-function 'split-window-horizontally))
-#+END_SRC
-** Magit
-#+BEGIN_SRC emacs-lisp
-(use-package magit
-  :ensure t
-  :defer t
-  :bind ("C-x g" . magit-status)
-  :init
-  (setq magit-diff-options (quote ("--word-diff"))
-        magit-diff-refine-hunk 'all
-        ;;magit-completing-read-function 'magit-ido-completing-read
-        ;; highlight individual word and letter changes when hunk diff displays
-        magit-diff-refine-hunk t
-        ;; don't tell me when magit reverts buffers
-        magit-revert-buffers 'silent
-        ;; always show the verbose diff in commit windows
-        magit-commit-arguments '("--verbose")
-
-        ;; timeout when magit takes a while to call out to git
-        magit-process-popup-time 10)
-  :config
-  (add-to-list 'magit-no-confirm 'stage-all-changes)
-  ;;(add-hook 'magit-mode-hook 'turn-on-magit-gitflow)
-)
-
-;(use-package magit-gitflow)
-
-(use-package git-gutter
-  :ensure t
-  :init
-  (global-git-gutter-mode +1))
-
-(use-package browse-at-remote :ensure t)
-(use-package gitconfig-mode :ensure t)
-(use-package gitignore-templates :ensure t)
-#+END_SRC
-*** Gitconfig
-[[https://github.com/magit/git-modes][gitconfig]] is a major mode for editing =gitconfig= files.
-#+BEGIN_SRC emacs-lisp
-(use-package gitconfig-mode
-  :config
-  (require 'gitconfig-mode))
-#+END_SRC
-*** Gitignore
-[[https://github.com/magit/git-modes][git-modes]] has a major mode for editing =gitignore= files.
-#+BEGIN_SRC emacs-lisp
-(use-package gitignore-mode
-  :config
-  (require 'gitignore-mode))
-#+END_SRC
-
-** Time machine
-#+begin_src emacs-lisp
-(use-package git-timemachine :ensure t)
- #+end_src
-** Visual identification
-Show differences between local and remote repo.
- #+BEGIN_SRC emacs-lisp
- (use-package diff-hl
-   :init
-   (setq diff-hl-side 'left)
-   :config
-   (add-hook 'dired-mode-hook 'diff-hl-dired-mode)
-   (diff-hl-flydiff-mode)
-   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
-   (global-diff-hl-mode)
-
-   (custom-set-faces
-    '(diff-hl-change ((t (:background "#3a81c3"))))
-    '(diff-hl-insert ((t (:background "#7ccd7c"))))
-    '(diff-hl-delete ((t (:background "#ee6363"))))))
-#+END_SRC
-** Undo Tree
-#+BEGIN_SRC emacs-lisp
-(use-package undo-tree
-  :ensure t
-  :bind (("C-x u" . undo-tree-visualize)
-         ("C-_" . undo)
-         ("M-_" . undo-tree-redo))
-  :config ;; autosave the undo-tree history
-  (progn
-   (setq undo-tree-history-directory-alist `((".*" . ,temporary-file-directory))
-         undo-tree-auto-save-history t)
-   (global-undo-tree-mode 1)))
-#+END_SRC
-** Projectile
-#+BEGIN_SRC emacs-lisp
-(use-package projectile
-      :ensure t
-      :bind ("C-c p" . projectile-command-map)
-      :config
-      (projectile-global-mode)
-      (setq projectile-completion-system 'ivy)
-      (progn (projectile-mode +1)
-                 (define-key projectile-mode-map
-                   (kbd "C-c p") 'projectile-command-map)
-                 (add-to-list
-                  'projectile-globally-ignored-directories
-                  "node_modules")))
-#+END_SRC
-This is for Projectile usage with Ivy/Counsel.
-
-#+begin_src emacs-lisp
-(use-package counsel-projectile
-  :config (counsel-projectile-mode))
-#+end_src
 * Searchers
 ** Wgrep
 #+BEGIN_SRC emacs-lisp
