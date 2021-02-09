@@ -1789,11 +1789,15 @@ Then we override =dabbrev-expand='s keybinding to use
 (use-package lsp-mode
   :ensure t
   :hook ((clojure-mode . lsp)
+         (clojurec-mode . lsp)
+         (clojurescript-mode . lsp)
+         (docker-mode . lsp)
          (haskell-mode . lsp)
          (elixir-mode . lsp)
          (python-mode . lsp)
          (go-mode . lsp)
          (c++-mode . lsp)
+         (c-mode . lsp)
          (terraform-mode . lsp))
   ;; :custom ((lsp-clojure-server-command '("java" "-jar" "/home/ianffcs/clj-kondo-lsp-server-2020.07.29-standalone.jar")))
   :config
