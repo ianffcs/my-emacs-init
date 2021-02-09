@@ -1887,6 +1887,26 @@ This built in mode provides code folding. I use transient to create little inter
 (use-package vterm
     :ensure t)
 #+END_SRC
+*** C
+#+BEGIN_SRC emacs-lisp
+(require 'cc-mode)
+
+(defun my-c-mode-hook ()
+  (local-set-key (kbd "C-c c") 'compile)
+  ;(setq c-basic-offset   4
+  ;      c-default-style  "k&r"
+  ;        indent-tabs-mode nil)
+  (c-set-offset 'substatement-open 0))
+
+(add-hook 'c++-mode-hook #'my-c-mode-hook)
+(add-hook 'c-mode-hook   #'my-c-mode-hook)
+
+(use-package company)
+(use-package company-irony
+  :requires 'company
+  :config
+  (add-to-list 'company-backends 'company-irony))
+#+END_SRC
 *** Clisp
 #+BEGIN_src emacs-lisp
 (use-package slime-company
