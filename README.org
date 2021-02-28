@@ -641,14 +641,14 @@ Floaty stuff is floaty. But floaty stuff can only be floaty when EXWM
 is not being used.
 
 #+begin_src emacs-lisp
-(use-package ivy-posframe
-  :config (progn
-            (setq ivy-posframe-display-functions-alist
-                  '((t . ivy-posframe-display-at-frame-center))
-                  ivy-posframe-parameters
-                  '((left-fringe   . 8)
-                    (right-fringe  . 8)))
-            (ivy-posframe-mode 1)))
+;; (use-package ivy-posframe
+;;   :config (progn
+;;             (setq ivy-posframe-display-functions-alist
+;;                   '((t . ivy-posframe-display-at-frame-center))
+;;                   ivy-posframe-parameters
+;;                   '((left-fringe   . 8)
+;;                     (right-fringe  . 8)))
+;;             (ivy-posframe-mode 1)))
 #+end_src
 
 ** COMMENT Ivy-Bibtex
@@ -1621,9 +1621,6 @@ Enable hide definitions functions
 (use-package highlight-sexp)
 (use-package highlight-numbers
   :config (add-hook 'prog-mode-hook 'highlight-numbers-mode))
-
-
-(use-package flycheck)
 (require 'semantic)
 
 ;; (global-semanticdb-minor-mode        1)
@@ -1654,6 +1651,8 @@ column 80.
                           (append flycheck-disabled-checkers
                                   '(javascript-jshint
                                     json-jsonlist)))))
+(use-package flycheck-clj-kondo
+ :after flycheck)
 #+END_SRC
 *** Semantic confs
 #+BEGIN_SRC emacs-lisp
@@ -1669,6 +1668,10 @@ column 80.
 Company is a text completion framework for Emacs. The name stands for
 "complete anything". It uses pluggable back-ends and front-ends to retrieve and display completion candidates.
 #+BEGIN_SRC emacs-lisp
+(use-package company-tabnine
+  :ensure t
+  :after company)
+
 (use-package company
   :delight company-mode
   :init
@@ -1687,37 +1690,6 @@ Company is a text completion framework for Emacs. The name stands for
   (setq company-idle-delay 0
         company-minimum-prefix-length 3)
   (global-company-mode))
-
-;; (use-package company-irony
-;;   :ensure t
-;;   :config
-;;   (add-to-list 'company-backends 'company-irony))
-
-;; (use-package irony
-;;   :ensure t
-;;   :config
-;;   (add-hook 'c++-mode-hook 'irony-mode)
-;;   (add-hook 'c-mode-hook 'irony-mode)
-;;   (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
-
-;; (use-package irony-eldoc
-;;   :ensure t
-;;   :config
-;;   (add-hook 'irony-mode-hook #'irony-eldoc))
-
-  ;; (defun my/python-mode-hook ()
-  ;;   (add-to-list 'company-backends 'company-jedi))
-
-  ;; (add-hook 'python-mode-hook 'my/python-mode-hook)
-  ;; (use-package company-jedi
-  ;;   :ensure t
-  ;;   :config
-  ;;   (add-hook 'python-mode-hook 'jedi:setup))
-
-  ;; (defun my/python-mode-hook ()
-  ;;   (add-to-list 'company-backends 'company-jedi))
-
-  ;; (add-hook 'python-mode-hook 'my/python-mode-hook)
 #+END_SRC
 Also, we numbered all the candidates and the following code will
 enable us to choose the candidate based on its number. This solution
@@ -1905,11 +1877,22 @@ This built in mode provides code folding. I use transient to create little inter
 (add-hook 'c++-mode-hook #'my-c-mode-hook)
 (add-hook 'c-mode-hook   #'my-c-mode-hook)
 
-(use-package company)
 (use-package company-irony
-  :requires 'company
+  :ensure t
   :config
   (add-to-list 'company-backends 'company-irony))
+
+(use-package irony
+  :ensure t
+  :config
+  (add-hook 'c++-mode-hook 'irony-mode)
+  (add-hook 'c-mode-hook 'irony-mode)
+  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+
+(use-package irony-eldoc
+  :ensure t
+  :config
+  (add-hook 'irony-mode-hook #'irony-eldoc))
 #+END_SRC
 *** Clisp
 #+BEGIN_src emacs-lisp
@@ -2007,7 +1990,7 @@ This built in mode provides code folding. I use transient to create little inter
     (ielm-send-input)))
 #+END_SRC
 *** Clojure
- #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ;;(require 'auto-complete-config)
 
 (use-package ac-cider)
@@ -2047,6 +2030,8 @@ This built in mode provides code folding. I use transient to create little inter
           cider-repl-wrap-history t
           cider-repl-pop-to-buffer-on-connect nil
           cider-repl-prompt-function 'cider-repl-prompt-custom
+          cider-jdk-src-paths '("~/projects/java/clojure-1.10.2-sources"
+                                "~/projects/java/openjdk-11/src")
           ;;cider-repl-result-prefix ";; =>"
           cider-repl-require-ns-on-set t
           cider-repl-display-in-current-window t
@@ -2060,6 +2045,7 @@ This built in mode provides code folding. I use transient to create little inter
           cider-eldoc-display-context-dependent-info t
           cider-save-file-on-load t
           cider-jump-to-pop-to-buffer-actions '((display-buffer-same-window))
+          lsp-enable-completion-at-point nil
           ;; emidje-load-facts-on-eval t
           )
     (when window-system
@@ -2322,6 +2308,12 @@ Language Server automatically.
                           (require 'lsp-python-ms)
                           (lsp))))  ; or lsp-deferred
 
+(use-package company-jedi
+  :ensure t
+  :config
+  (add-to-list 'company-backends 'company-jedi)
+  (add-hook 'python-mode-hook 'jedi:setup))
+
 (use-package elpy
   :hook ((python-mode . elpy-mode)
          (python-mode . elpy-enable))
@@ -2353,8 +2345,10 @@ Language Server automatically.
   (setq pipenv-projectile-after-switch-function
         #'pipenv-projectile-after-switch-extended))
 
-;;(use-package ein)
-
+(use-package ein)
+#+END_SRC
+*** Hy
+#+BEGIN_SRC
 (use-package hy-mode)
 #+END_SRC
 *** Rust
