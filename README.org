@@ -1,4 +1,4 @@
-#+TITLE: Ian Emacs config
+ +TITLE: Ian Emacs config
 #+BABEL: :cache yes
 #+PROPERTY: header-args :tangle yes
 #+STARTUP: overview inlineimages
@@ -183,13 +183,16 @@ thus overriding the thing you copied earlier. We can have a kill ring solution:
 ** Exec-path from shell
 #+BEGIN_SRC emacs-lisp
 (use-package exec-path-from-shell
- :config
- (when (eq system-type 'gnu/linux)
-  (exec-path-from-shell-initialize)))
+  :config
+  (exec-path-from-shell-initialize))
 #+END_SRC
 ** Exec-path updates
 #+BEGIN_SRC emacs-lisp
 (setenv "PATH" (concat "/usr/local/bin" path-separator (getenv "PATH")))
+
+(when (eq system-type 'darwin)
+  (setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
+  (setq exec-path (append exec-path '("/usr/local/bin"))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; (setenv "NODE_VERSION"									 ;;
 ;;         (concat "/home/ianffcs/.nvm/versions/node/"						 ;;
@@ -201,8 +204,8 @@ thus overriding the thing you copied earlier. We can have a kill ring solution:
 ;;       (nconc exec-path (getenv "NODE_VERSION"))) ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(setq exec-path
-      (append exec-path '("/home/ianffcs/.nvm/versions/node/v12.11.1/bin")))
+;;(setq exec-path
+;;      (append exec-path '("/home/ianffcs/.nvm/versions/node/v12.11.1/bin")))
 #+END_SRC
 
 * Visual Interface
@@ -218,7 +221,7 @@ thus overriding the thing you copied earlier. We can have a kill ring solution:
 (set-language-environment "UTF-8")
 (set-default-coding-systems 'utf-8)
 #+END_SRC
-** Fonts
+** COMMENT Fonts
 #+BEGIN_SRC emacs-lisp
 (use-package fira-code-mode
  :custom (fira-code-mode-disabled-ligatures '("[]" "#{" "#(" "#_" "#_(" "x")) ;; List of ligatures to turn off
@@ -296,7 +299,7 @@ Find out what face something at point have.
 (use-package django-theme
   :defer t)
 
-(load-theme 'doom-laserwave t)
+(load-theme 'doom-gruvbox-light t)
 #+END_SRC
 
 ** Cleaning
@@ -332,7 +335,6 @@ Let's remove some crunchy messages at startup time.
       column-number-mode            1
       show-paren-mode               1
       show-paren-delay              0
-      blink-cursor-mode             nil
       transient-mark-mode           1
       scroll-bar-mode               -1
       browser-url-browse-function   'browse-url-firefox
@@ -363,7 +365,8 @@ Let's remove some crunchy messages at startup time.
                         (setq fci-rule-color "darkblue")))
             (add-hook 'org-mode-hook 'turn-on-auto-fill)))
 
-(set-cursor-color "#ffffff")
+(blink-cursor-mode 0)
+(set-cursor-color "OrangeRed")
 #+END_SRC
 
 [[https://github.com/Malabarba/beacon][Beacon, never lose your cursor]]
@@ -830,7 +833,6 @@ Clean all the registers you saved.
            ("Browser" (or
                        (name . "qutebrowser:\*")
                        (name . "Firefox:\*")))
-           ("Slack" (name . "*Slack"))
            ("Org" (mode . org-mode))
            ("Markdown" (or
                         (mode . markdown-mode)
@@ -1618,7 +1620,6 @@ Enable hide definitions functions
 
 *** Lisp General Mode
 #+BEGIN_SRC emacs-lisp
-(use-package highlight-sexp)
 (use-package highlight-numbers
   :config (add-hook 'prog-mode-hook 'highlight-numbers-mode))
 (require 'semantic)
@@ -1665,8 +1666,6 @@ column 80.
 (semantic-mode 1)
 #+END_SRC
 *** Company confs
-Company is a text completion framework for Emacs. The name stands for
-"complete anything". It uses pluggable back-ends and front-ends to retrieve and display completion candidates.
 #+BEGIN_SRC emacs-lisp
 (use-package company-tabnine
   :ensure t
@@ -1691,10 +1690,6 @@ Company is a text completion framework for Emacs. The name stands for
         company-minimum-prefix-length 3)
   (global-company-mode))
 #+END_SRC
-Also, we numbered all the candidates and the following code will
-enable us to choose the candidate based on its number. This solution
-was stolen from [[https://oremacs.com/2017/12/27/company-numbers/][link]] with some customization and simplification to
-provide only what I saw useful.
 #+begin_src emacs-lisp
 (defun ora-company-number ()
   "Choose the candidate based on his number at candidate list."
@@ -1779,7 +1774,7 @@ Then we override =dabbrev-expand='s keybinding to use
                    clojurescript-mode
                    clojurex-mode))
           (add-to-list 'lsp-language-id-configuration `(,m . "clojure")))
-        (setq lsp-clojure-server-command '("bash" "-c" "clojure-lsp") ;; Optional: In case `clojure-lsp` is not in your PATH
+        (setq lsp-clojure-server-command '("/opt/homebrew/bin/clojure-lsp") ;; Optional: In case `clojure-lsp` is not in your PATH
               lsp-enable-indentation nil)
          (defvar lsp-elixir--config-options (make-hash-table))
          (setq lsp-haskell-process-path-hie "ghcide")
@@ -1812,7 +1807,7 @@ Then we override =dabbrev-expand='s keybinding to use
             (dap-tooltip-mode 1)
             (tooltip-mode 1)))
 #+END_SRC
-*** Hideshow
+*** COMMENT Hideshow
 This built in mode provides code folding. I use transient to create little interactive menu for easy interaction.
 #+BEGIN_SRC emacs-lisp
 (use-package hideshow
@@ -1837,7 +1832,7 @@ This built in mode provides code folding. I use transient to create little inter
       (transient-setup 'aorst/hideshow-menu nil nil))))
 #+END_SRC
 ** By Lang Configuration
-*** Agda
+*** COMMENT Agda
 #+BEGIN_SRC emacs-lisp
 (load-file (let ((coding-system-for-read 'utf-8))
                 (shell-command-to-string "agda-mode locate")))
@@ -1899,6 +1894,14 @@ This built in mode provides code folding. I use transient to create little inter
 (use-package slime-company
   :after slime-mode)
 
+;; (load (expand-file-name "~/.roswell/helper.el"))
+;; (add-hook 'slime-mode-hook #'smartparens-strict-mode)
+;; (add-hook 'slime-repl-mode-hook #'smartparens-strict-mode)
+;; (add-hook 'slime-mode-hook #'rainbow-delimiters-mode)
+;; (add-hook 'slime-repl-mode-hook #'rainbow-delimiters-mode)
+;; (add-hook 'slime-mode-hook #'highlight-parentheses-mode)
+;; (add-hook 'slime-repl-mode-hook #'highlight-parentheses-mode)
+
 (use-package slime
   :hook ((slime-mode . lisp-mode)
          (slime-mode . smartparens-strict-mode)
@@ -1918,8 +1921,13 @@ This built in mode provides code folding. I use transient to create little inter
          ("C-c C-c" . slime-eval-last-expression-in-repl))
   :mode
   ("\\.lisp$" . slime-mode)
-  :init
-  (setq inferior-lisp-program "/usr/bin/sbcl"
+  :config
+  (progn (lambda ()
+           (use-package slime-repl-ansi-color)
+           (load (expand-file-name "~/quicklisp/slime-helper.el"))
+           (whitespace-mode -1)))
+  (setq slime-contribs '(slime-repl slime-autodoc slime-banner slime-repl-ansi-color)
+        inferior-lisp-program "ros run"
         slime-net-coding-system 'utf-8-unix
         slime-lisp-implementations '((ccl ("ccl"))
                                      (clisp ("clisp" "-q"))
@@ -1931,11 +1939,9 @@ This built in mode provides code folding. I use transient to create little inter
         slime-fuzzy-completion-in-place t
         slime-enable-evaluate-in-emacs t
         slime-autodoc-use-multiline-p t
-        common-lisp-hyperspec-root "/home/ianffcs/HyperSpec/"
+        common-lisp-hyperspec-root "/opt/homebrew/share/doc/hyperspec/HyperSpec/"
         common-lisp-hyperspec-symbol-table (concat common-lisp-hyperspec-root "Data/Map_Sym.txt")
-        common-lisp-hyperspec-issuex-table (concat common-lisp-hyperspec-root "Data/Map_IssX.txt"))
-  :config (progn
-            (lambda () (whitespace-mode -1))))
+        common-lisp-hyperspec-issuex-table (concat common-lisp-hyperspec-root "Data/Map_IssX.txt")))
 
 (defun slime-description-fontify ()
   (with-current-buffer "*slime-description*"
@@ -1966,7 +1972,7 @@ This built in mode provides code folding. I use transient to create little inter
 (add-hook 'scheme-mode-hook           #'smartparens-strict-mode)
 (add-hook 'scheme-mode-hook           #'rainbow-delimiters-mode)
 (add-hook 'scheme-mode-hook #'highlight-parentheses-mode)
-(add-hook 'emacs-lisp-mode-hook  #'highlight-sexp-mode)
+;;(add-hook 'emacs-lisp-mode-hook  #'highlight-sexp-mode)
 ;; eldoc-mode shows documentation in the minibuffer when writing code
 ;; http://www.emacswiki.org/emacs/ElDoc
 (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
@@ -2113,7 +2119,7 @@ This built in mode provides code folding. I use transient to create little inter
          (clojure-mode . company-mode)
          (clojure-mode . eldoc-mode)
          (clojure-mode . rainbow-delimiters-mode)
-         (clojure-mode . highlight-sexp-mode)
+         ;;(clojure-mode . highlight-sexp-mode)
          (clojure-mode . highlight-parentheses-mode)
          ;; (clojure-mode . prettify-some-chars)
          )
@@ -2298,8 +2304,13 @@ Language Server automatically.
 #+BEGIN_SRC emacs-lisp
 (use-package python
   :mode ("\\.py" . python-mode)
-  :config (setq python-shell-interpreter "python3"
+  :hook ((python-mode . jedi:setup))
+  :config (setq python-shell-interpreter "ipython"
+                python-shell-interpreter-args "-i"
                 py-python-command "python3"))
+
+(use-package jedi
+  :config (setq jedi:complete-on-dot t))
 
 (use-package lsp-python-ms
   :ensure t
@@ -2311,8 +2322,7 @@ Language Server automatically.
 (use-package company-jedi
   :ensure t
   :config
-  (add-to-list 'company-backends 'company-jedi)
-  (add-hook 'python-mode-hook 'jedi:setup))
+  (add-to-list 'company-backends 'company-jedi))
 
 (use-package elpy
   :hook ((python-mode . elpy-mode)
@@ -2510,13 +2520,17 @@ Language Server automatically.
 
 *** Markdown
 #+BEGIN_SRC emacs-lisp
-(use-package markdown-mode)
+(use-package markdown-mode
+  :hook ((markdown-mode . visual-line-mode)))
 
 (use-package markdown-mode+)
 
 (use-package markdownfmt
   :config
   (add-hook 'markdown-mode-hook #'markdownfmt-enable-on-save))
+
+(custom-set-variables
+ '(markdown-command "/usr/local/bin/pandoc"))
 
 (use-package markdown-preview-mode)
 #+END_SRC
@@ -2642,8 +2656,8 @@ It is also interesting to have pretty symbols for our LaTeX files.
             plantuml-default-exec-mode 'jar
             plantuml-output-type "svg"))))
 
-(use-package flycheck-plantuml
-  :config (flycheck-plantuml-setup))
+;;(use-package flycheck-plantuml
+;;  :config (flycheck-plantuml-setup))
 
 #+END_SRC
 *** Go
@@ -2782,68 +2796,19 @@ It is also interesting to have pretty symbols for our LaTeX files.
 #+END_SRC
 * Alerts
 ** Alert
-
-  Alert is a growl-workalike for Emacs which uses a common
-  notification interface and multiple, selectable styles, whose use is
-  fully customized by the user.
-
   #+BEGIN_SRC emacs-lisp
     (use-package alert
       :config
       (setq alert-default-style 'libnotify
             alert-log-messages t))
-
-    (require 'alert)
   #+END_SRC
-
 ** User configuration
-
-   Several packages uses Alert for sending notifications, so you have
-   full control over them by customizing =alert-user-configuration=.
-
-*** Slack notifications
-    This was stolen from [[https://endlessparentheses.com/keep-your-slack-distractions-under-control-with-emacs.html][endless parentheses]] and adapt accordingly.
-
-    Channels that I wish to only log the messages in the *Alert*
-    buffer.
-    #+BEGIN_SRC emacs-lisp
-      (eval-after-load 'alert
-        '(add-to-list 'alert-user-configuration
-                      '(((:title . "\\(beginners\\|datomic\\|clojure\\|clojurescript\\|off-topic\\|datascript\\|core-async\\)")
-                         (:category . "slack"))
-                        log nil)))
-    #+END_SRC
-
-    However, there are a couple of important channels I would like to
-    be notified about anything, so add a rule for them.
-    #+BEGIN_SRC emacs-lisp
-      (eval-after-load 'alert
-        '(add-to-list 'alert-user-configuration
-                      '(((:title . "\\(reitit\\|sql\\)")
-                         (:category . "slack"))
-                        libnotify nil)))
-    #+END_SRC
-
-    There are a few channel where I only need to pay attention if
-    explicitly mentioned.
-    #+BEGIN_SRC emacs-lisp
-      (add-to-list
-       'alert-user-configuration
-       '(((:message . "@bartuka\\|Wanderson")
-          (:title . "\\(beginners\\)")
-          (:category . "slack"))
-         libnotify nil))
-    #+END_SRC
-
 *** Telegram notifications
-    Let's start by telling alert *not* to notify anything.
     #+BEGIN_SRC emacs-lisp
       (add-to-list 'alert-user-configuration
                    '(((:category . "telega"))
                      log nil))
     #+END_SRC
-
-    However, if someone explicitly mention me, tell me pls.
     #+BEGIN_SRC emacs-lisp
       (add-to-list
              'alert-user-configuration
@@ -2875,7 +2840,7 @@ whitespaces and windows should be side-by-side.
   (setq magit-diff-options (quote ("--word-diff"))
         magit-diff-refine-hunk 'all
         ;;magit-completing-read-function 'magit-ido-completing-read
-        ;; highlight individual word and letter changes when hunk diff displays
+        ;;highlight individual word and letter changes when hunk diff displays
         magit-diff-refine-hunk t
         ;; don't tell me when magit reverts buffers
         magit-revert-buffers 'silent
@@ -2886,7 +2851,7 @@ whitespaces and windows should be side-by-side.
         magit-process-popup-time 10)
   :config
   (add-to-list 'magit-no-confirm 'stage-all-changes)
-  ;;(add-hook 'magit-mode-hook 'turn-on-magit-gitflow)
+  ;;(≈add-hook 'magit-mode-hook 'turn-on-magit-gitflow)
 )
 
 ;(use-package magit-gitflow)
@@ -3048,10 +3013,18 @@ This is for Projectile usage with Ivy/Counsel.
   :after org
   :hook (org-mode . toc-org-enable))
 
-    ;; (use-package org-gcal
-         ;; :init (load-library "~/.gcal.el.gpg")
-         ;; :config (setq org-gcal-file-alist '(("maximoiann@gmail.com" .  "~/sync/orgfiles/personal_cal.org")
-                             ;; ("ian@crowd.br.com" . "~/sync/orgfiles/work_cal.org"))))
+(defun my/org-clock-query-out ()
+  "Ask the user before clocking out.
+This is a useful function for adding to `kill-emacs-query-functions'."
+  (if (and
+       (featurep 'org-clock)
+       (funcall 'org-clocking-p)
+       (y-or-n-p "You are currently clocking time, clock out? "))
+      (org-clock-out)
+    t)) ;; only fails on keyboard quit or error
+
+;; timeclock.el puts this on the wrong hook!
+(add-hook 'kill-emacs-query-functions 'my/org-clock-query-out)
 ;; organize journal confs after
 ;;(use-package org-web-tools :ensure t)
 #+END_SRC
@@ -3327,7 +3300,7 @@ etc. See the documentation [[https://github.com/weirdNox/org-noter][here]].
       :hook
       (after-init . org-roam-mode)
       :custom
-      (org-roam-directory "~/sync/orgfiles/")
+      (org-roam-directory "~/org-roam/")
       :bind (:map org-roam-mode-map
               (("C-c n l" . org-roam)
                ("C-c n f" . org-roam-find-file)
@@ -3372,7 +3345,7 @@ etc. See the documentation [[https://github.com/weirdNox/org-noter][here]].
         org-journal-time-format ""))
 
 #+end_src
-* Org-Jira
+* COMMENT Org-Jira
 #+BEGIN_SRC emacs-lisp
 (use-package org-jira
   :config
@@ -3612,7 +3585,7 @@ narrowed."
 (use-package rg
   :ensure t
   :config
-  (rg-define-search bk/search-git-root-or-dir
+  (rg-define-search search-git-root-or-dir
     :query ask
     :format regexp
     :files "everything"
