@@ -1977,14 +1977,14 @@ This built in mode provides code folding. I use transient to create little inter
 
 (use-package cider
   :hook ((cider-repl-mode . subword-mode)
-         ;;(cider-repl-mode . company-mode)
+         (cider-repl-mode . company-mode)
          (cider-repl-mode . smartparens-strict-mode)
          (cider-repl-mode . rainbow-delimiters-mode)
          (cider-repl-mode . set-auto-complete-as-completion-at-point-function)
          (cider-repl-mode . eldoc-mode)
          ;;(cider-repl-mode . prettify-some-chars)
          (cider-mode . subword-mode)
-         ;;(cider-mode . company-mode)
+         (cider-mode . company-mode)
          (cider-mode . eldoc-mode)
          (cider-mode . smartparens-strict-mode)
          (cider-mode . rainbow-delimiters-mode)
