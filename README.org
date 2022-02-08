@@ -1,8 +1,8 @@
- +TITLE: Ian Emacs config
+#+TITLE: Ian Emacs config
 #+BABEL: :cache yes
 #+PROPERTY: header-args :tangle yes
 #+STARTUP: overview inlineimages
-* Meta
+* COMMENT Meta
 It used to be like this, but for now I'm using init.el to startup my config file
 #+begin_src emacs-lisp
 (defun tangle-init ()
@@ -28,7 +28,6 @@ It used to be like this, but for now I'm using init.el to startup my config file
 (global-set-key (kbd "<menu>")
           (lambda () (interactive) (find-file "~/.emacs.d/README.org")))
 
-(defalias 'cquit 'cider-quit)
 (defalias 'yes-or-no-p 'y-or-n-p)
 (fset 'yes-or-no-p 'y-or-n-p)
 #+END_SRC
@@ -49,67 +48,50 @@ It used to be like this, but for now I'm using init.el to startup my config file
 (setq load-prefer-newer t)
 #+END_SRC
 * Performance adjustments
-
-Adjust GC cons threshold, which is low by default.
-Garbage collection shouldn't happen during startup, as what will
-slow Emacs down. Do it later.
-Ease the font caching during GC.
-Enforce a sneaky GC strategy to minimize GC interference with the
-activity. During normal use a high GC threshold is set, when
-idling GC is immediately triggered and a low threshold is set.
 #+begin_src emacs-lisp
-  (setq gc-cons-threshold 100000000)
+(setq gc-cons-threshold 100000000)
 
-  ;; (use-package gcmh
-  ;;   :ensure t
-  ;;   :delight gcmh-mode
-  ;;   :init
-  ;;   (setq gcmh-verbose t)
-  ;;   :config
-  ;;   (gcmh-mode 1))
+(use-package gcmh
+   :ensure t
+   :delight gcmh-mode
+   :init
+   (setq gcmh-verbose t)
+   :config
+   (gcmh-mode 1))
 
-  (setq inhibit-compacting-font-caches t)
-#+end_src
-
-Increase amount of data which Emacs reads from the process.
-
-(Changed to a defvar instead of =setq= because Emacs complained. Is this
-deprecated?)
-
-#+begin_src emacs-lisp
 (defvar read-process-output-max (* 1024 2048)) ; 1 megabyte
-#+end_src
 
+(setq inhibit-compacting-font-caches t)
+#+end_src
 * Repos
 #+BEGIN_SRC emacs-lisp
-  ;;;; Packaging
-  (setq package-enable-at-startup nil)
-  (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
-               ("marmalade" . "https://marmalade-repo.org/packages/")
-               ;;("melpa-stable" . "https://stable.melpa.org/packages/")
-               ("tromey" . "http://tromey.com/elpa/")
-               ("melpa" . "https://melpa.org/packages/")
-               ("org" . "https://orgmode.org/elpa/")))
- (package-initialize)
+;;;; Packaging
+(setq package-enable-at-startup nil)
+(setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
+                           ("marmalade" . "https://marmalade-repo.org/packages/")
+                           ;;("melpa-stable" . "https://stable.melpa.org/packages/")
+                           ("tromey" . "http://tromey.com/elpa/")
+                           ("melpa" . "https://melpa.org/packages/")
+                           ("org" . "https://orgmode.org/elpa/")))
+(package-initialize)
 
   ;;;; use-package
-  (unless (package-installed-p 'use-package)
-    (package-refresh-contents)
-    (package-install 'use-package))
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
 
-  (eval-when-compile (require 'use-package))
+(eval-when-compile (require 'use-package))
 
-  (setq use-package-always-ensure t)
+(setq use-package-always-ensure t)
 
 
 ;;straight
 (defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+(let ((bootstrap-file (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
       (bootstrap-version 5))
   (unless (file-exists-p bootstrap-file)
     (with-current-buffer
-        (url-retrieve-synchronously
+      (url-retrieve-synchronously
          "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
          'silent 'inhibit-cookies)
       (goto-char (point-max))
@@ -119,6 +101,7 @@ deprecated?)
 (straight-use-package 'use-package)
 (defvar straight-use-package-by-default)
 (setq straight-use-package-by-default t)
+
 ;; auto-package-update
 (use-package auto-package-update
   :config
@@ -141,29 +124,30 @@ deprecated?)
   :init
   (dired-async-mode 1)
   (async-bytecomp-package-mode 1)
-  :custom (async-bytecomp-allowed-packages '(all)))
+  :custom
+  (async-bytecomp-allowed-packages '(all)))
 #+END_SRC
 * Mac custom keyboard
 #+BEGIN_SRC emacs-lisp
-  (defun paste-from-osx ()
-    (shell-command-to-string "pbpaste"))
+(defun paste-from-osx ()
+  (shell-command-to-string "pbpaste"))
 
-  (defun copy-to-osx (text &optional push)
-    (let ((process-connection-type nil))
-      (let ((proc (start-process "pbcopy" "*Messages*" "pbcopy")))
-    (process-send-string proc text)
-    (process-send-eof proc))))
+(defun copy-to-osx (text &optional push)
+  (let ((process-connection-type nil))
+    (let ((proc (start-process "pbcopy" "*Messages*" "pbcopy")))
+      (process-send-string proc text)
+      (process-send-eof proc))))
 
   ;; Check the system
-  (when (eq system-type 'darwin)
-    (setq ;interprogram-cut-function 'copy-to-osx
-            ;interprogram-paste-function 'paste-from-osx
-            mac-emulate-three-button-mouse nil
-            mac-option-modifier 'command
-            mac-command-modifier 'meta
-            mac-right-command-modifier 'meta
-            mac-right-option-modifier 'control
-            ;mac-option-key-is-control t
+(when (eq system-type 'darwin)
+  (setq ;; interprogram-cut-function 'copy-to-osx
+        ;; interprogram-paste-function 'paste-from-osx
+        mac-emulate-three-button-mouse nil
+        mac-option-modifier 'command
+        mac-command-modifier 'meta
+        mac-right-command-modifier 'meta
+        mac-right-option-modifier 'control
+        ;;mac-option-key-is-control t
   ))
 #+END_SRC
 * Clipboard
@@ -179,15 +163,12 @@ thus overriding the thing you copied earlier. We can have a kill ring solution:
 #+BEGIN_SRC emacs-lisp
 (setq save-interprogram-paste-before-kill t)
 #+END_SRC
-* Linux specific settings
-** Exec-path from shell
+* Exec-path from shell
 #+BEGIN_SRC emacs-lisp
 (use-package exec-path-from-shell
   :config
   (exec-path-from-shell-initialize))
-#+END_SRC
-** Exec-path updates
-#+BEGIN_SRC emacs-lisp
+
 (setenv "PATH" (concat "/usr/local/bin" path-separator (getenv "PATH")))
 
 (when (eq system-type 'darwin)
@@ -207,7 +188,6 @@ thus overriding the thing you copied earlier. We can have a kill ring solution:
 ;;(setq exec-path
 ;;      (append exec-path '("/home/ianffcs/.nvm/versions/node/v12.11.1/bin")))
 #+END_SRC
-
 * Visual Interface
 ** UTF-8
 #+BEGIN_SRC emacs-lisp
@@ -221,7 +201,7 @@ thus overriding the thing you copied earlier. We can have a kill ring solution:
 (set-language-environment "UTF-8")
 (set-default-coding-systems 'utf-8)
 #+END_SRC
-** COMMENT Fonts
+** Fonts
 #+BEGIN_SRC emacs-lisp
 (use-package fira-code-mode
  :custom (fira-code-mode-disabled-ligatures '("[]" "#{" "#(" "#_" "#_(" "x")) ;; List of ligatures to turn off
@@ -299,11 +279,11 @@ Find out what face something at point have.
 (use-package django-theme
   :defer t)
 
-(load-theme 'doom-gruvbox-light t)
+(load-theme 'doom-acario-light t)
 #+END_SRC
 
 ** Cleaning
-Since I never use the mouse with GNU Emacs, I prefer not to use
+
 invasive graphical elements.
 #+BEGIN_SRC emacs-lisp
 (add-hook 'window-setup-hook 'toggle-frame-maximized t)
@@ -326,11 +306,10 @@ the message area. Show help there instead of OS tooltip.
 Let's remove some crunchy messages at startup time.
 
 #+BEGIN_SRC emacs-lisp
-(setq inhibit-startup-screen        t
-      inhibit-splash-screen t
+(setq inhibit-startup-screen t
+      inhibit-splash-screen  t
       inhibit-startup-echo-area-message t)
 
-;; where put this?
 (setq line-number-mode              1
       column-number-mode            1
       show-paren-mode               1
@@ -344,10 +323,8 @@ Let's remove some crunchy messages at startup time.
       indent-tabs-mode              nil
       truncate-partial-width-windows 1
       fill-column                   80
-      truncate-lines                1
-      save-interprogram-paste-before-kill t)
+      truncate-lines                1)
 #+END_SRC
-
 ** Which-key mode
 [[https://github.com/justbur/emacs-which-key][Describing keystrokes]]
 #+BEGIN_SRC emacs-lisp
@@ -357,16 +334,9 @@ Let's remove some crunchy messages at startup time.
 #+END_SRC
 ** Emacs Cursor
 #+BEGIN_SRC emacs-lisp
-(use-package fill-column-indicator
-  :config (progn
-            (add-hook 'org-mode-hook
-                      (lambda ()
-                        (setq fci-rule-width 1)
-                        (setq fci-rule-color "darkblue")))
-            (add-hook 'org-mode-hook 'turn-on-auto-fill)))
-
+(global-display-fill-column-indicator-mode)
 (blink-cursor-mode 0)
-(set-cursor-color "OrangeRed")
+
 #+END_SRC
 
 [[https://github.com/Malabarba/beacon][Beacon, never lose your cursor]]
@@ -374,12 +344,14 @@ Let's remove some crunchy messages at startup time.
 (use-package beacon
     :ensure t
     :config
+    (setq beacon-push-mark 35
+          beacon-color "#666600")
     (beacon-mode 1))
 #+END_SRC
 
 Change the highlight color for selection text.
 #+BEGIN_SRC emacs-lisp
-      (set-face-attribute 'region nil :background "#666")
+(set-face-attribute 'region nil :background "#666")
 #+END_SRC
 
 Make cursor the width of the character it is under.
@@ -416,7 +388,9 @@ Smooth mouse scrolling
 (set-frame-alpha 90)
 #+END_SRC
 ** Minor modes
-This package implements a menu that lists all enabled minor modes. Emacs mode line can become pretty long, so this can be handy, and perhaps I don’t need to use :diminish everywhere anymore.
+This package implements a menu that lists all enabled minor modes.
+Emacs mode line can become pretty long, so this can be handy,
+and perhaps I don’t need to use :diminish everywhere anymore.
 #+BEGIN_SRC emacs-lisp
 (use-package minions
   :commands minions-mode
@@ -458,7 +432,6 @@ Preview line numbers when prompting for line number.
 (use-package mode-icons
   :config (mode-icons-mode))
 
-;; happy cat
 (use-package nyan-mode
   :ensure t
   :init
@@ -468,7 +441,6 @@ Preview line numbers when prompting for line number.
     (list '(:eval (list (nyan-create)))))
   (nyan-mode t))
 
-;; party yey!
 (use-package parrot
   :config
   (global-set-key (kbd "C-c p") 'parrot-rotate-prev-word-at-point)
@@ -477,7 +449,6 @@ Preview line numbers when prompting for line number.
   (parrot-mode)
   (add-hook 'before-save-hook 'parrot-start-animation))
 
-;; emojis! =)
 (use-package emojify)
 
 ;; HIGHLIGHT WHEN ;; TODO
@@ -485,8 +456,8 @@ Preview line numbers when prompting for line number.
   :config
   (global-hl-todo-mode 1))
 
-; Show current key-sequence in minibuffer, like vim does. Any feedback
-;  after typing is better UX than no feedback at all
+;; Show current key-sequence in minibuffer, like vim does. Any feedback
+;; after typing is better UX than no feedback at all
 (setq echo-keystrokes 0.2)
 
 #+END_SRC
@@ -729,24 +700,23 @@ This queries YouTube stuff from Emacs and plays it on the browser.
 #+END_SRC
 ** Recentf
 
-   This is a built-in mode that keeps track of the files you have
-   opened allowing you go back to them faster. It can also integrate
-   with a completion framework to populate a =virtual buffers= list.
+This is a built-in mode that keeps track of the files you have
+opened allowing you go back to them faster. It can also integrate
+with a completion framework to populate a =virtual buffers= list.
 
-   #+BEGIN_SRC emacs-lisp
-     (use-package recentf
-       :ensure nil
-       :init
-       (setq recentf-max-saved-items 50
-             recentf-max-menu-items 15
-             recentf-show-file-shortcuts-flag nil
-             recentf-auto-cleanup 'never)
-       :config
-       (add-to-list 'recentf-exclude "\\.gpg\\")
-       (recentf-mode t))
+#+BEGIN_SRC emacs-lisp
+(use-package recentf
+  :ensure nil
+  :init
+  (setq recentf-max-saved-items 50
+        recentf-max-menu-items 15
+        recentf-show-file-shortcuts-flag nil
+        recentf-auto-cleanup 'never)
+  :config
+  (add-to-list 'recentf-exclude "\\.gpg\\")
+  (recentf-mode t))
    #+END_SRC
 ** Registers
-
 Emacs registers are compartments where you can save text, rectangles,
 positions, and other things for later use. Once you save text or a
 rectangle in a register, you can copy it into the buffer once or many
@@ -757,8 +727,6 @@ For more information: `C-h r' and then letter *i* to search for
 registers and the amazing video from [[https://youtu.be/u1YoF4ycLTY][Protesilaos]].
 
 The prefix to all commands of registers is *C-x r*
-
-
 | command             | description                         |
 |---------------------+-------------------------------------|
 | M-x view-register R | see what register R contains        |
@@ -781,7 +749,7 @@ The way to specify a number, is to use an universal argument e.g.
 
 Clean all the registers you saved.
 #+BEGIN_SRC emacs-lisp
-  (defun bk/clear-registers ()
+  (defun clear-registers ()
     "Remove all saved registers."
     (interactive)
     (setq register-alist nil))
@@ -789,29 +757,27 @@ Clean all the registers you saved.
 
 
 #+begin_src emacs-lisp
-  (set-register ?e '(file . "~/.emacs.d/README.org"))
-  (set-register ?t '(file . "~/org/todo.org"))
-  (set-register ?c '(file . "~/.emacs.d/docs/cheatsheet.org"))
+(set-register ?e '(file . "~/.emacs.d/README.org"))
+(set-register ?t '(file . "~/org/todo.org"))
+(set-register ?c '(file . "~/.emacs.d/docs/cheatsheet.org"))
 
 #+end_src
 ** Imenu
+The objectives of this package is to provide a way to choose buffer
+indexes in a specific mode. What is a buffer index? Basically we
+have a function that will find "interesting" positions in your
+buffer that you might want to jump there, something like function
+definitions, headlines in outline mode, class definitions, etc.
 
-   The objectives of this package is to provide a way to choose buffer
-   indexes in a specific mode. What is a buffer index? Basically we
-   have a function that will find "interesting" positions in your
-   buffer that you might want to jump there, something like function
-   definitions, headlines in outline mode, class definitions, etc.
-
-   #+BEGIN_SRC emacs-lisp
-     (use-package imenu-anywhere
-       :ensure t
-       :bind
-       ("C-." . imenu-anywhere))
-   #+END_SRC
+#+BEGIN_SRC emacs-lisp
+(use-package imenu-anywhere
+  :ensure t
+  :bind
+  ("C-." . imenu-anywhere))
+#+END_SRC
 ** IBuffer
-
-   | ibuffer-expert    | Stop asking for confirmation after every action in Ibuffer |
-   | ibuffer-auto-mode | Keeps the buffer list up to date
+| ibuffer-expert    | Stop asking for confirmation after every action in Ibuffer |
+| ibuffer-auto-mode | Keeps the buffer list up to date
 
 #+BEGIN_SRC emacs-lisp
 (use-package ibuffer
@@ -1142,6 +1108,7 @@ several cursors that all do the same thing as you type.
   (setq ispell-program-name "aspell" ; use aspell instead of ispell
         ispell-extra-args '("--sug-mode=ultra")))
 #+END_SRC
+
 * Dired
 ** Dired sidebar config
 #+BEGIN_SRC emacs-lisp
@@ -1189,7 +1156,7 @@ Some custom functions for Dired.
 #+begin_src emacs-lisp
 (require 'dired-x)
 
-(defun bk/dired-xdg-open ()
+(defun dired-xdg-open ()
   "Open the file at point with xdg-open."
   (interactive)
   (let ((file (dired-get-filename nil t)))
@@ -1198,11 +1165,11 @@ Some custom functions for Dired.
     (message "Opening %s done" file)))
 
 (eval-after-load 'dired
-  '(define-key dired-mode-map (kbd "O") 'bk/dired-xdg-open))
+  '(define-key dired-mode-map (kbd "O") 'dired-xdg-open))
  #+end_src
 
 #+BEGIN_SRC emacs-lisp
-(defun bk/dired-directories-first ()
+(defun dired-directories-first ()
   "Sort dired listings with directories first."
   (save-excursion
     (let (buffer-read-only)
@@ -1210,7 +1177,7 @@ Some custom functions for Dired.
       (sort-regexp-fields t "^.*$" "[ ]*." (point) (point-max)))
     (set-buffer-modified-p nil)))
 
-(advice-add 'dired-readin :after #'bk/dired-directories-first)
+(advice-add 'dired-readin :after #'dired-directories-first)
 #+END_SRC
 
 M-up is nicer in dired if it moves to the third line - straight to
@@ -1246,7 +1213,7 @@ dired.
 #+END_SRC
 
 * Eshell
- #+begin_src emacs-lisp
+#+begin_src emacs-lisp
       (use-package eshell-bookmark
         :ensure t
         :config
@@ -1774,18 +1741,19 @@ Then we override =dabbrev-expand='s keybinding to use
                    clojurescript-mode
                    clojurex-mode))
           (add-to-list 'lsp-language-id-configuration `(,m . "clojure")))
-        (setq lsp-clojure-server-command '("/opt/homebrew/bin/clojure-lsp") ;; Optional: In case `clojure-lsp` is not in your PATH
-              lsp-enable-indentation nil)
-         (defvar lsp-elixir--config-options (make-hash-table))
-         (setq lsp-haskell-process-path-hie "ghcide")
-         (setq lsp-haskell-process-args-hie '())
-         (setq lsp-lens-enable t)
-         (add-hook
-          'lsp-after-initialize-hook
-          (lambda ()
-            (lsp--set-configuration `(:elixirLS, lsp-elixir--config-options))))
+     (setq lsp-clojure-server-command (cond ((eq system-type 'darwin) '("/opt/homebrew/bin/clojure-lsp"))
+                                            ((eq system-type 'gnu/linux) '("/usr/bin/clojure-lsp")))
+           lsp-enable-indentation nil)
+     (defvar lsp-elixir--config-options (make-hash-table))
+     (setq lsp-haskell-process-path-hie "ghcide")
+     (setq lsp-haskell-process-args-hie '())
+     (setq lsp-lens-enable t)
+     (add-hook
+       'lsp-after-initialize-hook
+       (lambda ()
+         (lsp--set-configuration `(:elixirLS, lsp-elixir--config-options))))
          (add-to-list 'exec-path "/home/ianffcs/elixir-ls/release/"))
-  :commands lsp)
+   :commands lsp)
 
 (use-package lsp-ui
   :commands lsp-ui-mode)
@@ -2003,16 +1971,18 @@ This built in mode provides code folding. I use transient to create little inter
 
 (use-package clojure-mode-extra-font-locking)
 
+(defalias 'cquit 'cider-quit)
+
 (use-package cider
   :hook ((cider-repl-mode . subword-mode)
-         (cider-repl-mode . company-mode)
+         ;;(cider-repl-mode . company-mode)
          (cider-repl-mode . smartparens-strict-mode)
          (cider-repl-mode . rainbow-delimiters-mode)
          (cider-repl-mode . set-auto-complete-as-completion-at-point-function)
          (cider-repl-mode . eldoc-mode)
          ;;(cider-repl-mode . prettify-some-chars)
          (cider-mode . subword-mode)
-         (cider-mode . company-mode)
+         ;;(cider-mode . company-mode)
          (cider-mode . eldoc-mode)
          (cider-mode . smartparens-strict-mode)
          (cider-mode . rainbow-delimiters-mode)
@@ -2051,7 +2021,8 @@ This built in mode provides code folding. I use transient to create little inter
           cider-eldoc-display-context-dependent-info t
           cider-save-file-on-load t
           cider-jump-to-pop-to-buffer-actions '((display-buffer-same-window))
-          lsp-enable-completion-at-point nil
+          cider-eldoc-display-for-symbol-at-point nil
+          ;; lsp-enable-completion-at-point nil
           ;; emidje-load-facts-on-eval t
           )
     (when window-system
@@ -2832,6 +2803,7 @@ whitespaces and windows should be side-by-side.
 #+END_SRC
 ** Magit
 #+BEGIN_SRC emacs-lisp
+(setq project-switch-commands t)
 (use-package magit
   :ensure t
   :defer t
@@ -2862,79 +2834,9 @@ whitespaces and windows should be side-by-side.
   (global-git-gutter-mode +1))
 
 (use-package browse-at-remote :ensure t)
-(use-package gitconfig-mode :ensure t)
+;;(use-package gitconfig-mode :ensure t)
 (use-package gitignore-templates :ensure t)
 #+END_SRC
-*** Gitconfig
-[[https://github.com/magit/git-modes][gitconfig]] is a major mode for editing =gitconfig= files.
-#+BEGIN_SRC emacs-lisp
-(use-package gitconfig-mode
-  :config
-  (require 'gitconfig-mode))
-#+END_SRC
-*** Gitignore
-[[https://github.com/magit/git-modes][git-modes]] has a major mode for editing =gitignore= files.
-#+BEGIN_SRC emacs-lisp
-(use-package gitignore-mode
-  :config
-  (require 'gitignore-mode))
-#+END_SRC
-
-** Time machine
-#+begin_src emacs-lisp
-(use-package git-timemachine :ensure t)
- #+end_src
-** Visual identification
-Show differences between local and remote repo.
- #+BEGIN_SRC emacs-lisp
- (use-package diff-hl
-   :init
-   (setq diff-hl-side 'left)
-   :config
-   (add-hook 'dired-mode-hook 'diff-hl-dired-mode)
-   (diff-hl-flydiff-mode)
-   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
-   (global-diff-hl-mode)
-
-   (custom-set-faces
-    '(diff-hl-change ((t (:background "#3a81c3"))))
-    '(diff-hl-insert ((t (:background "#7ccd7c"))))
-    '(diff-hl-delete ((t (:background "#ee6363"))))))
-#+END_SRC
-** Undo Tree
-#+BEGIN_SRC emacs-lisp
-(use-package undo-tree
-  :ensure t
-  :bind (("C-x u" . undo-tree-visualize)
-         ("C-_" . undo)
-         ("M-_" . undo-tree-redo))
-  :config ;; autosave the undo-tree history
-  (progn
-   (setq undo-tree-history-directory-alist `((".*" . ,temporary-file-directory))
-         undo-tree-auto-save-history t)
-   (global-undo-tree-mode 1)))
-#+END_SRC
-** Projectile
-#+BEGIN_SRC emacs-lisp
-(use-package projectile
-      :ensure t
-      :bind ("C-c p" . projectile-command-map)
-      :config
-      (projectile-global-mode)
-      (setq projectile-completion-system 'ivy)
-      (progn (projectile-mode +1)
-                 (define-key projectile-mode-map
-                   (kbd "C-c p") 'projectile-command-map)
-                 (add-to-list
-                  'projectile-globally-ignored-directories
-                  "node_modules")))
-#+END_SRC
-This is for Projectile usage with Ivy/Counsel.
-
-#+begin_src emacs-lisp
-(use-package counsel-projectile
-  :config (counsel-projectile-mode))
-#+end_src
 * Org
 ** Org General confs
 #+BEGIN_SRC emacs-lisp
