@@ -49,19 +49,19 @@ It used to be like this, but for now I'm using init.el to startup my config file
 #+END_SRC
 * Performance adjustments
 #+begin_src emacs-lisp
-(setq gc-cons-threshold 100000000)
 
-(use-package gcmh
-   :ensure t
-   :delight gcmh-mode
-   :init
-   (setq gcmh-verbose t)
-   :config
-   (gcmh-mode 1))
+  ;; (use-package gcmh
+  ;;    :ensure t
+  ;;    :delight gcmh-mode
+  ;;    :init
+  ;;    (setq gcmh-verbose t)
+  ;;    :config
+  ;;    (setq gc-cons-threshold #x40000000)
+  ;;    (gcmh-mode 1))
 
-(defvar read-process-output-max (* 1024 2048)) ; 1 megabyte
+  (defvar read-process-output-max (* 1024 2048)) ; 1 megabyte
 
-(setq inhibit-compacting-font-caches t)
+  (setq inhibit-compacting-font-caches t)
 #+end_src
 * Repos
 #+BEGIN_SRC emacs-lisp
@@ -1737,8 +1737,8 @@ Then we override =dabbrev-expand='s keybinding to use
          (terraform-mode . lsp))
   ;; :custom ((lsp-clojure-server-command '("java" "-jar" "/home/ianffcs/clj-kondo-lsp-server-2020.07.29-standalone.jar")))
   :config
-   (progn
-     (dolist (m  '(clojure-mode
+  (progn
+    (dolist (m  '(clojure-mode
                    clojurec-mode
                    clojurescript-mode
                    clojurex-mode))
@@ -1756,6 +1756,20 @@ Then we override =dabbrev-expand='s keybinding to use
          (lsp--set-configuration `(:elixirLS, lsp-elixir--config-options))))
          (add-to-list 'exec-path "/home/ianffcs/elixir-ls/release/"))
    :commands lsp)
+
+;; (use-package lsp-jedi
+;;   :ensure t
+;;   :config
+;;   (with-eval-after-load "lsp-mode"
+;;     (add-to-list 'lsp-disabled-clients 'pyls)
+;;    (add-to-list 'lsp-enabled-clients 'jedi)))
+
+;; (use-package lsp-python-ms
+;;   :ensure t
+;;   :init (setq lsp-python-ms-auto-install-server t)
+;;   :hook (python-mode . (lambda ()
+;;                           (require 'lsp-python-ms)
+;;                           (lsp))))
 
 (use-package lsp-ui
   :commands lsp-ui-mode)
@@ -1964,6 +1978,7 @@ This built in mode provides code folding. I use transient to create little inter
   (let ((inhibit-read-only t))
     (erase-buffer)
     (ielm-send-input)))
+(use-package eval-sexp-fu)
 #+END_SRC
 *** Clojure
 #+BEGIN_SRC emacs-lisp
@@ -2033,6 +2048,9 @@ This built in mode provides code folding. I use transient to create little inter
   ;; (eval-after-load 'cider #'emidje-enable-nrepl-middleware)
   )
 
+(use-package cider-eval-sexp-fu)
+(use-package nrepl-eval-sexp-fu)
+
    ;; (defun prettify-some-chars ()
    ;;   (dolist (x '((true        т)
    ;;                (false       ғ)
@@ -2084,7 +2102,7 @@ This built in mode provides code folding. I use transient to create little inter
 ;;                     nil)))))))
 
 (use-package clojure-mode
-  :hook ((clojure-mode . aggressive-indent-mode)
+  :hook ( ;;(clojure-mode . aggressive-indent-mode)
          (clojure-mode . smartparens-strict-mode)
          (clojure-mode . subword-mode)
          (clojure-mode . cider-mode)
@@ -2284,13 +2302,6 @@ Language Server automatically.
 
 (use-package jedi
   :config (setq jedi:complete-on-dot t))
-
-(use-package lsp-python-ms
-  :ensure t
-  :init (setq lsp-python-ms-auto-install-server t)
-  :hook (python-mode . (lambda ()
-                          (require 'lsp-python-ms)
-                          (lsp))))  ; or lsp-deferred
 
 (use-package company-jedi
   :ensure t
