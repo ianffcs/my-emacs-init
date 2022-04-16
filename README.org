@@ -1790,6 +1790,8 @@ Then we override =dabbrev-expand='s keybinding to use
             (dap-ui-mode t)
             (dap-tooltip-mode 1)
             (tooltip-mode 1)))
+
+
 #+END_SRC
 *** COMMENT Hideshow
 This built in mode provides code folding. I use transient to create little interactive menu for easy interaction.
@@ -3018,7 +3020,6 @@ Let's begin by setting up a few things for Babel.
                                ;;(julia  . t)
                                (C      . t)
                                (scheme . t)
-                               (shen   . t)
                                (prolog . t)
                                (python . t)
                                ;;(ein    . t)
@@ -3370,6 +3371,8 @@ etc. See the documentation [[https://github.com/weirdNox/org-noter][here]].
   :config (setq tramp-default-method "ssh"))
 
 (setq tramp-backup-directory-alist backup-directory-alist)
+
+
 #+END_SRC
 * Iedit and narrow/widen dwin
 #+BEGIN_SRC emacs-lisp
