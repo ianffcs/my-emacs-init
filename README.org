@@ -68,7 +68,7 @@ It used to be like this, but for now I'm using init.el to startup my config file
 ;;;; Packaging
 (setq package-enable-at-startup nil)
 (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
-                           ("marmalade" . "https://marmalade-repo.org/packages/")
+                           ;;("marmalade" . "https://marmalade-repo.org/packages/")
                            ;;("melpa-stable" . "https://stable.melpa.org/packages/")
                            ("tromey" . "http://tromey.com/elpa/")
                            ("melpa" . "https://melpa.org/packages/")
@@ -1727,6 +1727,7 @@ Then we override =dabbrev-expand='s keybinding to use
   :hook ((clojure-mode . lsp)
          (clojurec-mode . lsp)
          (clojurescript-mode . lsp)
+         (dart-mode . lsp)
          (docker-mode . lsp)
          (haskell-mode . lsp)
          (elixir-mode . lsp)
@@ -2041,6 +2042,7 @@ This built in mode provides code folding. I use transient to create little inter
           cider-save-file-on-load t
           cider-jump-to-pop-to-buffer-actions '((display-buffer-same-window))
           cider-eldoc-display-for-symbol-at-point nil
+          nrepl-use-ssh-fallback-for-remote-hosts t
           ;; lsp-enable-completion-at-point nil
           ;; emidje-load-facts-on-eval t
           )
@@ -2219,6 +2221,27 @@ This built in mode provides code folding. I use transient to create little inter
 (use-package clojure-snippets
   :ensure t
   :defer t)
+#+END_SRC
+*** Dart
+#+BEGIN_SRC emacs-lisp
+(use-package dart-mode
+  :config
+  (define-key dart-mode-map (kbd "C-c C-o") 'dart-format-buffer)
+  (with-eval-after-load "projectile"
+  (add-to-list 'projectile-project-root-files-bottom-up "pubspec.yaml")
+  (add-to-list 'projectile-project-root-files-bottom-up "BUILD"))
+  (setq lsp-auto-guess-root t))
+
+(use-package dart-server)
+
+(use-package lsp-dart
+  :ensure t
+  :hook (dart-mode . lsp)
+  :init
+  (dap-register-debug-template "Flutter :: Custom debug"
+                               (list :flutterPlatform "x86_64"
+                                     :program "lib/main_debug.dart"
+                                     :args '("--flavor" "customer_a"))))
 #+END_SRC
 *** Elixir
 #+BEGIN_SRC  emacs-lisp
