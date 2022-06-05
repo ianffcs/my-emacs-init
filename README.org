@@ -3259,8 +3259,7 @@ etc. See the documentation [[https://github.com/weirdNox/org-noter][here]].
   (deft-directory org-roam-directory))
 #+end_src
 ** Org-journal
-
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ;;(load-sensible-file "journal.el")
 
 (defvar org-journal-loaded nil)
@@ -3283,7 +3282,12 @@ etc. See the documentation [[https://github.com/weirdNox/org-noter][here]].
         org-journal-file-format "%Y%m%d"
         org-journal-time-format ""))
 
-#+end_src
+#+END_SRC
+** Org-trello
+#+BEGIN_SRC emacs-lisp
+(use-package org-trello
+  :after org)
+#+END_SRC
 * COMMENT Org-Jira
 #+BEGIN_SRC emacs-lisp
 (use-package org-jira
