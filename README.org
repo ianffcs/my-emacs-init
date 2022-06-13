@@ -65,47 +65,52 @@ It used to be like this, but for now I'm using init.el to startup my config file
 #+end_src
 * Repos
 #+BEGIN_SRC emacs-lisp
-;;;; Packaging
-(setq package-enable-at-startup nil)
-(setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
-                           ;;("marmalade" . "https://marmalade-repo.org/packages/")
-                           ;;("melpa-stable" . "https://stable.melpa.org/packages/")
-                           ("tromey" . "http://tromey.com/elpa/")
-                           ("melpa" . "https://melpa.org/packages/")
-                           ("org" . "https://orgmode.org/elpa/")))
-(package-initialize)
+    ;;;; Packaging
+  (setq package-enable-at-startup nil)
+  (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
+               ;;("marmalade" . "https://marmalade-repo.org/packages/")
+               ;;("melpa-stable" . "https://stable.melpa.org/packages/")
+               ("tromey" . "http://tromey.com/elpa/")
+               ("melpa" . "https://melpa.org/packages/")
+               ("org" . "https://orgmode.org/elpa/")))
+  (package-initialize)
 
   ;;;; use-package
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
+  (eval-and-compile
+    (setq use-package-always-ensure t))
 
-(eval-when-compile (require 'use-package))
+  (unless (package-installed-p 'use-package)
+     (package-refresh-contents)
+     (package-install 'use-package)
+   (eval-and-compile
+     (setq use-package-always-ensure t)))
 
-(setq use-package-always-ensure t)
+  (eval-when-compile (require 'use-package))
+
+  (setq use-package-always-ensure t)
 
 
-;;straight
-(defvar bootstrap-version)
-(let ((bootstrap-file (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
+  ;;straight
+  (defvar bootstrap-version)
+  (let ((bootstrap-file (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+    (bootstrap-version 5))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
       (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+       "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+       'silent 'inhibit-cookies)
+    (goto-char (point-max))
+    (eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
 
-(straight-use-package 'use-package)
-(defvar straight-use-package-by-default)
-(setq straight-use-package-by-default t)
+  (straight-use-package 'use-package)
+  (defvar straight-use-package-by-default)
+  (setq straight-use-package-by-default t)
 
-;; auto-package-update
-(use-package auto-package-update
-  :config
-  (auto-package-update-maybe))
+  ;; auto-package-update
+  (use-package auto-package-update
+    :config
+    (auto-package-update-maybe))
 #+END_SRC
 * Custom
 #+BEGIN_SRC emacs-lisp
@@ -308,24 +313,28 @@ the message area. Show help there instead of OS tooltip.
 Let's remove some crunchy messages at startup time.
 
 #+BEGIN_SRC emacs-lisp
-(setq inhibit-startup-screen t
-      inhibit-splash-screen  t
-      inhibit-startup-echo-area-message t)
+  (setq inhibit-startup-screen t
+    inhibit-splash-screen  t
+    inhibit-startup-echo-area-message t)
 
-(setq line-number-mode              1
-      column-number-mode            1
-      show-paren-mode               1
-      show-paren-delay              0
-      transient-mark-mode           1
-      scroll-bar-mode               -1
-      browser-url-browse-function   'browse-url-firefox
-      linum-format                  "%5d"
-      tab-width                     4
-      global-hl-line-mode           t
-      indent-tabs-mode              nil
-      truncate-partial-width-windows 1
-      fill-column                   80
-      truncate-lines                1)
+  (setq line-number-mode              1
+    column-number-mode            +1
+    show-paren-mode               1
+    show-paren-delay              0
+    transient-mark-mode           1
+    scroll-bar-mode               -1
+    browser-url-browse-function   'browse-url-firefox
+    linum-format                  "%5d"
+    tab-width                     4
+    global-hl-line-mode           t
+    indent-tabs-mode              nil
+    truncate-partial-width-windows 1
+    fill-column                   80
+    truncate-lines                1
+    confirm-kill-processes        nil
+    create-lockfiles              nil
+    make-backup-files             nil)
+
 #+END_SRC
 ** Which-key mode
 [[https://github.com/justbur/emacs-which-key][Describing keystrokes]]
@@ -662,7 +671,15 @@ This queries YouTube stuff from Emacs and plays it on the browser.
               fill-column 80)
 
 ;; revert buffers automatically when underlying files are changed externally
-(global-auto-revert-mode t)
+(use-package autorevert
+  :ensure nil
+  :config
+  (global-auto-revert-mode +1)
+  (setq auto-revert-interval 2
+        auto-revert-check-vc-info t
+        global-auto-revert-non-file-buffers t
+        auto-revert-verbose nil))
+
 
 ;; Newline at end of file
 (setq require-final-newline t)
@@ -1722,75 +1739,76 @@ Then we override =dabbrev-expand='s keybinding to use
 #+END_SRC
 *** LSP Mode
 #+BEGIN_SRC emacs-lisp
-(use-package lsp-mode
-  :ensure t
-  :hook ((clojure-mode . lsp)
-         (clojurec-mode . lsp)
-         (clojurescript-mode . lsp)
-         (dart-mode . lsp)
-         (docker-mode . lsp)
-         (haskell-mode . lsp)
-         (elixir-mode . lsp)
-         (python-mode . lsp)
-         (go-mode . lsp)
-         (c++-mode . lsp)
-         (c-mode . lsp)
-         (terraform-mode . lsp))
-  ;; :custom ((lsp-clojure-server-command '("java" "-jar" "/home/ianffcs/clj-kondo-lsp-server-2020.07.29-standalone.jar")))
-  :config
-  (progn
-    (dolist (m  '(clojure-mode
-                   clojurec-mode
-                   clojurescript-mode
-                   clojurex-mode))
-          (add-to-list 'lsp-language-id-configuration `(,m . "clojure")))
-     (setq lsp-clojure-server-command (cond ((eq system-type 'darwin) '("/opt/homebrew/bin/clojure-lsp"))
-                                            ((eq system-type 'gnu/linux) '("/usr/bin/clojure-lsp")))
-           lsp-enable-indentation nil)
-     (defvar lsp-elixir--config-options (make-hash-table))
-     (setq lsp-haskell-process-path-hie "ghcide")
-     (setq lsp-haskell-process-args-hie '())
-     (setq lsp-lens-enable t)
-     (add-hook
-       'lsp-after-initialize-hook
-       (lambda ()
-         (lsp--set-configuration `(:elixirLS, lsp-elixir--config-options))))
-         (add-to-list 'exec-path "/home/ianffcs/elixir-ls/release/"))
-   :commands lsp)
+  (use-package lsp-mode
+    :ensure t
+    :hook ((clojure-mode . lsp)
+           (clojurec-mode . lsp)
+           (clojurescript-mode . lsp)
+           (dart-mode . lsp)
+           (docker-mode . lsp)
+           (haskell-mode . lsp)
+           (elixir-mode . lsp)
+           (python-mode . lsp)
+           (go-mode . lsp)
+           (c++-mode . lsp)
+           (c-mode . lsp)
+           (terraform-mode . lsp))
+    ;; :custom ((lsp-clojure-server-command '("java" "-jar" "/home/ianffcs/clj-kondo-lsp-server-2020.07.29-standalone.jar")))
+    :config
+    (progn
+      (dolist (m  '(clojure-mode
+                     clojurec-mode
+                     clojurescript-mode
+                     clojurex-mode))
+            (add-to-list 'lsp-language-id-configuration `(,m . "clojure")))
+       (setq lsp-clojure-server-command (cond ((eq system-type 'darwin) '("/opt/homebrew/bin/clojure-lsp"))
+                                              ((eq system-type 'gnu/linux) '("/usr/bin/clojure-lsp")))
+             lsp-enable-indentation nil)
+       (defvar lsp-elixir--config-options (make-hash-table))
+       (setq lsp-haskell-process-path-hie "ghcide")
+       (setq lsp-haskell-process-args-hie '())
+       (setq lsp-lens-enable t)
+       (add-hook
+         'lsp-after-initialize-hook
+         (lambda ()
+           (lsp--set-configuration `(:elixirLS, lsp-elixir--config-options))))
+           (add-to-list 'exec-path "/home/ianffcs/elixir-ls/release/"))
+    :commands lsp)
 
-;; (use-package lsp-jedi
-;;   :ensure t
-;;   :config
-;;   (with-eval-after-load "lsp-mode"
-;;     (add-to-list 'lsp-disabled-clients 'pyls)
-;;    (add-to-list 'lsp-enabled-clients 'jedi)))
+  ;; (use-package lsp-jedi
+  ;;   :ensure t
+  ;;   :config
+  ;;   (with-eval-after-load "lsp-mode"
+  ;;     (add-to-list 'lsp-disabled-clients 'pyls)
+  ;;    (add-to-list 'lsp-enabled-clients 'jedi)))
 
-;; (use-package lsp-python-ms
-;;   :ensure t
-;;   :init (setq lsp-python-ms-auto-install-server t)
-;;   :hook (python-mode . (lambda ()
-;;                           (require 'lsp-python-ms)
-;;                           (lsp))))
+  ;; (use-package lsp-python-ms
+  ;;   :ensure t
+  ;;   :init (setq lsp-python-ms-auto-install-server t)
+  ;;   :hook (python-mode . (lambda ()
+  ;;                           (require 'lsp-python-ms)
+  ;;                           (lsp))))
 
-(use-package lsp-ui
-  :commands lsp-ui-mode)
+  (use-package lsp-ui
+    :commands lsp-ui-mode)
 
-(use-package company-lsp
-  :ensure t
-  :commands company-lsp)
+  (use-package company-lsp
+    :ensure t
+    :commands company-lsp)
 
-(use-package eglot
-  :config
-  (add-to-list 'eglot-server-programs '(haskell-mode . ("ghcide" "--lsp"))
-  (add-to-list 'eglot-server-programs `(elixir-mode "/home/ianffcs/elixir-ls/release/language_server.sh"))))
+  (use-package eglot
+    :config
+    (add-to-list 'eglot-server-programs '(haskell-mode . ("ghcide" "--lsp"))
+    (add-to-list 'eglot-server-programs `(elixir-mode "/home/ianffcs/elixir-ls/release/language_server.sh"))))
 
-(use-package dap-mode
-  :after lsp-mode
-  :config (progn
-            (dap-mode t)
-            (dap-ui-mode t)
-            (dap-tooltip-mode 1)
-            (tooltip-mode 1)))
+  (use-package dap-mode
+    :after lsp-mode
+    :config
+    (dap-mode 1)
+    (dap-ui-mode 1)
+    (dap-tooltip-mode 1)
+    (tooltip-mode 1)
+    (dap-ui-controls-mode 1))
 
 
 #+END_SRC
@@ -2224,24 +2242,26 @@ This built in mode provides code folding. I use transient to create little inter
 #+END_SRC
 *** Dart
 #+BEGIN_SRC emacs-lisp
-(use-package dart-mode
-  :config
-  (define-key dart-mode-map (kbd "C-c C-o") 'dart-format-buffer)
-  (with-eval-after-load "projectile"
-  (add-to-list 'projectile-project-root-files-bottom-up "pubspec.yaml")
-  (add-to-list 'projectile-project-root-files-bottom-up "BUILD"))
-  (setq lsp-auto-guess-root t))
+  (use-package dart-mode
+    :config
+    (define-key dart-mode-map (kbd "C-c C-o") 'dart-format-buffer)
+    (with-eval-after-load "projectile"
+    (add-to-list 'projectile-project-root-files-bottom-up "pubspec.yaml")
+    (add-to-list 'projectile-project-root-files-bottom-up "BUILD"))
+    (setq lsp-auto-guess-root t))
 
-(use-package dart-server)
+  (use-package dart-server)
 
-(use-package lsp-dart
-  :ensure t
-  :hook (dart-mode . lsp)
-  :init
-  (dap-register-debug-template "Flutter :: Custom debug"
-                               (list :flutterPlatform "x86_64"
-                                     :program "lib/main_debug.dart"
-                                     :args '("--flavor" "customer_a"))))
+  (use-package lsp-dart
+    :ensure t
+    :hook (dart-mode . lsp)
+    :init
+    ;; TODO fix here after
+    ;; (dap-register-debug-template "Flutter :: Custom debug"
+    ;;                              (list :flutterPlatform "x86_64"
+    ;;                                    :program "lib/main_debug.dart"
+    ;;                                    :args '("--flavor" "customer_a")))
+    )
 #+END_SRC
 *** Elixir
 #+BEGIN_SRC  emacs-lisp
