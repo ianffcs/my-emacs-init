@@ -1,4 +1,4 @@
-#+TITLE: Ian Emacs config
++TITLE: Ian Emacs config
 #+BABEL: :cache yes
 #+PROPERTY: header-args :tangle yes
 #+STARTUP: overview inlineimages
@@ -65,52 +65,53 @@ It used to be like this, but for now I'm using init.el to startup my config file
 #+end_src
 * Repos
 #+BEGIN_SRC emacs-lisp
-    ;;;; Packaging
-  (setq package-enable-at-startup nil)
-  (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
-               ;;("marmalade" . "https://marmalade-repo.org/packages/")
-               ;;("melpa-stable" . "https://stable.melpa.org/packages/")
-               ("tromey" . "http://tromey.com/elpa/")
-               ("melpa" . "https://melpa.org/packages/")
-               ("org" . "https://orgmode.org/elpa/")))
-  (package-initialize)
+      ;;;; Packaging
+    (setq package-enable-at-startup nil)
+    (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
+         ;;("marmalade" . "https://marmalade-repo.org/packages/")
+         ;;("melpa-stable" . "https://stable.melpa.org/packages/")
+                 ("jcs-elpa" . "https://jcs-emacs.github.io/jcs-elpa/packages/")
+         ("tromey" . "http://tromey.com/elpa/")
+         ("melpa" . "https://melpa.org/packages/")
+         ("org" . "https://orgmode.org/elpa/")))
+    (package-initialize)
 
-  ;;;; use-package
-  (eval-and-compile
-    (setq use-package-always-ensure t))
+    ;;;; use-package
+    (eval-and-compile
+      (setq use-package-always-ensure t))
 
-  (unless (package-installed-p 'use-package)
-     (package-refresh-contents)
-     (package-install 'use-package)
-   (eval-and-compile
-     (setq use-package-always-ensure t)))
+    (unless (package-installed-p 'use-package)
+       (package-refresh-contents)
+       (package-install 'use-package)
+     (eval-and-compile
+       (setq use-package-always-ensure t)))
 
-  (eval-when-compile (require 'use-package))
+    (eval-when-compile (require 'use-package))
 
-  (setq use-package-always-ensure t)
+    (setq use-package-always-ensure t)
 
 
-  ;;straight
-  (defvar bootstrap-version)
-  (let ((bootstrap-file (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-    (bootstrap-version 5))
-    (unless (file-exists-p bootstrap-file)
-      (with-current-buffer
-      (url-retrieve-synchronously
-       "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-       'silent 'inhibit-cookies)
-    (goto-char (point-max))
-    (eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage))
+    ;;straight
+    (defvar bootstrap-version)
+    (let ((bootstrap-file (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+      (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+    (url-retrieve-synchronously
+     "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+     'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+      (load bootstrap-file nil 'nomessage))
 
-  (straight-use-package 'use-package)
-  (defvar straight-use-package-by-default)
-  (setq straight-use-package-by-default t)
-
-  ;; auto-package-update
-  (use-package auto-package-update
-    :config
-    (auto-package-update-maybe))
+    (straight-use-package 'use-package)
+    (defvar straight-use-package-by-default)
+    (setq straight-use-package-by-default t)
+    (straight-use-package 'org)
+    ;; auto-package-update
+    (use-package auto-package-update
+      :config
+      (auto-package-update-maybe))
 #+END_SRC
 * Custom
 #+BEGIN_SRC emacs-lisp
@@ -177,7 +178,7 @@ thus overriding the thing you copied earlier. We can have a kill ring solution:
 (setenv "PATH" (concat "/usr/local/bin" path-separator (getenv "PATH")))
 
 (when (eq system-type 'darwin)
-  (setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
+  (setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin:/opt/homebrew/bin"))
   (setq exec-path (append exec-path '("/usr/local/bin"))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; (setenv "NODE_VERSION"									 ;;
@@ -206,7 +207,7 @@ thus overriding the thing you copied earlier. We can have a kill ring solution:
 (set-language-environment "UTF-8")
 (set-default-coding-systems 'utf-8)
 #+END_SRC
-** Fonts
+** COMMENT Fonts
 #+BEGIN_SRC emacs-lisp
 (use-package fira-code-mode
  :custom (fira-code-mode-disabled-ligatures '("[]" "#{" "#(" "#_" "#_(" "x")) ;; List of ligatures to turn off
@@ -893,7 +894,7 @@ definitions, headlines in outline mode, class definitions, etc.
 
 (global-set-key (kbd "C-M-s-k") 'close-all-buffers)
 #+END_SRC
-* COMMENT Authentication Source / Security
+* Authentication Source / Security
 Auth Source is a generic interface for common backends such as your
    operating sysetm's keychain and your local ~/.authinfo file. Auth
    Source solves the problem of mapping passwords and usernames to hosts.
@@ -926,7 +927,11 @@ Auth Source is a generic interface for common backends such as your
   (setq password-cache-expiry (* 15 60))
   (setq epa-file-cache-passphrase-for-symmetric-encryption t))
   #+END_SRC
-
+** gpg
+#+BEGIN_SRC emacs-lisp
+(setq auth-sources
+    '((:source "~/.authinfo.gpg")))
+#+END_SRC
 * Help
 Is good to know how to ask for help in Emacs
 #+BEGIN_SRC emacs-lisp
@@ -2371,7 +2376,7 @@ Language Server automatically.
   :hook ((pip-requirements-mode . #'pip-requirements-auto-complete-setup)))
 
 (use-package py-autopep8
-  :hook ((python-mode . py-autopep8-enable-on-save)))
+  :hook ((elpy-mode . py-autopep8-mode)))
 
 (use-package virtualenvwrapper
   :ensure t
@@ -2783,6 +2788,12 @@ It is also interesting to have pretty symbols for our LaTeX files.
 (use-package terraform-doc)
 (use-package company-terraform)
 #+END_SRC
+*** K8S
+#+BEGIN_SRC emacs-lisp
+(use-package kubel
+  :after (vterm)
+  :config (kubel-vterm-setup))
+#+END_SRC
 * COMMENT Desktop-mode restore Buffers
 #+BEGIN_SRC emacs-lisp
 (use-package desktop
@@ -2900,7 +2911,7 @@ whitespaces and windows should be side-by-side.
 ** Org General confs
 #+BEGIN_SRC emacs-lisp
 (use-package org
-  :ensure org-plus-contrib
+  :straight nil
   :init (org-crypt-use-before-save-magic)
   :hook ((org-mode . toggle-word-wrap)
          (org-mode . org-indent-mode)
@@ -3002,22 +3013,8 @@ This is a useful function for adding to `kill-emacs-query-functions'."
         calendar-location-name "Sao_Paulo, Brazil")
   (setq calendar-holiday-marker t))
 
-(add-to-list 'org-agenda-custom-commands
-             '("Y" "Agenda anual de aniversários e feriados" agenda "Visão Anual"
-               ((org-agenda-span 365)
-                (org-agenda-filter-by-category 'Aniversário)
-                (org-agenda-time-grid nil))))
-(add-to-list 'org-agenda-custom-commands
-             '("1" "Agenda mensal" agenda "Visão Mensal"
-               ((org-agenda-span 31)
-                (org-agenda-time-grid nil))))
-(add-to-list 'org-agenda-custom-commands
-             '("7" "Agenda dos próximos sete dias" agenda "Visão de Sete Dias"
-               ((org-agenda-span 7)
-                (org-agenda-time-grid nil))))
-
-(load (expand-file-name (concat user-emacs-directory "elisp/brazil-holidays.el")))
-(setq calendar-holidays holiday-brazil-all)
+;;(load (expand-file-name (concat user-emacs-directory "elisp/brazil-holidays.el")))
+;;(setq calendar-holidays holiday-brazil-all)
 
 (when (file-exists-p (concat user-emacs-directory "sensitive/agenda.el"))
   (load (expand-file-name (concat user-emacs-directory "sensitive/agenda.el"))))
@@ -3210,9 +3207,9 @@ MimeType=x-scheme-handler/org-protocol;
 #+end_src
 ** Org Reveal.js
 #+BEGIN_SRC emacs-lisp
-(setq org-reveal-mathjax t
-      org-reveal-root "https://cdn.jsdelivr.net/npm/reveal.js@4.0.2/js/reveal.min.js"
-      org-re-reveal-root "~/reveal")
+;; (setq org-reveal-mathjax t
+;;       org-reveal-root "https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/js/reveal.min.js"
+;;       org-re-reveal-root "~/reveal")
 
 (use-package org-re-reveal
   :config (setq org-ref-default-bibliography '("references.bib")
@@ -3232,11 +3229,20 @@ MimeType=x-scheme-handler/org-protocol;
 (use-package org-re-reveal-ref
   :after org-re-reveal)
 
+(let ((emacs-reveal-path "~/.emacs.d/elpa/emacs-reveal"))
+  (when (file-directory-p emacs-reveal-path)
+    (add-to-list 'load-path emacs-reveal-path)
+    (require 'emacs-reveal)))
+
 ;; (require 'oer-reveal-publish)
 ;; (oer-reveal-setup-submodules t)
 ;; (oer-reveal-generate-include-files t)
 ;; (oer-reveal-publish-setq-defaults)
 #+END_SRC
+
+#+RESULTS:
+: emacs-reveal
+
 ** Presentations
 
 I use Epresentation which makes Emacs fullscreen in org.
@@ -3304,10 +3310,106 @@ etc. See the documentation [[https://github.com/weirdNox/org-noter][here]].
         org-journal-time-format ""))
 
 #+END_SRC
-** Org-trello
+** Org-AI
 #+BEGIN_SRC emacs-lisp
-(use-package org-trello
-  :after org)
+;; whisper, everything below this point is only needed if you want speech input
+
+(defun rk/get-ffmpeg-device ()
+  "Gets the list of devices available to ffmpeg.
+The output of the ffmpeg command is pretty messy, e.g.
+  [AVFoundation indev @ 0x7f867f004580] AVFoundation video devices:
+  [AVFoundation indev @ 0x7f867f004580] [0] FaceTime HD Camera (Built-in)
+  [AVFoundation indev @ 0x7f867f004580] AVFoundation audio devices:
+  [AVFoundation indev @ 0x7f867f004580] [0] Cam Link 4K
+  [AVFoundation indev @ 0x7f867f004580] [1] MacBook Pro Microphone
+so we need to parse it to get the list of devices.
+The return value contains two lists, one for video devices and one for audio devices.
+Each list contains a list of cons cells, where the car is the device number and the cdr is the device name."
+  (unless (string-equal system-type "darwin")
+    (error "This function is currently only supported on macOS"))
+
+  (let ((lines (string-split (shell-command-to-string "ffmpeg -list_devices true -f avfoundation -i dummy || true") "\n")))
+    (cl-loop with at-video-devices = nil
+             with at-audio-devices = nil
+             with video-devices = nil
+             with audio-devices = nil
+             for line in lines
+             when (string-match "AVFoundation video devices:" line)
+             do (setq at-video-devices t
+                      at-audio-devices nil)
+             when (string-match "AVFoundation audio devices:" line)
+             do (setq at-audio-devices t
+                      at-video-devices nil)
+             when (and at-video-devices
+                       (string-match "\\[\\([0-9]+\\)\\] \\(.+\\)" line))
+             do (push (cons (string-to-number (match-string 1 line)) (match-string 2 line)) video-devices)
+             when (and at-audio-devices
+                       (string-match "\\[\\([0-9]+\\)\\] \\(.+\\)" line))
+             do (push (cons (string-to-number (match-string 1 line)) (match-string 2 line)) audio-devices)
+             finally return (list (nreverse video-devices) (nreverse audio-devices)))))
+
+(defun rk/find-device-matching (string type)
+  "Get the devices from `rk/get-ffmpeg-device' and look for a device
+matching `STRING'. `TYPE' can be :video or :audio."
+  (let* ((devices (rk/get-ffmpeg-device))
+         (device-list (if (eq type :video)
+                          (car devices)
+                        (cadr devices))))
+    (cl-loop for device in device-list
+             when (string-match-p string (cdr device))
+             return (car device))))
+
+(defcustom rk/default-audio-device nil
+  "The default audio device to use for whisper.el and outher audio processes."
+  :type 'string)
+
+(defun rk/select-default-audio-device (&optional device-name)
+  "Interactively select an audio device to use for whisper.el and other audio processes.
+If `DEVICE-NAME' is provided, it will be used instead of prompting the user."
+  (interactive)
+  (let* ((audio-devices (cadr (rk/get-ffmpeg-device)))
+         (indexes (mapcar #'car audio-devices))
+         (names (mapcar #'cdr audio-devices))
+         (name (or device-name (completing-read "Select audio device: " names nil t))))
+    (setq rk/default-audio-device (rk/find-device-matching name :audio))
+    (when (boundp 'whisper--ffmpeg-input-device)
+      (setq whisper--ffmpeg-input-device (format ":%s" rk/default-audio-device)))))
+
+;; example usage:
+;; (rk/find-device-matching "FaceTime" :video)
+;; (rk/find-device-matching "Macbook Pro Microphone" :audio)
+;; (rk/select-default-audio-device)
+
+(use-package org-ai
+  :ensure t
+  :commands (org-ai-mode
+             org-ai-global-mode)
+  :init
+  (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
+  (org-ai-global-mode) ; installs global keybindings on C-c M-a
+  :config
+  (setq org-ai-default-chat-model "gpt-4-32k-0314") ; if you are on the gpt-4 beta:
+  (org-ai-install-yasnippets)) ; if you are using yasnippet and want `ai` snippets
+
+(use-package whisper
+  :straight  `(whisper :type git :host github :repo "natrys/whisper.el")
+  :config
+  (setq whisper-model "base"
+        whisper-language "pt"
+        whisper-translate nil
+        whisper-install-directory "/tmp/")
+  (when (eq system-type 'darwin)
+    (rk/select-default-audio-device "Microfone (MacBook Pro)")
+    (when rk/default-audio-device)
+    (setq whisper--ffmpeg-input-device (format ":%s" rk/default-audio-device))))
+
+(use-package greader :ensure)
+(require 'whisper)
+(require 'org-ai-talk)
+
+;; macOS speech settings, optional
+(setq org-ai-talk-say-words-per-minute 210)
+(setq org-ai-talk-say-voice "Karen")
 #+END_SRC
 * COMMENT Org-Jira
 #+BEGIN_SRC emacs-lisp
@@ -3812,6 +3914,7 @@ We use the =alert= package for notifications.
   :defer t
   :config (progn
             ;;(telega-notifications-mode 1) ; DBus notifications
+            (setq telega-use-docker t)
             (setq telega-use-images t))
   :hook ((telega-chat-mode-hook
           .
@@ -3824,7 +3927,7 @@ We use the =alert= package for notifications.
                            '(telega-company-botcmd))))
             (company-mode 1)))))
 #+END_SRC
-* COMMENT Wakatime
+* Comment Wakatime
 #+BEGIN_SRC emacs-lisp
 (use-package wakatime-mode
   :ensure t

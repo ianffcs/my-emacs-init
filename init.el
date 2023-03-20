@@ -7,13 +7,26 @@
 ;; attempt to keep my emacs-fu sharpe.
 
 ;;; Code:
-
+(setenv "LIBRARY_PATH" "/opt/homebrew/opt/gcc/lib/gcc/11:/opt/homebrew/opt/libgccjit/lib/gcc/11:/opt/homebrew/opt/gcc/lib/gcc/11/gcc/aarch64-apple-darwin21/11")
+(defvar native-comp-deferred-compilation-deny-list nil)
 (defconst emacs-start-time (current-time))
 
-(require 'org)
-(setq vc-follow-symlinks t)
-(org-babel-load-file (expand-file-name "~/.emacs.d/README.org"))
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 6))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
+(setq vc-follow-symlinks t)
+(straight-use-package 'org)
+(org-babel-load-file (expand-file-name "~/.emacs.d/README.org"))
 (add-hook 'after-init-hook
           `(lambda ()
              (let ((elapsed
