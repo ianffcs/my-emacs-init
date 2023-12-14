@@ -25,7 +25,7 @@
   (load bootstrap-file nil 'nomessage))
 
 (setq vc-follow-symlinks t)
-(straight-use-package 'org)
+(straight-use-package '(org :type built-in))
 (org-babel-load-file (expand-file-name "~/.emacs.d/README.org"))
 (add-hook 'after-init-hook
           `(lambda ()
