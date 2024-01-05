@@ -1,4 +1,4 @@
-+TITLE: Ian Emacs config
+#+TITLE: Ian Emacs config
 #+BABEL: :cache yes
 #+PROPERTY: header-args :tangle yes
 #+STARTUP: overview inlineimages
@@ -304,7 +304,7 @@ Let's remove some crunchy messages at startup time.
     inhibit-splash-screen  t
     inhibit-startup-echo-area-message t)
 
-  (setq line-number-mode              1
+  (setq line-number-mode              0
     column-number-mode            +1
     show-paren-mode               1
     show-paren-delay              0
@@ -349,14 +349,13 @@ Let's remove some crunchy messages at startup time.
 
 Change the highlight color for selection text.
 #+BEGIN_SRC emacs-lisp
-(set-face-attribute 'region nil :background "#666")
+(set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
 #+END_SRC
 
 Make cursor the width of the character it is under.
 #+BEGIN_SRC emacs-lisp
 (setq x-stretch-cursor t)
 #+END_SRC
-
 ** Mouse Scrolling
 Smooth mouse scrolling
 #+BEGIN_SRC emacs-lisp
@@ -458,12 +457,6 @@ Preview line numbers when prompting for line number.
 ;; after typing is better UX than no feedback at all
 (setq echo-keystrokes 0.2)
 
-#+END_SRC
-* Persistent-scratch
-#+BEGIN_SRC emacs-lisp
-(use-package persistent-scratch
-  :config
-  (persistent-scratch-setup-default))
 #+END_SRC
 * Backup
 #+BEGIN_SRC emacs-lisp
@@ -768,7 +761,7 @@ Clean all the registers you saved.
 (set-register ?c '(file . "~/.emacs.d/docs/cheatsheet.org"))
 
 #+end_src
-** Imenu
+** COMMENT Imenu
 The objectives of this package is to provide a way to choose buffer
 indexes in a specific mode. What is a buffer index? Basically we
 have a function that will find "interesting" positions in your
@@ -862,8 +855,6 @@ definitions, headlines in outline mode, class definitions, etc.
 
 (use-package ibuffer-projectile)
 
-(use-package ibuffer-git)
-
 (use-package ibuffer-sidebar
   :commands (ibuffer-sidebar-toggle-sidebar)
   :config
@@ -884,39 +875,17 @@ definitions, headlines in outline mode, class definitions, etc.
 Auth Source is a generic interface for common backends such as your
    operating sysetm's keychain and your local ~/.authinfo file. Auth
    Source solves the problem of mapping passwords and usernames to hosts.
-** COMMENT Keepass
+** Keepass
 #+BEGIN_SRC emacs-lisp
 (use-package keepass-mode)
 #+END_SRC
-** COMMENT Debugging auth issues
-   #+BEGIN_SRC emacs-lisp
-     (setq auth-source-debug t)
-   #+END_SRC
-
-   We need to tell auth-source where to look for secrets.
-   #+BEGIN_SRC emacs-lisp
-     (setq auth-sources '((:source "~/.emacs.d/secrets/.authinfo")))
-   #+END_SRC
-** COMMENT GPG
-#+BEGIN_SRC emacs-lisp
-(use-package pinentry :ensure t)
-(use-package epa
-    :config
-    (setq epa-pinentry-mode 'loopback)
-    (pinentry-start))
-
-(setenv "GPG_AGENT_INFO" nil)
-(use-package epg
-  :requires (epa-file password-cache)
-  :config
-  (setq epg-gpg-program "/usr/bin/gpg2")
-  (setq password-cache-expiry (* 15 60))
-  (setq epa-file-cache-passphrase-for-symmetric-encryption t))
-  #+END_SRC
 ** gpg
 #+BEGIN_SRC emacs-lisp
 (setq auth-sources
-    '((:source "~/.authinfo.gpg")))
+    '((:source "~/.authinfo.gpg")
+      (:source "~/.netrc")))
+
+(setq auth-source-debug t)
 #+END_SRC
 * Help
 Is good to know how to ask for help in Emacs
@@ -1081,10 +1050,10 @@ several cursors that all do the same thing as you type.
 #+BEGIN_SRC emacs-lisp
 
 ; deletes all the whitespace when you hit backspace or delete
-(use-package hungry-delete
-  :ensure t
-  :config
-  (global-hungry-delete-mode))
+;; (use-package hungry-delete
+;;   :ensure t
+;;   :config
+;;   (global-hungry-delete-mode))
 
 ;;; Stefan Monnier <foo at acm.org>. It is the opposite of fill-paragraph
 (defun unfill-paragraph (&optional region)
@@ -1092,7 +1061,7 @@ several cursors that all do the same thing as you type.
   (interactive (progn (barf-if-buffer-read-only) '(t)))
   (let ((fill-column (point-max))
     ;; This would override `fill-column' if it's an integer.
-    (emacs-lisp-docstring-fill-column t))
+        (emacs-lisp-docstring-fill-column t))
     (fill-paragraph nil region)))
 
 (defun unfill-region (beg end)
@@ -1149,7 +1118,7 @@ several cursors that all do the same thing as you type.
   (setq dired-sidebar-subtree-line-prefix "__"
         dired-sidebar-use-term-integration t
         dired-sidebar-use-custom-font t)
-  ;(setq dired-sidebar-theme 'vscode)
+  ;; (setq dired-sidebar-theme 'vscode)
   )
 
 (defun sidebar-toggle ()
@@ -1477,21 +1446,6 @@ the *winner-boring-buffers*.
     :bind (("C-x 4 u" . winner-undo)
            ("C-x 4 U" . winner-redo)))
 #+END_SRC
-* COMMENT Manage external services
-
-   Very interesting package that help us to have some instances of
-   external processes running and keep track of it all. I often need
-   to enable the VPN of my company to work remotely, this suits
-   nicely.
-
-   #+BEGIN_SRC emacs-lisp
-     (use-package prodigy
-       :ensure t
-       :config
-       (prodigy-define-tag
-         :name 'blog
-         :ready-message "Started server on port 3000"))
-   #+END_SRC
 * Restart Emacs
 #+BEGIN_SRC emacs-lisp
 (use-package restart-emacs
@@ -1782,6 +1736,8 @@ Then we override =dabbrev-expand='s keybinding to use
   ;;                           (lsp))))
 
   (use-package lsp-ui
+    :config
+    (setq lsp-headerline-breadcrumb-enable nil)
     :commands lsp-ui-mode)
 
   (use-package company-lsp
@@ -2003,6 +1959,9 @@ This built in mode provides code folding. I use transient to create little inter
 
 (defalias 'cquit 'cider-quit)
 
+(use-package parinfer-rust-mode
+  :hook emacs-lisp-mode)
+
 (use-package cider
   :hook ((cider-repl-mode . subword-mode)
          (cider-repl-mode . company-mode)
@@ -2063,7 +2022,7 @@ This built in mode provides code folding. I use transient to create little inter
   )
 
 (use-package cider-eval-sexp-fu)
-(use-package nrepl-eval-sexp-fu)
+;; (use-package nrepl-eval-sexp-fu)
 
    ;; (defun prettify-some-chars ()
    ;;   (dolist (x '((true        т)
@@ -2694,8 +2653,8 @@ It is also interesting to have pretty symbols for our LaTeX files.
                     (setq truncate-lines t
                           indent-tabs-mode t
                           tab-width 4
-                          lsp-ui-sideline-enable nil
-                          lsp-ui-doc-enable nil
+                          ;; lsp-ui-sideline-enable nil
+                          ;; lsp-ui-doc-enable nil
                           lsp-gopls-staticcheck t
                           lsp-eldoc-render-all t
                           lsp-gopls-complete-unimported t
@@ -2780,7 +2739,7 @@ It is also interesting to have pretty symbols for our LaTeX files.
   :after (vterm)
   :config (kubel-vterm-setup))
 #+END_SRC
-* COMMENT Desktop-mode restore Buffers
+* Desktop-mode restore Buffers
 #+BEGIN_SRC emacs-lisp
 (use-package desktop
   :if window-system
@@ -2860,6 +2819,7 @@ whitespaces and windows should be side-by-side.
 ** Magit
 #+BEGIN_SRC emacs-lisp
 (setq project-switch-commands t)
+
 (use-package magit
   :ensure t
   :defer t
@@ -2874,15 +2834,12 @@ whitespaces and windows should be side-by-side.
         magit-revert-buffers 'silent
         ;; always show the verbose diff in commit windows
         magit-commit-arguments '("--verbose")
-
         ;; timeout when magit takes a while to call out to git
         magit-process-popup-time 10)
   :config
   (add-to-list 'magit-no-confirm 'stage-all-changes)
-  ;;(≈add-hook 'magit-mode-hook 'turn-on-magit-gitflow)
 )
 
-;(use-package magit-gitflow)
 
 (use-package git-gutter
   :ensure t
@@ -2890,7 +2847,7 @@ whitespaces and windows should be side-by-side.
   (global-git-gutter-mode +1))
 
 (use-package browse-at-remote :ensure t)
-;;(use-package gitconfig-mode :ensure t)
+
 (use-package gitignore-templates :ensure t)
 #+END_SRC
 * Org
@@ -2959,7 +2916,6 @@ whitespaces and windows should be side-by-side.
   (use-package ob-restclient)
   (use-package ob-hy)
   (use-package ob-prolog)
-  (use-package ob-ipython)
   (use-package ob-async
     :init (setq ob-async-no-async-languages-alist '("ipython")))
   (use-package ox-reveal)
@@ -3242,24 +3198,26 @@ Org-noter is a tool for writing notes in Org for PDFs, EPUB, DVI, PS,
 etc. See the documentation [[https://github.com/weirdNox/org-noter][here]].
 
 #+begin_src emacs-lisp
+(use-package pdf-tools)
+(use-package nov)
+(use-package djvu)
 (use-package org-noter)
 #+end_src
 
 ** Org-roam
 #+begin_src emacs-lisp
 (use-package org-roam
-      :ensure t
-      :hook
-      (after-init . org-roam-mode)
-      :custom
-      (org-roam-directory "~/org-roam/")
-      :bind (:map org-roam-mode-map
+  :pin melpa
+  :ensure t
+  :custom
+  (org-roam-directory "~/org-roam/")
+  :bind (:map org-roam-mode-map
               (("C-c n l" . org-roam)
                ("C-c n f" . org-roam-find-file)
                ("C-c n g" . org-roam-graph))
-              :map org-mode-map
-              (("C-c n i" . org-roam-insert))
-              (("C-c n I" . org-roam-insert-immediate))))
+         :map org-mode-map
+         (("C-c n i" . org-roam-insert))
+         (("C-c n I" . org-roam-insert-immediate))))
 #+end_src
 ** Deft
 #+begin_src emacs-lisp
@@ -3397,87 +3355,6 @@ If `DEVICE-NAME' is provided, it will be used instead of prompting the user."
 (setq org-ai-talk-say-words-per-minute 210)
 (setq org-ai-talk-say-voice "Karen")
 #+END_SRC
-* COMMENT Org-Jira
-#+BEGIN_SRC emacs-lisp
-(use-package org-jira
-  :config
-  (local-set-key (kbd "C-c pg") 'org-jira-get-projects)
-  (local-set-key (kbd "C-c ib") 'org-jira-browse-issue)
-  (local-set-key (kbd "C-c ig") 'org-jira-get-issues)
-  (local-set-key (kbd "C-c ij") 'org-jira-get-issues-from-custom-jql)
-  (local-set-key (kbd "C-c ih") 'org-jira-get-issues-headonly)
-  (local-set-key (kbd "C-c iu") 'org-jira-update-issue)
-  (local-set-key (kbd "C-c iw") 'org-jira-progress-issue)
-  (local-set-key (kbd "C-c in") 'org-jira-progress-issue-next)
-  (local-set-key (kbd "C-c ia") 'org-jira-assign-issue)
-  (local-set-key (kbd "C-c ir") 'org-jira-refresh-issue)
-  (local-set-key (kbd "C-c iR") 'org-jira-refresh-issues-in-buffer)
-  (local-set-key (kbd "C-c ic") 'org-jira-create-issue)
-  (local-set-key (kbd "C-c ik") 'org-jira-copy-current-issue-key)
-  (local-set-key (kbd "C-c sc") 'org-jira-create-subtask)
-  (local-set-key (kbd "C-c sg") 'org-jira-get-subtasks)
-  (local-set-key (kbd "C-c cc") 'org-jira-add-comment)
-  (local-set-key (kbd "C-c cu") 'org-jira-update-comment)
-  (local-set-key (kbd "C-c wu") 'org-jira-update-worklogs-from-org-clocks)
-  (local-set-key (kbd "C-c tj") 'org-jira-todo-to-jira)
-  (local-set-key (kbd "C-c if") 'org-jira-get-issues-by-fixversion)
-  )
-  #+END_SRC
-* Calfw
-#+BEGIN_SRC emacs-lisp
-(use-package calfw)
-
-(use-package calfw-org
-  :requires calfw)
-
-(use-package calfw-cal
-  :config
-  ;; Month
-  (progn
-    (setq cfw:org-overwrite-default-keybinding t)
-    (global-set-key (kbd "<f6>")
-                    (lambda ()
-                      (interactive)
-                      (cfw:open-org-calendar)))
-    (setq calendar-month-name-array ["January" "February" "March"     "April"   "May"      "June"
-                                    "July"    "August"   "September" "October" "November" "December"]
-         calendar-day-name-array ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"]
-         calendar-week-start-day 1)
-    (custom-set-faces
-     '(cfw:face-title ((t (:foreground "#f0dfaf" :weight bold :height 2.0 :inherit variable-pitch))))
-     '(cfw:face-header ((t (:foreground "#d0bf8f" :weight bold))))
-     '(cfw:face-sunday ((t :foreground "#cc9393" :background "grey10" :weight bold)))
-     '(cfw:face-saturday ((t :foreground "#8cd0d3" :background "grey10" :weight bold)))
-     '(cfw:face-holiday ((t :background "grey10" :foreground "#8c5353" :weight bold)))
-     '(cfw:face-grid ((t :foreground "DarkGrey")))
-     '(cfw:face-default-content ((t :foreground "#bfebbf")))
-     '(cfw:face-periods ((t :foreground "cyan")))
-     '(cfw:face-day-title ((t :background "grey10")))
-     '(cfw:face-default-day ((t :weight bold :inherit cfw:face-day-title)))
-     '(cfw:face-annotation ((t :foreground "RosyBrown" :inherit cfw:face-day-title)))
-     '(cfw:face-disable ((t :foreground "DarkGray" :inherit cfw:face-day-title)))
-     '(cfw:face-today-title ((t :background "#7f9f7f" :weight bold)))
-     '(cfw:face-today ((t :background: "grey10" :weight bold)))
-     '(cfw:face-select ((t :background "#2f2f2f")))
-     '(cfw:face-toolbar ((t :foreground "Steelblue4" :background "Steelblue4")))
-     '(cfw:face-toolbar-button-off ((t :foreground "Gray10" :weight bold)))
-     '(cfw:face-toolbar-button-on ((t :foreground "Gray50" :weight bold))))))
-(use-package calfw-ical)
-(use-package calfw-org)
-
-
-(defun my-open-calendar ()
-  (interactive)
-  (cfw:open-calendar-buffer
-   :contents-sources
-   (list
-    (cfw:org-create-source "Green")  ; orgmode source
-    ;(cfw:howm-create-source "Blue")  ; howm source
-    (cfw:cal-create-source "Orange") ; diary source
-    ;(cfw:ical-create-source "Moon" "~/moon.ics" "Gray")  ; ICS source1
-    ;(cfw:ical-create-source "gcal" "https://..../basic.ics" "IndianRed") ; google calendar ICS
-   )))
-#+END_SRC
 * Dashboard
 #+BEGIN_SRC emacs-lisp
 (use-package dashboard
@@ -3555,68 +3432,6 @@ narrowed."
 (use-package which-key
          :config
          (which-key-mode))
-#+END_SRC
-* COMMENT Better Shell
-#+BEGIN_SRC emacs-lisp
-(use-package better-shell
-  :ensure t
-  :bind (("C-\"" . better-shell-shell)
-         ("C-:" . better-shell-remote-open)))
-
-(use-package shell
-  :ensure nil
-  :commands comint-send-string comint-simple-send comint-strip-ctrl-m
-  :preface
-  (defun n-shell-simple-send (proc command)
-    "Various PROC COMMANDs pre-processing before sending to shell."
-    (cond
-     ;; Checking for clear command and execute it.
-     ((string-match "^[ \t]*clear[ \t]*$" command)
-      (comint-send-string proc "\n")
-      (erase-buffer))
-     ;; Checking for man command and execute it.
-     ((string-match "^[ \t]*man[ \t]*" command)
-      (comint-send-string proc "\n")
-      (setq command (replace-regexp-in-string "^[ \t]*man[ \t]*" "" command))
-      (setq command (replace-regexp-in-string "[ \t]+$" "" command))
-      ;;(message (format "command %s command" command))
-      (funcall 'man command))
-     ;; Send other commands to the default handler.
-     (t (comint-simple-send proc command))))
-  (defun n-shell-mode-hook ()
-    "Shell mode customizations."
-    (local-set-key '[up] 'comint-previous-input)
-    (local-set-key '[down] 'comint-next-input)
-    (local-set-key '[(shift tab)] 'comint-next-matching-input-from-input)
-    (setq comint-input-sender 'n-shell-simple-send))
-  :hook ((shell-mode . ansi-color-for-comint-mode-on)
-         (shell-mode . n-shell-mode-hook))
-  :config
-  (setq system-uses-terminfo nil)       ; don't use system term info
-
-  (add-hook 'comint-output-filter-functions #'comint-strip-ctrl-m)
-
-  ;; Company mode backend for shell functions
-  (use-package company-shell
-    :after company
-    :init (cl-pushnew '(company-shell company-shell-env company-fish-shell)
-                      company-backends))
-
-  ;; Bash completion
-  (use-package bash-completion
-    :init (bash-completion-setup))
-
-  ;; ANSI & XTERM 256 color support
-  (use-package xterm-color
-    :defines compilation-environment
-    :init
-    (setenv "TERM" "xterm-256color")
-    (setq comint-output-filter-functions
-          (remove 'ansi-color-process-output comint-output-filter-functions))
-
-    (add-hook 'shell-mode-hook
-              (lambda () (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t)))))
-
 #+END_SRC
 * Keyfreq
 #+BEGIN_SRC emacs-lisp
@@ -3710,7 +3525,7 @@ narrowed."
    | C-c / w        | google-this-word                      |
    | C-c / <return> | google-this-search                    |
 
-* COMMENT PDF Tools
+* PDF Tools
 #+BEGIN_SRC emacs-lisp
 (when (not (eq system-type 'darwin))
   (use-package pdf-tools
@@ -3814,52 +3629,6 @@ and only invoke it manually when needed.
     (message "MPD Database Updated!"))
   (global-set-key (kbd "s-m u") 'mpd/update-database)
 #+END_SRC
-* Slack
-Configuring Slack client.
-
-Sensible stuff goes into =sensitive/slack.el=.
-
-#+begin_src emacs-lisp
-(use-package slack
-  :commands (slack-start)
-  :init
-  (setq slack-buffer-emojify      t
-        slack-prefer-current-team t)
-  :config
-  (load "~/.emacs.d/sensitive/slack-teams.el"))
-
-(defun slack-shorten-room-names ()
-  "Shortens the room name in Slack buffers."
-  (cl-defmethod slack-buffer-name ((this slack-message-buffer))
-    (slack-if-let* ((team (slack-buffer-team this))
-                    (room (slack-buffer-room this))
-                    (room-name (slack-room-name room team)))
-                   room-name)))
-
-(add-hook 'slack-mode-hook 'slack-shorten-room-names)
-
-;; Use company-slack to complete usernames in Slack modes
-(defun slack-mode-tweaks ()
-  (set (make-local-variable 'company-backends) '(company-slack-backend company-dabbrev company-files))
-  (set (make-local-variable 'company-minimum-prefix-length) 3)
-  )
-
-(add-hook 'slack-message-buffer-mode-hook 'slack-mode-tweaks)
-(add-hook 'slack-message-compose-buffer-mode-hook 'slack-mode-tweaks)
-(add-hook 'slack-message-edit-buffer-mode-hook 'slack-mode-tweaks)
-(add-hook 'slack-thread-message-buffer-mode-hook 'slack-mode-tweaks)
-
-;; Disable auto-fill-mode
-(add-hook 'slack-mode-hook 'turn-off-auto-fill)
-#+end_src
-
-We use the =alert= package for notifications.
-
-#+begin_src emacs-lisp
-(use-package alert
-  :commands (alert)
-  :init (setq alert-default-style 'notifier))
-#+end_src
 * COMMENT ORG Jira
 #+BEGIN_SRC emacs-lisp
 (defconst org-jira-progress-issue-flow
@@ -3899,8 +3668,7 @@ We use the =alert= package for notifications.
   :commands (telega)
   :defer t
   :config (progn
-            ;;(telega-notifications-mode 1) ; DBus notifications
-            (setq telega-use-docker t)
+            (telega-notifications-mode 1) ; DBus notifications
             (setq telega-use-images t))
   :hook ((telega-chat-mode-hook
           .
@@ -3912,13 +3680,6 @@ We use the =alert= package for notifications.
                          (when (telega-chat-bot-p telega-chatbuf--chat)
                            '(telega-company-botcmd))))
             (company-mode 1)))))
-#+END_SRC
-* Comment Wakatime
-#+BEGIN_SRC emacs-lisp
-(use-package wakatime-mode
-  :ensure t
-  :config
-  (setq wakatime-api-key ""))
 #+END_SRC
 * nov.el
 
@@ -3966,31 +3727,6 @@ Let's add some goodies.
 (use-package elfeed-goodies
   :config (elfeed-goodies/setup))
 #+end_src
-* COMMENT Ivy-Spotify
-
-Controlling Spotify from Emacs/Dashboard (via dbus) uses an Ivy interface.
-
-#+begin_src emacs-lisp
-;;(use-package ivy-spotify) ; unavailable!
-#+end_src
-
-Then set the variables =counsel-spotify-client-id= and
-=counsel-spotify-client-secret=.
-
-If Emacs cannot access =dbus= (or Spotify is not recognized by =dbus=), it
-may be interesting to have a script to invoke Emacs as follows (which
-can be adapted into Spotify's):
-
-#+begin_src bash :tangle no
-#!/bin/bash
-
-source $HOME/.dbus/session-bus/*
-export DBUS_SESSION_BUS_ADDRESS
-export DBUS_SESSION_BUS_PID
-emacs --daemon &
-#+end_src
-
-Everything regarding the WM or DE-like functionality is bundled here, remove the entire section if you do not wish to use =exwm=.
 * Paradox
 
 #+begin_src emacs-lisp
@@ -4001,13 +3737,6 @@ Everything regarding the WM or DE-like functionality is bundled here, remove the
 #+begin_src emacs-lisp
 #+end_src
 
-* COMMENT Mingus
-
-Mingus controls MPD.
-
-#+begin_src emacs-lisp
-(use-package mingus)
-#+end_src
 * COMMENT EXWM
 ** Startup
 Configuration for EXWM.
@@ -4207,3 +3936,111 @@ I also want to switch to workspace 0 and use the dashboard buffer.
            (lambda ()
              (exwm-workspace-switch 0))))
 #+end_src
+* IRC
+#+BEGIN_SRC emacs-lisp
+(use-package circe
+  :commands circe
+  :preface
+  (defun my/circe-count-nicks ()
+    "Display the number of users connected on the current channel."
+    (interactive)
+    (when (eq major-mode 'circe-channel-mode)
+      (message "%i users are online on %s."
+               (length (circe-channel-nicks)) (buffer-name))))
+
+  (defun my/circe-fetch-password (&rest params)
+    "Fetch the NickServ password for an username."
+    (require 'auth-source)
+    (let ((match (car (apply 'auth-source-search params))))
+      (if match
+          (let ((secret (plist-get match :secret)))
+            (if (functionp secret)
+                (funcall secret)
+              secret))
+        (error "[✗] Password not found for %S" params))))
+
+  (defun my/circe-nickserv-password (server)
+    "Fetch the NickServ password for the Libera Chat."
+    (my/circe-fetch-password :login "ietcd" :machine "irc.libera.chat"))
+  :custom
+  (circe-default-part-message nil)
+  (circe-default-quit-message nil)
+  (circe-format-say (format "{nick:+%ss}: {body}" 8))
+  (circe-network-options
+   '(("Libera Chat"
+      :host "irc.libera.chat"
+      :nick "ietcd"
+      :tls t
+      :port 6697
+      :server-buffer-name "⇄ Libera Chat"
+      :channels (:after-auth "#archlinux" "#bash" "#emacs" "#linux" "#clojure")
+      :nickserv-password my/circe-nickserv-password
+      )
+     ("Hackint Chat"
+      :host "irc.hackint.org"
+      :nick "ietcd"
+      :tls t
+      :port 6697
+      :server-buffer-name "⇄ Hackint"
+      :channels (:after-auth "#milliways"))
+     ("Autistici"
+      :host "irc.autistici.org"
+      :nick "ietcd"
+      :tls t
+      :port 6697
+      :server-buffer-name "⇄ Autistici"
+      :channels (:after-auth "#hackit99" "#ai"))
+     ))
+  (circe-reduce-lurker-spam t)
+  (circe-use-cycle-completion t)
+  (lui-flyspell-p t)
+  :config
+  (circe-lagmon-mode)
+  (enable-circe-color-nicks)
+  (enable-circe-display-images))
+
+(use-package circe-notifications
+  :after circe
+  :hook (circe-server-connected . enable-circe-notifications))
+#+END_SRC
+* GNUS
+#+BEGIN_SRC emacs-lisp
+(setq gnus-select-method '(nnnil nil))
+
+(setq gnus-secondary-select-methods
+      '((nnimap "Autistici"
+        (nnimap-address "mail.autistici.org")
+        (nnimap-server-port 143)
+        (nnimap-list-pattern ("INBOX" "*"))
+        (nnimap-stream ssl)
+        (nnir-search-engine imap)
+        (nnmail-expiry-target "nnimap+home:[Example]/Trash")
+        (nnmail-expiry-wait 'immediate)
+        (nnimap-authenticator login)
+        (nnimap-authinfo-file "~/.authinfo.gpg")
+        (nnimap-expunge-on-close always))
+
+        ;; (nnimap "Gmail"
+        ;;         (nnimap-address "imap.gmail.com")
+        ;;         (nnimap-server-port 143)
+        ;;         (nnimap-server-port 143)
+        ;;         (nnimap-list-pattern ("INBOX" "*"))
+        ;;         (nnimap-stream ssl)
+        ;;         (nnir-search-engine imap)
+        ;;         (nnmail-expiry-target "nnimap+home:[Example]/Trash")
+        ;;         (nnmail-expiry-wait 'immediate)
+        ;;         (nnimap-authenticator login)
+        ;;         (nnimap-authinfo-file "~/.authinfo.gpg")
+        ;;         (nnimap-expunge-on-close always))
+        ))
+
+(setq gnus-asynchronous t
+      gnus-use-cache t
+      gnus-use-header-prefetch t)
+
+(setq gnus-posting-styles
+      '(("ietcd"
+         (address "ietcd@cryptolab.net")
+     (signature "i etc daemon.")
+   ("X-Message-SMTP-Method" "smtp smtp.autistici.org 587 ietcd@cryptolab.net"))))
+#+END_SRC
