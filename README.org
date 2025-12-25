@@ -1960,7 +1960,8 @@ This built in mode provides code folding. I use transient to create little inter
 (defalias 'cquit 'cider-quit)
 
 (use-package parinfer-rust-mode
-  :hook emacs-lisp-mode)
+  :hook emacs-lisp-mode
+  :init (setq parinfer-rust-auto-download t))
 
 (use-package cider
   :hook ((cider-repl-mode . subword-mode)
