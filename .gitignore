@@ -1,1 +1,56 @@
-straight/*
+# --- Emacs runtime files ---
+*.elc
+*.eln
+auto-save-list/
+tramp
+places
+recentf
+savehist
+history
+bookmarks
+eshell/
+var/
+cache/
+eln-cache/
+url/
+network-security.data
+
+# --- Custom / user state ---
+custom.el
+custom/
+abbrev_defs
+transient/
+authinfo
+authinfo.gpg
+
+# --- LSP / tooling ---
+.eglot/
+.lsp-session-v1
+.dap-breakpoints
+
+# --- Package managers ---
+straight/build/
+straight/repos/
+elpa/
+eln-cache/
+
+# --- Tree-sitter ---
+tree-sitter/
+treesit-cache/
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+*~
+
+# --- Project-local overrides ---
+.dir-locals.el
+
+straight/
+parinfer-rustparinfer-rust-darwin.so
+desktop
+
+.dap-breakpoints 
+.last-package-update-day 
+.lsp-session-v1 
+.persistent-scratch

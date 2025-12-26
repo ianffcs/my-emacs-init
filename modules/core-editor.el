@@ -189,6 +189,24 @@
   :config
   (global-smart-shift-mode t))
 
+(use-package zzz-to-char
+  :bind ("M-z" . zzz-up-to-char))
+
+(defun ian/unfill-paragraph (&optional region)
+  "Make a multi-line paragraph into a single line."
+  (interactive (progn (barf-if-buffer-read-only) '(t)))
+  (let ((fill-column (point-max))
+        (emacs-lisp-docstring-fill-column t))
+    (fill-paragraph nil region)))
+
+(defun ian/unfill-region (beg end)
+  "Unfill the region, joining paragraphs into single lines."
+  (interactive "*r")
+  (let ((fill-column (point-max)))
+    (fill-region beg end)))
+
+(global-set-key (kbd "M-Q") #'ian/unfill-paragraph)
+
 ;; ============================================================================
 ;; 8. COMMENTING
 ;; ============================================================================
@@ -248,8 +266,19 @@
 ;; 13. HIGHLIGHT
 ;; ============================================================================
 
-;; Highlight current line
-(global-hl-line-mode 1)
+(use-package volatile-highlights
+  :diminish
+  :config
+  (volatile-highlights-mode t))
+
+(use-package highlight-symbol
+  :diminish
+  :hook ((prog-mode . highlight-symbol-mode)
+         (highlight-symbol-mode . highlight-symbol-nav-mode))
+  :custom
+  (highlight-symbol-idle-delay 0.25)
+  (highlight-symbol-on-navigation-p t)
+  (highlight-symbol-highlight-single-occurrence nil))
 
 ;; Highlight TODO keywords
 (use-package hl-todo
@@ -324,6 +353,9 @@
   (bookmark-save-flag 1)
   (bookmark-default-file (expand-file-name "bookmarks" user-emacs-directory)))
 
+(use-package popup-kill-ring
+  :bind ("M-y" . popup-kill-ring))
+
 ;; ============================================================================
 ;; 19. REGISTERS
 ;; ============================================================================
@@ -335,6 +367,16 @@
   (set-register ?i (cons 'file user-init-file))
   (set-register ?o (cons 'file (expand-file-name "~/org")))
   (set-register ?s (cons 'file (expand-file-name "~/src"))))
+
+(defun ian/clear-registers ()
+  "Remove all saved registers."
+  (interactive)
+  (setq register-alist nil)
+  (message "All registers cleared"))
+
+;; Add more register shortcuts
+(set-register ?t (cons 'file (expand-file-name "~/org/todo.org")))
+(set-register ?c (cons 'file (expand-file-name "docs/cheatsheet.org" user-emacs-directory)))
 
 ;; ============================================================================
 ;; 20. HELPER FUNCTIONS

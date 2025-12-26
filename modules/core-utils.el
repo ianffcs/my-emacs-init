@@ -2,6 +2,11 @@
 
 ;;; Commentary:
 ;; Utility packages used across all modules: which-key, helpful, yasnippet, etc.
+;;
+;; NOTE: This file has been cleaned up to remove duplications:
+;; - Password packages (pass, password-store, auth-source-pass) → core-auth.el
+;; - ian/indent-buffer → core-editor.el (keybinding: C-c e i)
+;;
 ;; Migrated from README.org literate config.
 
 ;;; Code:
@@ -95,25 +100,7 @@
   (transient-display-buffer-action '(display-buffer-below-selected)))
 
 ;; ============================================================================
-;; 5. PASSWORD STORE
-;; ============================================================================
-
-(use-package pass
-  :commands pass)
-
-(use-package password-store
-  :commands (password-store-copy
-             password-store-get
-             password-store-insert
-             password-store-generate))
-
-(use-package auth-source-pass
-  :straight (:type built-in)
-  :config
-  (auth-source-pass-enable))
-
-;; ============================================================================
-;; 6. RESTART EMACS
+;; 5. RESTART EMACS
 ;; ============================================================================
 
 (use-package restart-emacs
@@ -121,14 +108,14 @@
   :bind ("C-c q r" . restart-emacs))
 
 ;; ============================================================================
-;; 7. DIMINISH (Hide minor modes from modeline)
+;; 6. DIMINISH (Hide minor modes from modeline)
 ;; ============================================================================
 
 (use-package diminish
   :demand t)
 
 ;; ============================================================================
-;; 8. GCMH (Garbage Collection Magic Hack)
+;; 7. GCMH (Garbage Collection Magic Hack)
 ;; ============================================================================
 
 (use-package gcmh
@@ -140,7 +127,7 @@
   (gcmh-mode 1))
 
 ;; ============================================================================
-;; 9. NO-LITTERING (Keep .emacs.d clean)
+;; 8. NO-LITTERING (Keep .emacs.d clean)
 ;; ============================================================================
 
 (use-package no-littering
@@ -152,7 +139,7 @@
         `((".*" . ,(no-littering-expand-var-file-name "backup/")))))
 
 ;; ============================================================================
-;; 10. CRUX (Useful Interactive Commands)
+;; 9. CRUX (Useful Interactive Commands)
 ;; ============================================================================
 
 (use-package crux
@@ -169,7 +156,7 @@
          ("C-c k" . crux-kill-other-buffers)))
 
 ;; ============================================================================
-;; 11. GENERAL UTILITY FUNCTIONS
+;; 10. GENERAL UTILITY FUNCTIONS
 ;; ============================================================================
 
 (defun ian/reload-init ()
@@ -200,12 +187,6 @@
          (buffer-list)))
   (message "Killed all buffers"))
 
-(defun ian/indent-buffer ()
-  "Indent the entire buffer."
-  (interactive)
-  (save-excursion
-    (indent-region (point-min) (point-max) nil)))
-
 (defun ian/toggle-maximize-buffer ()
   "Maximize/restore current buffer."
   (interactive)
@@ -220,8 +201,6 @@
 (global-set-key (kbd "C-c q I") #'ian/open-init-file)
 (global-set-key (kbd "C-c q k") #'ian/kill-all-buffers)
 (global-set-key (kbd "C-c q m") #'ian/toggle-maximize-buffer)
-(global-set-key (kbd "C-c q =") #'ian/indent-buffer)
 
 (provide 'core-utils)
 ;;; core-utils.el ends here
-

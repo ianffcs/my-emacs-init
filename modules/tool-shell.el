@@ -65,6 +65,9 @@
     "Find files matching PATTERN."
     (eshell-command-result (format "find . -name '*%s*'" pattern))))
 
+(use-package eshell-bookmark
+  :hook (eshell-mode . eshell-bookmark-setup))
+
 ;; Eshell prompt
 (use-package eshell-prompt-extras
   :after eshell
@@ -248,24 +251,23 @@
 
 (with-eval-after-load 'transient
   (transient-define-prefix ian/terminal-menu ()
-    "Terminal commands"
-    ["Vterm"
-     ("v" "Vterm" vterm)
-     ("V" "Vterm other window" vterm-other-window)
-     ("t" "Toggle" vterm-toggle)
-     ("n" "New vterm" multi-vterm)
-     ("p" "Project vterm" multi-vterm-project)]
-    ["Eshell"
-     ("e" "Eshell" eshell)
-     ("h" "Eshell here" ian/eshell-here)
-     ("P" "Eshell project" ian/eshell-project)]
-    ["Navigate"
-     ("[" "Prev vterm" multi-vterm-prev)
-     ("]" "Next vterm" multi-vterm-next)
-     ("s" "Shell pop" shell-pop)])
+                           "Terminal commands"
+                           ["Vterm"
+                            ("v" "Vterm" vterm)
+                            ("V" "Vterm other window" vterm-other-window)
+                            ("t" "Toggle" vterm-toggle)
+                            ("n" "New vterm" multi-vterm)
+                            ("p" "Project vterm" multi-vterm-project)]
+                           ["Eshell"
+                            ("e" "Eshell" eshell)
+                            ("h" "Eshell here" ian/eshell-here)
+                            ("P" "Eshell project" ian/eshell-project)]
+                           ["Navigate"
+                            ("[" "Prev vterm" multi-vterm-prev)
+                            ("]" "Next vterm" multi-vterm-next)
+                            ("s" "Shell pop" shell-pop)])
 
   (global-set-key (kbd "C-c t") #'ian/terminal-menu))
 
 (provide 'tool-shell)
 ;;; tool-shell.el ends here
-

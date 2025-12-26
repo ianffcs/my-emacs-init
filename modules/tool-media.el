@@ -137,7 +137,7 @@
                             ("-" "Down" ian/volume-down)
                             ("m" "Mute" ian/volume-toggle-mute)])
 
-  (global-set-key (kbd "s-m m") #'ian/media-menu))
+  (global-set-key (kbd "s-m") #'ian/media-menu))
 
 (provide 'tool-media)
 ;;; tool-media.el ends here

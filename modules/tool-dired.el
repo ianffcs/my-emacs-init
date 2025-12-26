@@ -57,6 +57,17 @@
      ("\\.tar\\.bz2\\'" "tar xjf")))
   :config
   ;; macOS: use gls if available
+  ;; Sort directories first
+  (defun ian/dired-directories-first ()
+    "Sort dired listings with directories first."
+    (save-excursion
+      (let ((inhibit-read-only t))
+        (forward-line 2)
+        (sort-regexp-fields t "^.*$" "[ ]*." (point) (point-max)))
+      (set-buffer-modified-p nil)))
+
+  (advice-add 'dired-readin :after #'ian/dired-directories-first)
+
   (when (eq system-type 'darwin)
     (when-let ((gls (executable-find "gls")))
       (setq insert-directory-program gls)))

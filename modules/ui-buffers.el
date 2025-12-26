@@ -2,6 +2,10 @@
 
 ;;; Commentary:
 ;; Buffer listing, organization, and management.
+;;
+;; NOTE: This file has been cleaned up to remove duplications:
+;; - autorevert → core-editor.el §17
+;;
 ;; Migrated from README.org literate config.
 
 ;;; Code:
@@ -82,6 +86,14 @@
                 (name 16 -1)
                 " " filename))))
 
+(use-package ibuffer-tramp
+  :after ibuffer)
+
+(use-package ibuffer-sidebar
+  :commands ibuffer-sidebar-toggle-sidebar
+  :custom
+  (ibuffer-sidebar-use-custom-font t))
+
 ;; Ibuffer with Projectile groups
 (use-package ibuffer-projectile
   :after (ibuffer projectile)
@@ -128,22 +140,13 @@
 
   (midnight-mode 1))
 
-;; ============================================================================
-;; 4. AUTOREVERT
-;; ============================================================================
-
-(use-package autorevert
-  :straight (:type built-in)
-  :diminish auto-revert-mode
-  :custom
-  (auto-revert-verbose nil)
-  (auto-revert-check-vc-info t)
-  (global-auto-revert-non-file-buffers t)
+(use-package vlf
+  :defer t
   :config
-  (global-auto-revert-mode 1))
+  (require 'vlf-setup))
 
 ;; ============================================================================
-;; 5. BUFFER HELPER FUNCTIONS
+;; 4. BUFFER HELPER FUNCTIONS
 ;; ============================================================================
 
 (defun ian/kill-current-buffer ()
@@ -196,29 +199,28 @@
 (global-set-key (kbd "C-c b r") #'ian/revert-buffer-no-confirm)
 
 ;; ============================================================================
-;; 6. BUFFER TRANSIENT MENU
+;; 5. BUFFER TRANSIENT MENU
 ;; ============================================================================
 
 (with-eval-after-load 'transient
   (transient-define-prefix ian/buffer-menu ()
-    "Buffer management commands"
-    ["Switch"
-     ("b" "Switch buffer" switch-to-buffer)
-     ("B" "Switch other" switch-to-buffer-other-window)
-     ("s" "Scratch" ian/switch-to-scratch)
-     ("m" "Messages" ian/switch-to-messages)
-     ("n" "New buffer" ian/new-empty-buffer)]
-    ["Kill"
-     ("k" "Kill current" ian/kill-current-buffer)
-     ("K" "Kill others" ian/kill-other-buffers)
-     ("x" "Kill buffer" kill-buffer)]
-    ["List"
-     ("l" "List (ibuffer)" ibuffer)
-     ("r" "Revert" ian/revert-buffer-no-confirm)
-     ("R" "Rename" rename-buffer)])
+                           "Buffer management commands"
+                           ["Switch"
+                            ("b" "Switch buffer" switch-to-buffer)
+                            ("B" "Switch other" switch-to-buffer-other-window)
+                            ("s" "Scratch" ian/switch-to-scratch)
+                            ("m" "Messages" ian/switch-to-messages)
+                            ("n" "New buffer" ian/new-empty-buffer)]
+                           ["Kill"
+                            ("k" "Kill current" ian/kill-current-buffer)
+                            ("K" "Kill others" ian/kill-other-buffers)
+                            ("x" "Kill buffer" kill-buffer)]
+                           ["List"
+                            ("l" "List (ibuffer)" ibuffer)
+                            ("r" "Revert" ian/revert-buffer-no-confirm)
+                            ("R" "Rename" rename-buffer)])
 
   (global-set-key (kbd "C-c b") #'ian/buffer-menu))
 
 (provide 'ui-buffers)
 ;;; ui-buffers.el ends here
-

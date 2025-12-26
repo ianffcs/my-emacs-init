@@ -114,6 +114,10 @@
   (wgrep-auto-save-buffer t)
   (wgrep-change-readonly-file t))
 
+(use-package pcre2el
+  :config
+  (pcre-mode))
+
 ;; ============================================================================
 ;; 7. DEADGREP (Fast ripgrep interface)
 ;; ============================================================================
@@ -159,4 +163,3 @@
 
 (provide 'ui-navigation)
 ;;; ui-navigation.el ends here
-

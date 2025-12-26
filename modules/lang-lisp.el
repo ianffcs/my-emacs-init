@@ -33,6 +33,8 @@
   :custom
   (parinfer-rust-auto-download t)
   (parinfer-rust-library-directory (expand-file-name "parinfer-rust" user-emacs-directory))
+  ;; Automatically disable conflicting modes (electric-pair-mode, etc.) without prompting
+  (parinfer-rust-auto-disable-troublesome-modes t)
   ;; Start in smart mode (adapts between indent and paren mode)
   (parinfer-rust-preferred-mode 'smart)
   :config
@@ -56,6 +58,19 @@
                (lambda (endp delimiter)
                  (not (and (not endp)
                            (memq (char-before) '(?@ ?` ?' ?# ?~ ?^)))))))
+
+(use-package highlight-parentheses
+  :hook ((emacs-lisp-mode . highlight-parentheses-mode)
+         (clojure-ts-mode . highlight-parentheses-mode)
+         (lisp-mode . highlight-parentheses-mode)
+         (scheme-mode . highlight-parentheses-mode)
+         (cider-repl-mode . highlight-parentheses-mode)
+         (sly-mrepl-mode . highlight-parentheses-mode)))
+
+(use-package highlight-sexp
+  :disabled  ; Enable if you want it
+  :hook ((emacs-lisp-mode . highlight-sexp-mode)
+         (clojure-ts-mode . highlight-sexp-mode)))
 
 ;; Toggle between parinfer and paredit
 (defun ian/toggle-lisp-editing-mode ()
@@ -139,7 +154,7 @@
   (cider-repl-wrap-history t)
   (cider-repl-history-size 1000)
   (cider-repl-history-file (expand-file-name "cider-repl-history" user-emacs-directory))
-
+  (cider-repl-prompt-function #'ian/cider-repl-prompt)
   ;; Eval Configuration
   (cider-show-error-buffer 'only-in-repl)
   (cider-auto-select-error-buffer nil)
@@ -156,10 +171,17 @@
   (cider-debug-prompt 'overlay)
 
   :config
+  (defun ian/cider-repl-prompt (namespace)
+    "Custom CIDER REPL prompt with NAMESPACE."
+    (format "λ %s\n" namespace))
   (setq cider-use-overlays 'both)
   (setq nrepl-buffer-name-separator "-")
   (setq nrepl-buffer-name-show-port t)
   (setq cider-clojure-cli-global-options "-A:dev:test"))
+
+(use-package cider-eval-sexp-fu
+  :after cider)
+
 
 ;; ============================================================================
 ;; 5. CLJ-REFACTOR
@@ -297,13 +319,8 @@
 (use-package eval-sexp-fu
   :hook (emacs-lisp-mode . eval-sexp-fu-flash-mode))
 
-;; Better help for elisp
-(use-package helpful
-  :bind (("C-h f" . helpful-callable)
-         ("C-h v" . helpful-variable)
-         ("C-h k" . helpful-key)
-         ("C-h x" . helpful-command)
-         ("C-c C-d" . helpful-at-point)))
+;; Better help for elisp - see core-utils.el (canonical location)
+;; helpful bindings: C-h f/v/k/x, C-c C-d
 
 ;; Elisp demos/examples
 (use-package elisp-demos
@@ -415,34 +432,24 @@
   (org-babel-clojure-backend 'cider))
 
 ;; ============================================================================
-;; 18. RAINBOW DELIMITERS (Essential for Lisps)
+;; 18. RAINBOW DELIMITERS - REPL modes only (prog-mode hook in core-editor.el)
 ;; ============================================================================
 
-(use-package rainbow-delimiters
-  :hook ((clojure-mode . rainbow-delimiters-mode)
-         (clojure-ts-mode . rainbow-delimiters-mode)
-         (emacs-lisp-mode . rainbow-delimiters-mode)
-         (lisp-mode . rainbow-delimiters-mode)
-         (scheme-mode . rainbow-delimiters-mode)
-         (racket-mode . rainbow-delimiters-mode)
-         (fennel-mode . rainbow-delimiters-mode)
-         (janet-mode . rainbow-delimiters-mode)
-         (hy-mode . rainbow-delimiters-mode)
-         (cider-repl-mode . rainbow-delimiters-mode)
-         (sly-mrepl-mode . rainbow-delimiters-mode)
-         (geiser-repl-mode . rainbow-delimiters-mode)))
+;; Main programming modes are covered by prog-mode hook in core-editor.el
+;; Here we add REPL modes which don't derive from prog-mode
+(with-eval-after-load 'rainbow-delimiters
+  (add-hook 'cider-repl-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'sly-mrepl-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'geiser-repl-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'racket-repl-mode-hook #'rainbow-delimiters-mode))
 
 ;; ============================================================================
-;; 19. AGGRESSIVE-INDENT (Auto-indent as you type)
+;; 19. AGGRESSIVE-INDENT - See core-editor.el (canonical location)
 ;; ============================================================================
 
-(use-package aggressive-indent
-  :hook ((clojure-mode . aggressive-indent-mode)
-         (clojure-ts-mode . aggressive-indent-mode)
-         (emacs-lisp-mode . aggressive-indent-mode)
-         (lisp-mode . aggressive-indent-mode)
-         (scheme-mode . aggressive-indent-mode)
-         (racket-mode . aggressive-indent-mode)))
+;; aggressive-indent configuration is in core-editor.el section 14
+;; It covers: emacs-lisp-mode, clojure-mode, clojure-ts-mode,
+;;            lisp-mode, scheme-mode, racket-mode
 
 ;; ============================================================================
 ;; 20. HELPER FUNCTIONS

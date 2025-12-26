@@ -2,6 +2,11 @@
 
 ;;; Commentary:
 ;; Operating system specific settings for macOS, Linux, and Windows.
+;;
+;; NOTE: This file has been cleaned up to remove duplications:
+;; - pinentry → core-auth.el
+;; - proced → core-session.el
+;;
 ;; Migrated from README.org literate config.
 
 ;;; Code:
@@ -227,18 +232,7 @@
 (setq read-process-output-max (* 4 1024 1024))  ; 4MB
 
 ;; ============================================================================
-;; 7. PINENTRY (GPG Integration)
-;; ============================================================================
-
-(use-package pinentry
-  :if (or (eq system-type 'gnu/linux)
-          (eq system-type 'darwin))
-  :config
-  (setq epa-pinentry-mode 'loopback)
-  (pinentry-start))
-
-;; ============================================================================
-;; 8. KEYCHAIN (SSH/GPG Agent)
+;; 7. KEYCHAIN (SSH/GPG Agent)
 ;; ============================================================================
 
 (use-package keychain-environment
@@ -248,19 +242,7 @@
   (keychain-refresh-environment))
 
 ;; ============================================================================
-;; 9. SYSTEM MONITOR
-;; ============================================================================
-
-(use-package proced
-  :straight (:type built-in)
-  :commands proced
-  :custom
-  (proced-auto-update-flag t)
-  (proced-auto-update-interval 2)
-  (proced-enable-color-flag t))
-
-;; ============================================================================
-;; 10. HELPER FUNCTIONS
+;; 8. HELPER FUNCTIONS
 ;; ============================================================================
 
 (defun ian/system-info ()
@@ -303,4 +285,3 @@
 
 (provide 'core-os)
 ;;; core-os.el ends here
-

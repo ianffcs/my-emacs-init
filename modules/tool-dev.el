@@ -383,9 +383,7 @@
 ;; 15. MISC DEV TOOLS
 ;; ============================================================================
 
-(use-package smart-shift
-  :config
-  (global-smart-shift-mode t))
+;; smart-shift is in core-editor.el (canonical location for text manipulation)
 
 (use-package eldoc
   :straight (:type built-in)

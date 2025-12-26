@@ -138,6 +138,7 @@
   (org-refile-allow-creating-parent-nodes 'confirm)
 
   :config
+
   (defun ian/org-mode-setup ()
     "Custom org mode setup."
     (setq-local fill-column 80)
@@ -409,6 +410,9 @@
            playerOpacity: 0.05,
          },"))
 
+(use-package epresent
+  :commands epresent-run)
+
 ;; OER Reveal
 (use-package oer-reveal
   :straight (:host gitlab :repo "oer/oer-reveal")
@@ -551,18 +555,18 @@ Thank you!
 ;; --- Transient Menu for Reveal.js ---
 (with-eval-after-load 'transient
   (transient-define-prefix ian/reveal-menu ()
-    "Reveal.js presentation commands"
-    ["Export"
-     ("e" "Export to HTML" ian/reveal-export-to-html)
-     ("E" "Export and open" ian/reveal-export-to-html-and-open)]
-    ["Insert"
-     ("s" "New slide" ian/reveal-insert-slide)
-     ("n" "Speaker notes" ian/reveal-insert-notes)
-     ("f" "Fragment" ian/reveal-insert-fragment)
-     ("c" "Two columns" ian/reveal-insert-two-columns)
-     ("b" "Background" ian/reveal-insert-background)]
-    ["Create"
-     ("N" "New presentation" ian/reveal-new-presentation)])
+                           "Reveal.js presentation commands"
+                           ["Export"
+                            ("e" "Export to HTML" ian/reveal-export-to-html)
+                            ("E" "Export and open" ian/reveal-export-to-html-and-open)]
+                           ["Insert"
+                            ("s" "New slide" ian/reveal-insert-slide)
+                            ("n" "Speaker notes" ian/reveal-insert-notes)
+                            ("f" "Fragment" ian/reveal-insert-fragment)
+                            ("c" "Two columns" ian/reveal-insert-two-columns)
+                            ("b" "Background" ian/reveal-insert-background)]
+                           ["Create"
+                            ("N" "New presentation" ian/reveal-new-presentation)])
 
   (with-eval-after-load 'org
     (define-key org-mode-map (kbd "C-c r r") #'ian/reveal-menu)))
@@ -637,6 +641,15 @@ Thank you!
   :config
   (org-roam-db-autosync-mode))
 
+(use-package deft
+  :after org-roam
+  :bind ("C-c n d" . deft)
+  :custom
+  (deft-recursive t)
+  (deft-use-filter-string-for-filename t)
+  (deft-default-extension "org")
+  (deft-directory org-roam-directory))
+
 ;; Org-roam UI
 (use-package org-roam-ui
   :after org-roam
@@ -683,6 +696,23 @@ Thank you!
   (org-pomodoro-short-break-length 5)
   (org-pomodoro-long-break-length 15)
   (org-pomodoro-long-break-frequency 4))
+
+(use-package org-alert
+  :after org
+  :custom
+  (org-alert-interval 300)
+  (org-alert-notification-title "Org Reminder")
+  :config
+  (org-alert-enable))
+
+(use-package org-journal
+  :after org
+  :bind (("C-c o j" . org-journal-new-entry))
+  :custom
+  (org-journal-dir (expand-file-name "journal" org-directory))
+  (org-journal-date-format "%Y-%m-%d (%A)")
+  (org-journal-file-format "%Y%m%d.org")
+  (org-journal-enable-encryption nil))
 
 ;; --- Org Super Agenda (Better agenda views) ---
 (use-package org-super-agenda
@@ -900,6 +930,20 @@ Thank you!
   (pdf-annot-activate-created-annotations t)
   :config
   (pdf-tools-install :no-query))
+
+(use-package nov
+  :mode ("\\.epub\\'" . nov-mode)
+  :hook (nov-mode . visual-line-mode)
+  :custom
+  (nov-text-width t))
+
+(use-package djvu
+  :mode ("\\.djvu\\'" . djvu-read-mode))
+
+(use-package org-noter
+  :after (org pdf-tools)
+  :custom
+  (org-noter-notes-search-path (list (expand-file-name "notes" org-directory))))
 
 ;; BibTeX
 (use-package bibtex
@@ -1187,4 +1231,3 @@ Thank you!
 
 (provide 'lang-text)
 ;;; lang-text.el ends here
-

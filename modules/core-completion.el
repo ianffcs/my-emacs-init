@@ -179,6 +179,12 @@
 (use-package consult-projectile
   :after (consult projectile))
 
+(use-package anzu
+  :bind (("M-%" . anzu-query-replace)
+         ("C-M-%" . anzu-query-replace-regexp))
+  :config
+  (global-anzu-mode))
+
 ;; ============================================================================
 ;; 5. EMBARK (Actions on Targets)
 ;; ============================================================================

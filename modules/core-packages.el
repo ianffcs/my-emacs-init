@@ -60,6 +60,13 @@
 (setq straight-use-package-by-default t)
 (setq use-package-always-defer t)
 
+(use-package auto-package-update
+  :custom
+  (auto-package-update-delete-old-versions t)
+  (auto-package-update-hide-results t)
+  :config
+  (auto-package-update-maybe))
+
 
 ;; Async operations (from Async section)
 (use-package async

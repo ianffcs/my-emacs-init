@@ -3,34 +3,17 @@
 ;;; Commentary:
 ;; Dashboard configuration for startup screen.
 ;; Includes project bookmarks, recent files, agenda, and quick access.
+;;
+;; NOTE: This file has been cleaned up to remove duplications:
+;; - page-break-lines, nerd-icons, all-the-icons, all-the-icons-completion → core-ui.el
+;;   (These are loaded before this module via init.el load order)
+;;
 ;; Migrated from README.org literate config.
 
 ;;; Code:
 
 ;; ============================================================================
-;; 1. PRE-REQUISITES
-;; ============================================================================
-
-(use-package page-break-lines
-  :diminish
-  :config
-  (global-page-break-lines-mode))
-
-(use-package nerd-icons
-  :custom
-  (nerd-icons-font-family "Symbols Nerd Font Mono"))
-
-(use-package all-the-icons
-  :if (display-graphic-p))
-
-(use-package all-the-icons-completion
-  :after (marginalia all-the-icons)
-  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
-  :config
-  (all-the-icons-completion-mode))
-
-;; ============================================================================
-;; 2. DASHBOARD CONFIGURATION
+;; 1. DASHBOARD CONFIGURATION
 ;; ============================================================================
 
 (use-package dashboard
@@ -187,7 +170,7 @@
   (message "g:refresh n/p:navigate r:recents m:bookmarks p:projects a:agenda f:file b:bookmark s:shell v:vterm q:quit"))
 
 ;; ============================================================================
-;; 3. PROJECT BOOKMARKS
+;; 2. PROJECT BOOKMARKS
 ;; ============================================================================
 
 (defun ian/register-src-projects ()
@@ -224,7 +207,7 @@
   (ian/register-github-projects))
 
 ;; ============================================================================
-;; 4. DESKTOP INTEGRATION
+;; 3. DESKTOP INTEGRATION
 ;; ============================================================================
 
 ;; Prevent desktop-save-mode from saving dashboard buffer
@@ -232,7 +215,7 @@
   (add-to-list 'desktop-modes-not-to-save 'dashboard-mode))
 
 ;; ============================================================================
-;; 5. STARTUP FUNCTIONS
+;; 4. STARTUP FUNCTIONS
 ;; ============================================================================
 
 (defun ian/force-dashboard-startup ()
@@ -274,7 +257,7 @@
 ;;(global-set-key (kbd "C-c h a") #'ian/dashboard-goto-agenda)
 
 ;; ============================================================================
-;; 6. CUSTOM WIDGETS
+;; 5. CUSTOM WIDGETS
 ;; ============================================================================
 
 ;; Weather widget (requires request.el)
@@ -338,7 +321,7 @@
 ;; (add-to-list 'dashboard-items '(system-info) t)
 
 ;; ============================================================================
-;; 7. CUSTOM BANNER
+;; 6. CUSTOM BANNER
 ;; ============================================================================
 
 (defvar ian/dashboard-banners
@@ -372,7 +355,7 @@
 ;; (setq dashboard-startup-banner (ian/dashboard-random-banner))
 
 ;; ============================================================================
-;; 8. RECENT FILES FILTER
+;; 7. RECENT FILES FILTER
 ;; ============================================================================
 
 ;; Filter out certain files from recent files list
@@ -402,7 +385,7 @@
         dashboard-filter-recentf-function #'ian/dashboard-filter-recentf))
 
 ;; ============================================================================
-;; 9. DASHBOARD TRANSIENT MENU
+;; 8. DASHBOARD TRANSIENT MENU
 ;; ============================================================================
 
 (with-eval-after-load 'transient

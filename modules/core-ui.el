@@ -125,6 +125,16 @@
   (all-the-icons-completion-mode))
 
 ;; ============================================================================
+;; 3.5 EMOJI
+;; ============================================================================
+
+(use-package emojify
+  :hook (after-init . global-emojify-mode)
+  :custom
+  (emojify-display-style 'unicode)
+  (emojify-emoji-styles '(unicode)))
+
+;; ============================================================================
 ;; 4. THEMES
 ;; ============================================================================
 
@@ -181,6 +191,26 @@
 ;; ============================================================================
 ;; 5. MODELINE
 ;; ============================================================================
+
+;; Mode icons in modeline
+(use-package mode-icons
+  :config
+  (mode-icons-mode))
+
+;; Nyan cat progress indicator
+(use-package nyan-mode
+  :custom
+  (nyan-animate-nyancat t)
+  (nyan-wavy-trail t)
+  :config
+  (nyan-mode 1))
+
+;; Parrot animation on save
+(use-package parrot
+  :config
+  (parrot-set-parrot-type 'emacs)
+  (parrot-mode)
+  (add-hook 'before-save-hook #'parrot-start-animation))
 
 ;; Doom modeline
 (use-package doom-modeline
@@ -336,9 +366,23 @@
                             ("v" "Visual line" visual-line-mode)]
                            ["Frame"
                             ("f" "Fullscreen" toggle-frame-fullscreen)
-                            ("m" "Maximize" toggle-frame-maximized)])
+                            ("m" "Maximize" toggle-frame-maximized)]
+                           ["Inspect"
+                            ("?" "What face" ian/what-face)])
 
   (global-set-key (kbd "C-c u") #'ian/ui-menu))
+
+;; ============================================================================
+;; 17. HELPER FUNCTIONS
+;; ============================================================================
+
+(defun ian/what-face (pos)
+  "Show the face at POS."
+  (interactive "d")
+  (let ((face (or (get-char-property pos 'read-face-name)
+                  (get-char-property pos 'face))))
+    (if face (message "Face: %s" face) (message "No face at %d" pos))))
+
 
 (provide 'core-ui)
 ;;; core-ui.el ends here

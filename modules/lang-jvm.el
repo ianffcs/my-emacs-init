@@ -17,10 +17,6 @@
                         (setq-local c-basic-offset 4)
                         (setq-local tab-width 4)))))
 
-(use-package java-ts-mode
-  :straight (:type built-in)
-  :defer t)
-
 ;; Eglot Java (Eclipse JDT LS)
 
 (use-package java-ts-mode
