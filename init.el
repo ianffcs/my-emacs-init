@@ -1,43 +1,97 @@
-;;; init.el --- My configs
-;; -*- lexical-binding: t; -*-
+;;; init.el --- Emacs Configuration -*- lexical-binding: t; -*-
 
 ;;; Commentary:
-
-;; Do what you want, but learn your tool very very well.  This is my
-;; attempt to keep my emacs-fu sharpe.
+;; Modular Emacs configuration.
+;; Loads configuration from ~/.emacs.d/modules/
 
 ;;; Code:
-(when (string-equal system-type "darwin")
-  (setenv "LIBRARY_PATH" "/opt/homebrew/opt/gcc/lib/gcc/11:/opt/homebrew/opt/libgccjit/lib/gcc/11:/opt/homebrew/opt/gcc/lib/gcc/11/gcc/aarch64-apple-darwin21/11"))
-(defvar native-comp-deferred-compilation-deny-list nil)
-(defconst emacs-start-time (current-time))
 
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 6))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+;; ============================================================================
+;; BOOTSTRAP
+;; ============================================================================
 
-(setq vc-follow-symlinks t)
-(straight-use-package '(org :type built-in))
-(org-babel-load-file (expand-file-name "~/.emacs.d/README.org"))
-(add-hook 'after-init-hook
-          `(lambda ()
-             (let ((elapsed
-                    (float-time
-                     (time-subtract (current-time) emacs-start-time))))
-               (message "Loading %s...done (%.3fs) [after-init]"
-                        ,load-file-name elapsed))) t)
+
+;; Add modules directory to load path
+(add-to-list 'load-path (expand-file-name "modules" user-emacs-directory))
+
+;; Load package management first
+(require 'core-packages)
+
+;; ============================================================================
+;; CORE MODULES
+;; ============================================================================
+
+(require 'core-settings)    ; Base Emacs settings
+(require 'core-os)          ; OS-specific configuration
+(require 'core-utils)       ; Utility packages (which-key, helpful, etc.)
+(require 'core-editor)      ; Editor behavior (parens, undo, whitespace)
+(require 'core-ui)          ; Theme, fonts, modeline, icons
+(require 'core-completion)  ; Vertico, Consult, Corfu, Embark
+(require 'core-auth)        ; Authentication & security
+(require 'core-session)     ; Session management & persistence
+
+;; ============================================================================
+;; UI MODULES
+;; ============================================================================
+
+(require 'ui-navigation)    ; Avy, search, jumping
+(require 'ui-windows)       ; Window/workspace management
+(require 'ui-buffers)       ; Buffer management (ibuffer)
+(require 'ui-dashboard)     ; Dashboard startup screen
+
+;; ============================================================================
+;; TOOL MODULES
+;; ============================================================================
+
+(require 'tool-dev)         ; Git, LSP, Projectile, TRAMP
+(require 'tool-shell)       ; Eshell, vterm, terminals
+(require 'tool-dired)       ; File manager
+(require 'tool-ai)          ; AI assistants
+(require 'tool-comm)        ; Communication (Telega, IRC, RSS)
+(require 'tool-media)       ; Media player (EMMS, MPD)
+
+;; ============================================================================
+;; LANGUAGE MODULES
+;; ============================================================================
+
+;; Lisp family
+(require 'lang-lisp)        ; Clojure, Common Lisp, Scheme, Racket, Elisp
+
+;; Systems languages
+(require 'lang-systems)     ; C, C++, Rust, Go, Zig
+
+;; JVM languages
+(require 'lang-jvm)         ; Java, Kotlin, Scala, Groovy
+
+;; BEAM languages
+(require 'lang-beam)        ; Elixir, Erlang, Gleam
+
+;; Scripting
+(require 'lang-python)      ; Python
+
+;; Web development
+(require 'lang-web)         ; HTML, CSS, JavaScript, TypeScript
+
+;; Text and writing
+(require 'lang-text)        ; Org, Markdown, LaTeX
+
+;; DevOps
+(require 'lang-ops)         ; Terraform, Ansible, Docker, K8s
+
+;; Miscellaneous
+(require 'lang-misc)        ; Other languages (Ruby, Lua, SQL, etc.)
+(require 'lang-extra)       ; Extra languages (Dart, Julia, R, etc.)
+
+;; ============================================================================
+;; FINALIZE
+;; ============================================================================
+
+;; Report startup time
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (message "Emacs loaded in %.2f seconds with %d garbage collections."
+                     (float-time (time-subtract after-init-time before-init-time))
+                     gcs-done)))
 
 (provide 'init)
-
-;; Local Variables:
-;; coding: utf-8
-;; no-byte-compile: t
+;;; init.el ends here
