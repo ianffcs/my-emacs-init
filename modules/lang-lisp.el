@@ -33,11 +33,18 @@
   :custom
   (parinfer-rust-auto-download t)
   (parinfer-rust-library-directory (expand-file-name "parinfer-rust" user-emacs-directory))
-  ;; Automatically disable conflicting modes (electric-pair-mode, etc.) without prompting
-  (parinfer-rust-auto-disable-troublesome-modes t)
+  ;; Troublesome modes to check for
+  (parinfer-rust-troublesome-modes '(electric-pair-mode hungry-delete-mode))
+  ;; Automatically disable conflicting modes without prompting
+  (parinfer-rust-dim-parens nil)
   ;; Start in smart mode (adapts between indent and paren mode)
   (parinfer-rust-preferred-mode 'smart)
   :config
+  ;; Disable electric-pair-mode in parinfer buffers without prompting
+  (add-hook 'parinfer-rust-mode-hook
+            (lambda ()
+              (when (bound-and-true-p electric-pair-mode)
+                (electric-pair-local-mode -1))))
   ;; Keybinding to toggle parinfer mode
   (define-key parinfer-rust-mode-map (kbd "C-c C-p") #'parinfer-rust-toggle-paren-mode)
   (define-key parinfer-rust-mode-map (kbd "C-c C-s") #'parinfer-rust-switch-mode))

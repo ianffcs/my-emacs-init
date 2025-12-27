@@ -199,5 +199,22 @@
 (global-set-key (kbd "C-c q k") #'ian/kill-all-buffers)
 (global-set-key (kbd "C-c q m") #'ian/toggle-maximize-buffer)
 
+;; ============================================================================
+;; 11. TRY (Try packages without installing)
+;; ============================================================================
+
+(use-package try
+  :commands try)
+
+;; ============================================================================
+;; 12. GOOGLE-THIS (Quick web search)
+;; ============================================================================
+
+(use-package google-this
+  :diminish
+  :bind-keymap ("C-c /" . google-this-mode-submap)
+  :config
+  (google-this-mode 1))
+
 (provide 'core-utils)
 ;;; core-utils.el ends here

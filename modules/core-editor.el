@@ -179,6 +179,10 @@
          ("C-c C-<" . mc/mark-all-like-this)
          ("C-S-<mouse-1>" . mc/add-cursor-on-click)))
 
+;; Edit multiple occurrences simultaneously
+(use-package iedit
+  :bind ("C-c ;" . iedit-mode))
+
 ;; Move text up/down
 (use-package move-text
   :bind (("M-<up>" . move-text-up)

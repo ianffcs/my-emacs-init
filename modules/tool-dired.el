@@ -289,5 +289,17 @@
 
   (global-set-key (kbd "C-c d") #'ian/dired-menu))
 
+;; ============================================================================
+;; 6. DIRED-SIDEBAR (Tree-style file browser)
+;; ============================================================================
+
+(use-package dired-sidebar
+  :bind ("C-c d s" . dired-sidebar-toggle-sidebar)
+  :commands dired-sidebar-toggle-sidebar
+  :custom
+  (dired-sidebar-theme 'icons)
+  (dired-sidebar-use-term-integration t)
+  (dired-sidebar-use-custom-font t))
+
 (provide 'tool-dired)
 ;;; tool-dired.el ends here

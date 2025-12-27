@@ -194,8 +194,6 @@
     (disable-theme ian/light-theme)
     (load-theme ian/dark-theme t)))
 
-(global-set-key (kbd "C-c t t") #'ian/toggle-theme)
-
 ;; Auto-switch based on time
 (defun ian/auto-theme ()
   "Automatically switch theme based on time of day."

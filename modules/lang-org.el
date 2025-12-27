@@ -1,23 +1,21 @@
-;;; lang-text.el --- Text, Markdown, Org, LaTeX & Writing -*- lexical-binding: t; -*-
+;;; lang-org.el --- Org-mode Configuration -*- lexical-binding: t; -*-
 
 ;;; Commentary:
-;; Configuration for text editing and writing:
-;; - Org-mode (notes, agenda, GTD, Roam)
-;; - Markdown & GitHub Flavored Markdown
-;; - LaTeX & AUCTeX
-;; - ReStructuredText & AsciiDoc
-;; - Writing tools (spell check, grammar, focus mode)
-;; - Documentation formats
+;; Comprehensive Org-mode configuration:
+;; - Core org-mode settings
+;; - Agenda and capture
+;; - Babel (code blocks)
+;; - Export (HTML, Markdown, Reveal.js)
+;; - Org-roam (Zettelkasten)
+;; - Visual enhancements (org-modern, org-appear)
+;; - Extensions (pomodoro, journal, super-agenda)
 ;;
-;; NOTE: Text manipulation packages (expand-region, multiple-cursors, etc.)
-;;       are configured in core-editor.el
-;;
-;; Migrated from README.org literate config.
+;; Split from lang-text.el for better organization.
 
 ;;; Code:
 
 ;; ============================================================================
-;; 1. ORG-MODE
+;; 1. ORG-MODE CORE
 ;; ============================================================================
 
 (use-package org
@@ -184,7 +182,10 @@
           ("v" . org-agenda)
           ("/" . org-sparse-tree))))
 
-;; --- Org Agenda ---
+;; ============================================================================
+;; 2. ORG AGENDA
+;; ============================================================================
+
 (use-package org-agenda
   :straight (:type built-in)
   :after org
@@ -250,7 +251,10 @@
             (todo "CANCELLED"
                   ((org-agenda-overriding-header "Cancelled Tasks"))))))))
 
-;; --- Org Capture ---
+;; ============================================================================
+;; 3. ORG CAPTURE
+;; ============================================================================
+
 (use-package org-capture
   :straight (:type built-in)
   :after org
@@ -283,7 +287,10 @@
      ("w" "Weekly Review" entry (file+olp+datetree "reviews.org")
       "* Weekly Review %U\n** What went well?\n- %?\n** What could be improved?\n- \n** Goals for next week\n- [ ] " :clock-in t :clock-resume t))))
 
-;; --- Org Babel ---
+;; ============================================================================
+;; 4. ORG BABEL
+;; ============================================================================
+
 (use-package ob
   :straight (:type built-in)
   :after org
@@ -311,7 +318,6 @@
      (clojure . t)
      (scheme . t)
      (lisp . t)
-     (racket . t)
      (restclient . t)))
 
   ;; Don't ask for confirmation
@@ -327,7 +333,30 @@
           (:hlines . "no")
           (:tangle . "no"))))
 
-;; --- Org Export ---
+;; Async babel execution
+(use-package ob-async
+  :after ob)
+
+;; Go babel support
+(use-package ob-go
+  :after ob)
+
+;; Kotlin babel support
+(use-package ob-kotlin
+  :after ob)
+
+;; Racket babel support
+(use-package ob-racket
+  :straight (:host github :repo "hasu/emacs-ob-racket")
+  :after ob
+  :config
+  (add-to-list 'org-babel-load-languages '(racket . t))
+  (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages))
+
+;; ============================================================================
+;; 5. ORG EXPORT
+;; ============================================================================
+
 (use-package ox
   :straight (:type built-in)
   :after org
@@ -355,6 +384,10 @@
   :straight (:type built-in)
   :after ox)
 
+;; Htmlize - syntax highlighting for HTML export
+(use-package htmlize
+  :after ox)
+
 ;; GitHub Flavored Markdown
 (use-package ox-gfm
   :after ox)
@@ -367,7 +400,10 @@
 (use-package ox-pandoc
   :after ox)
 
-;; --- Emacs Reveal (Presentations) ---
+;; ============================================================================
+;; 6. REVEAL.JS PRESENTATIONS
+;; ============================================================================
+
 (use-package emacs-reveal
   :straight (:host gitlab :repo "oer/emacs-reveal")
   :after org
@@ -565,7 +601,10 @@ Thank you!
   (with-eval-after-load 'org
     (define-key org-mode-map (kbd "C-c r r") #'ian/reveal-menu)))
 
-;; --- Org Modern (Visual Enhancements) ---
+;; ============================================================================
+;; 7. ORG VISUAL ENHANCEMENTS
+;; ============================================================================
+
 (use-package org-modern
   :hook ((org-mode . org-modern-mode)
          (org-agenda-finalize . org-modern-agenda))
@@ -584,7 +623,6 @@ Thank you!
      ("example" "»–" "–«")
      ("quote" "❝" "❞"))))
 
-;; --- Org Appear (Show emphasis markers on cursor) ---
 (use-package org-appear
   :hook (org-mode . org-appear-mode)
   :custom
@@ -595,7 +633,10 @@ Thank you!
   (org-appear-autokeywords t)
   (org-appear-inside-latex t))
 
-;; --- Org Roam (Zettelkasten / Second Brain) ---
+;; ============================================================================
+;; 8. ORG-ROAM (Zettelkasten)
+;; ============================================================================
+
 (use-package org-roam
   :custom
   (org-roam-directory (expand-file-name "roam" org-directory))
@@ -651,6 +692,10 @@ Thank you!
   (org-roam-ui-update-on-save t)
   (org-roam-ui-open-on-start nil))
 
+;; ============================================================================
+;; 9. ORG EXTENSIONS
+;; ============================================================================
+
 ;; --- Org Download (Paste images) ---
 (use-package org-download
   :after org
@@ -677,6 +722,14 @@ Thank you!
   :commands (org-web-tools-insert-link-for-url
              org-web-tools-insert-web-page-as-entry
              org-web-tools-read-url-as-org))
+
+;; --- Org Ref (Citations and bibliography) ---
+(use-package org-ref
+  :after org
+  :custom
+  (org-ref-default-bibliography '("~/org/bibliography/references.bib"))
+  (org-ref-pdf-directory "~/org/bibliography/pdfs/")
+  (org-ref-notes-directory "~/org/bibliography/notes/"))
 
 ;; --- Org Pomodoro (Time management) ---
 (use-package org-pomodoro
@@ -790,430 +843,5 @@ Thank you!
          ("C-c N b" . denote-link-backlinks)
          ("C-c N f" . denote-link-find-file)))
 
-;; ============================================================================
-;; 2. MARKDOWN
-;; ============================================================================
-
-(use-package markdown-mode
-  :mode (("README\\.md\\'" . gfm-mode)
-         ("\\.md\\'" . markdown-mode)
-         ("\\.markdown\\'" . markdown-mode)
-         ("\\.mkd\\'" . markdown-mode)
-         ("\\.mdx\\'" . markdown-mode))
-  :hook ((markdown-mode . auto-fill-mode)
-         (markdown-mode . visual-line-mode)
-         (markdown-mode . flyspell-mode)
-         (markdown-mode . ian/markdown-setup))
-  :bind (:map markdown-mode-map
-              ("C-c C-e" . markdown-export)
-              ("C-c C-p" . markdown-preview)
-              ("C-c C-o" . markdown-follow-thing-at-point)
-              ("C-c '" . markdown-edit-code-block))
-  :custom
-  (markdown-command "pandoc")
-  (markdown-enable-math t)
-  (markdown-enable-wiki-links t)
-  (markdown-italic-underscore t)
-  (markdown-asymmetric-header t)
-  (markdown-make-gfm-checkboxes-buttons t)
-  (markdown-gfm-uppercase-checkbox t)
-  (markdown-fontify-code-blocks-natively t)
-  (markdown-gfm-additional-languages '("sh" "elisp" "clojure" "python" "rust"))
-  (markdown-header-scaling t)
-  (markdown-indent-on-enter 'indent-and-new-item)
-  (markdown-hide-urls nil)
-  (markdown-hr-display-char ?─)
-  :config
-  (defun ian/markdown-setup ()
-    "Custom markdown mode setup."
-    (setq-local fill-column 80)
-    (setq-local truncate-lines nil)
-    (setq-local word-wrap t))
-
-  (defun ian/markdown-set-faces ()
-    "Set markdown faces for better readability."
-    (variable-pitch-mode 1)
-    (set-face-attribute 'markdown-code-face nil :inherit 'fixed-pitch)
-    (set-face-attribute 'markdown-inline-code-face nil :inherit 'fixed-pitch)
-    (set-face-attribute 'markdown-pre-face nil :inherit 'fixed-pitch))
-
-  (add-hook 'markdown-mode-hook #'ian/markdown-set-faces))
-
-;; Live preview
-(use-package markdown-preview-mode
-  :after markdown-mode
-  :commands markdown-preview-mode)
-
-;; Table of contents
-(use-package markdown-toc
-  :after markdown-mode
-  :bind (:map markdown-mode-map
-              ("C-c C-t" . markdown-toc-generate-or-refresh-toc)))
-
-;; Edit code blocks in separate buffer
-(use-package edit-indirect
-  :after markdown-mode)
-
-;; ============================================================================
-;; 3. GITHUB FLAVORED MARKDOWN
-;; ============================================================================
-
-(use-package grip-mode
-  :after markdown-mode
-  :bind (:map markdown-mode-map
-              ("C-c C-g" . grip-mode))
-  :custom
-  (grip-preview-use-webkit nil))
-
-;; ============================================================================
-;; 4. LATEX & AUCTEX
-;; ============================================================================
-
-(use-package tex
-  :straight auctex
-  :mode (("\\.tex\\'" . latex-mode)
-         ("\\.ltx\\'" . latex-mode)
-         ("\\.cls\\'" . latex-mode)
-         ("\\.sty\\'" . latex-mode)
-         ("\\.bbl\\'" . latex-mode))
-  :hook ((LaTeX-mode . turn-on-reftex)
-         (LaTeX-mode . LaTeX-math-mode)
-         (LaTeX-mode . flyspell-mode)
-         (LaTeX-mode . visual-line-mode)
-         (LaTeX-mode . TeX-source-correlate-mode))
-  :custom
-  (TeX-auto-save t)
-  (TeX-parse-self t)
-  (TeX-master nil)
-  (TeX-PDF-mode t)
-  (TeX-engine 'xetex)
-  (TeX-source-correlate-start-server t)
-  (TeX-view-program-selection '((output-pdf "PDF Tools")))
-  :config
-  (setq-default TeX-master nil))
-
-;; RefTeX for cross-references
-(use-package reftex
-  :straight (:type built-in)
-  :after tex
-  :custom
-  (reftex-plug-into-AUCTeX t)
-  (reftex-default-bibliography '("~/Documents/bibliography.bib")))
-
-;; Company completion for LaTeX
-(use-package company-auctex
-  :after (company tex)
-  :config
-  (company-auctex-init))
-
-;; Math preview in buffer
-(use-package company-math
-  :after (company tex))
-
-;; PDF viewing
-(use-package pdf-tools
-  :mode ("\\.pdf\\'" . pdf-view-mode)
-  :hook (pdf-view-mode . pdf-tools-enable-minor-modes)
-  :custom
-  (pdf-view-display-size 'fit-page)
-  (pdf-annot-activate-created-annotations t)
-  :config
-  (pdf-tools-install :no-query))
-
-(use-package nov
-  :mode ("\\.epub\\'" . nov-mode)
-  :hook (nov-mode . visual-line-mode)
-  :custom
-  (nov-text-width t))
-
-(use-package djvu
-  :mode ("\\.djvu\\'" . djvu-read-mode))
-
-(use-package org-noter
-  :after (org pdf-tools)
-  :custom
-  (org-noter-notes-search-path (list (expand-file-name "notes" org-directory))))
-
-;; BibTeX
-(use-package bibtex
-  :straight (:type built-in)
-  :mode ("\\.bib\\'" . bibtex-mode)
-  :custom
-  (bibtex-align-at-equal-sign t)
-  (bibtex-autokey-name-year-separator "-")
-  (bibtex-autokey-year-title-separator "-"))
-
-;; ============================================================================
-;; 5. RESTRUCTUREDTEXT
-;; ============================================================================
-
-(use-package rst
-  :straight (:type built-in)
-  :mode (("\\.rst\\'" . rst-mode)
-         ("\\.rest\\'" . rst-mode))
-  :hook ((rst-mode . flyspell-mode)
-         (rst-mode . visual-line-mode)))
-
-;; Sphinx documentation
-(use-package sphinx-mode
-  :after rst
-  :hook (rst-mode . sphinx-mode))
-
-;; ============================================================================
-;; 6. ASCIIDOC
-;; ============================================================================
-
-(use-package adoc-mode
-  :mode (("\\.adoc\\'" . adoc-mode)
-         ("\\.asciidoc\\'" . adoc-mode))
-  :hook ((adoc-mode . flyspell-mode)
-         (adoc-mode . visual-line-mode)))
-
-;; ============================================================================
-;; 7. JINJA2 TEMPLATES
-;; ============================================================================
-
-(use-package jinja2-mode
-  :mode (("\\.j2\\'" . jinja2-mode)
-         ("\\.jinja2?\\'" . jinja2-mode)))
-
-;; ============================================================================
-;; 8. SPELL CHECKING
-;; ============================================================================
-
-(use-package flyspell
-  :straight (:type built-in)
-  :hook ((text-mode . flyspell-mode)
-         (prog-mode . flyspell-prog-mode))
-  :custom
-  (flyspell-issue-message-flag nil)
-  (flyspell-issue-welcome-flag nil)
-  :config
-  ;; Use aspell if available
-  (when (executable-find "aspell")
-    (setq ispell-program-name "aspell"
-          ispell-extra-args '("--sug-mode=ultra" "--lang=en_US")))
-
-  ;; Or use hunspell
-  (when (and (not (executable-find "aspell"))
-             (executable-find "hunspell"))
-    (setq ispell-program-name "hunspell"
-          ispell-local-dictionary "en_US")))
-
-;; Spell correction with Consult
-(use-package consult-flyspell
-  :after (consult flyspell)
-  :bind (:map flyspell-mode-map
-              ("C-;" . consult-flyspell)))
-
-;; Spell-fu - faster spell checking
-(use-package spell-fu
-  :hook (text-mode . spell-fu-mode)
-  :custom
-  (spell-fu-faces-exclude '(org-meta-line org-link org-code org-block)))
-
-;; ============================================================================
-;; 9. GRAMMAR CHECKING
-;; ============================================================================
-
-;; LanguageTool integration
-(use-package langtool
-  :commands (langtool-check langtool-correct-buffer)
-  :custom
-  (langtool-language-tool-jar (expand-file-name "~/.local/share/languagetool/languagetool-commandline.jar"))
-  (langtool-default-language "en-US"))
-
-;; Writegood mode - highlight weak writing
-(use-package writegood-mode
-  :hook ((markdown-mode . writegood-mode)
-         (org-mode . writegood-mode)
-         (latex-mode . writegood-mode))
-  :bind ("C-c w" . writegood-mode))
-
-;; ============================================================================
-;; 10. FOCUS & DISTRACTION-FREE WRITING
-;; ============================================================================
-
-;; Olivetti - centered text
-(use-package olivetti
-  :hook ((text-mode . olivetti-mode)
-         (org-mode . olivetti-mode)
-         (markdown-mode . olivetti-mode))
-  :custom
-  (olivetti-body-width 80)
-  (olivetti-minimum-body-width 72))
-
-;; Focus mode - dim surrounding text
-(use-package focus
-  :commands focus-mode
-  :custom
-  (focus-mode-to-thing '((prog-mode . defun)
-                         (text-mode . paragraph))))
-
-;; Darkroom - distraction-free writing
-(use-package darkroom
-  :commands darkroom-mode)
-
-;; ============================================================================
-;; 11. WORD COUNT & STATISTICS
-;; ============================================================================
-
-(use-package wc-mode
-  :hook ((markdown-mode . wc-mode)
-         (org-mode . wc-mode)
-         (latex-mode . wc-mode))
-  :custom
-  (wc-modeline-format "[%tw words]"))
-
-;; Count words in region/buffer
-(defun ian/count-words-buffer ()
-  "Count words in buffer and display."
-  (interactive)
-  (message "Words: %d | Characters: %d | Lines: %d"
-           (count-words (point-min) (point-max))
-           (- (point-max) (point-min))
-           (count-lines (point-min) (point-max))))
-
-(global-set-key (kbd "C-c C-w") #'ian/count-words-buffer)
-
-;; ============================================================================
-;; 12. TYPOGRAPHIC ENHANCEMENTS
-;; ============================================================================
-
-;; NOTE: Text manipulation packages (expand-region, multiple-cursors, etc.)
-;; are configured in core-editor.el
-
-;; Smart quotes and dashes
-(use-package typo
-  :hook ((markdown-mode . typo-mode)
-         (org-mode . typo-mode))
-  :custom
-  (typo-language "English"))
-
-;; Unicode input
-(use-package company-emoji
-  :after company)
-
-;; ============================================================================
-;; 13. PANDOC (Universal Document Converter)
-;; ============================================================================
-
-(use-package pandoc-mode
-  :hook ((markdown-mode . pandoc-mode)
-         (rst-mode . pandoc-mode)
-         (org-mode . pandoc-mode))
-  :bind (:map pandoc-mode-map
-              ("C-c p" . pandoc-main-hydra/body)))
-
-;; ============================================================================
-;; 14. NOVELS & CREATIVE WRITING
-;; ============================================================================
-
-(use-package fountain-mode
-  :mode "\\.fountain\\'"
-  :custom
-  (fountain-export-command-pdf "afterwriting"))
-
-;; ============================================================================
-;; 15. LOG FILES
-;; ============================================================================
-
-(use-package logview
-  :mode (("\\.log\\'" . logview-mode)
-         ("log\\'" . logview-mode)))
-
-(use-package syslog-mode
-  :mode (("/var/log.*\\'" . syslog-mode)
-         ("\\.syslog\\'" . syslog-mode)))
-
-;; ============================================================================
-;; 16. CSV & TSV
-;; ============================================================================
-
-(use-package csv-mode
-  :mode (("\\.csv\\'" . csv-mode)
-         ("\\.tsv\\'" . csv-mode))
-  :hook (csv-mode . csv-align-mode)
-  :custom
-  (csv-separators '("," ";" "|" "\t")))
-
-;; ============================================================================
-;; 17. LEDGER (Plain Text Accounting)
-;; ============================================================================
-
-(use-package ledger-mode
-  :mode "\\.ledger\\'"
-  :custom
-  (ledger-clear-whole-transactions t))
-
-;; ============================================================================
-;; 18. APHELEIA FORMATTERS
-;; ============================================================================
-
-(with-eval-after-load 'apheleia
-  ;; Markdown (prettier)
-  (setf (alist-get 'markdown-mode apheleia-mode-alist) '(prettier))
-  (setf (alist-get 'gfm-mode apheleia-mode-alist) '(prettier))
-
-  ;; LaTeX (latexindent)
-  (setf (alist-get 'latexindent apheleia-formatters)
-        '("latexindent" "-"))
-  (setf (alist-get 'latex-mode apheleia-mode-alist) '(latexindent)))
-
-;; ============================================================================
-;; 19. USEFUL WRITING FUNCTIONS
-;; ============================================================================
-
-(defun ian/writing-mode ()
-  "Enable distraction-free writing environment."
-  (interactive)
-  (olivetti-mode 1)
-  (display-line-numbers-mode -1)
-  (visual-line-mode 1)
-  (flyspell-mode 1)
-  (writegood-mode 1)
-  (wc-mode 1))
-
-(defun ian/toggle-prose-mode ()
-  "Toggle between prose and code editing modes."
-  (interactive)
-  (if (bound-and-true-p olivetti-mode)
-      (progn
-        (olivetti-mode -1)
-        (variable-pitch-mode -1)
-        (display-line-numbers-mode 1))
-    (progn
-      (olivetti-mode 1)
-      (variable-pitch-mode 1)
-      (display-line-numbers-mode -1))))
-
-(defun ian/insert-date ()
-  "Insert current date in ISO format."
-  (interactive)
-  (insert (format-time-string "%Y-%m-%d")))
-
-(defun ian/insert-datetime ()
-  "Insert current date and time."
-  (interactive)
-  (insert (format-time-string "%Y-%m-%d %H:%M:%S")))
-
-(defun ian/titlecase-region (beg end)
-  "Convert region from BEG to END to title case."
-  (interactive "r")
-  (let ((case-fold-search nil))
-    (save-excursion
-      (goto-char beg)
-      (while (< (point) end)
-        (let ((word (thing-at-point 'word t)))
-          (when word
-            (delete-region (match-beginning 0) (match-end 0))
-            (insert (capitalize word))))
-        (forward-word)))))
-
-(global-set-key (kbd "C-c t w") #'ian/writing-mode)
-(global-set-key (kbd "C-c t p") #'ian/toggle-prose-mode)
-(global-set-key (kbd "C-c t d") #'ian/insert-date)
-(global-set-key (kbd "C-c t t") #'ian/insert-datetime)
-
-(provide 'lang-text)
-;;; lang-text.el ends here
+(provide 'lang-org)
+;;; lang-org.el ends here

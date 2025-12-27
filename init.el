@@ -73,7 +73,9 @@
 (require 'lang-web)         ; HTML, CSS, JavaScript, TypeScript
 
 ;; Text and writing
-(require 'lang-text)        ; Org, Markdown, LaTeX
+(require 'lang-org)         ; Org-mode, Roam, Babel, Export
+(require 'lang-markdown)    ; Markdown, writing tools, spell check
+(require 'lang-latex)       ; LaTeX, PDF viewing, BibTeX
 
 ;; DevOps
 (require 'lang-ops)         ; Terraform, Ansible, Docker, K8s

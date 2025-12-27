@@ -60,6 +60,15 @@
                       :weight 'bold
                       :height 2.0))
 
+;; Switch-window (visual window switching alternative)
+(use-package switch-window
+  :bind ("C-x o" . switch-window)
+  :custom
+  (switch-window-shortcut-style 'qwerty)
+  (switch-window-qwerty-shortcuts '("a" "s" "d" "f" "j" "k" "l" ";"))
+  (switch-window-minibuffer-shortcut ?z)
+  (switch-window-threshold 2))
+
 ;; ============================================================================
 ;; 4. TAB-BAR (Workspaces)
 ;; ============================================================================
