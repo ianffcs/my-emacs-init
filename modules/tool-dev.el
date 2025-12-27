@@ -176,23 +176,117 @@
 
   ;; Clojure LSP
   (add-to-list 'eglot-server-programs
-               '((clojure-mode clojurec-mode clojurescript-mode clojure-ts-mode)
+               '((clojure-mode clojure-ts-mode clojurec-mode
+                               clojure-ts-clojurec-mode clojurescript-mode
+                               clojure-ts-clojurescript-mode)
                  . ("clojure-lsp")))
 
   ;; Elixir
   (add-to-list 'eglot-server-programs
-               '((elixir-mode elixir-ts-mode) . ("elixir-ls")))
+               '((elixir-mode elixir-ts-mode heex-ts-mode) . ("elixir-ls")))
+
+  ;; Erlang
+  (add-to-list 'eglot-server-programs
+               '(erlang-mode . ("erlang_ls")))
+
+  ;; Gleam
+  (add-to-list 'eglot-server-programs
+               '((gleam-mode gleam-ts-mode) . ("gleam" "lsp")))
 
   ;; Haskell
   (add-to-list 'eglot-server-programs
                '(haskell-mode . ("haskell-language-server-wrapper" "--lsp")))
 
-  ;; NOTE: Server programs for C/C++, Rust, Go, Python, Terraform, etc.
-  ;; are defined in their respective lang-*.el modules
+  ;; Dart
+  (add-to-list 'eglot-server-programs
+               '(dart-mode . ("dart" "language-server" "--protocol=lsp")))
 
-  ;; Centralized workspace configuration for all languages
-  (setq-default eglot-workspace-configuration
-                '(:clojure-lsp (:lens (:enable t)))))
+  ;; R
+  (add-to-list 'eglot-server-programs
+               '(ess-r-mode . ("R" "--slave" "-e" "languageserver::run()")))
+
+  ;; Julia
+  (add-to-list 'eglot-server-programs
+               '(julia-mode . ("julia" "--startup-file=no" "--history-file=no"
+                               "-e" "using LanguageServer; runserver()")))
+
+  ;; Racket
+  (add-to-list 'eglot-server-programs
+               '(racket-mode . ("racket" "-l" "racket-langserver")))
+
+  ;; Ruby
+  (add-to-list 'eglot-server-programs
+               '((ruby-mode ruby-ts-mode) . ("solargraph" "stdio")))
+
+  ;; Lua
+  (add-to-list 'eglot-server-programs
+               '(lua-mode . ("lua-language-server")))
+
+  ;; Bash
+  (add-to-list 'eglot-server-programs
+               '((sh-mode bash-ts-mode) . ("bash-language-server" "start")))
+
+  ;; Kotlin
+  (add-to-list 'eglot-server-programs
+               '((kotlin-mode kotlin-ts-mode) . ("kotlin-language-server")))
+
+  ;; Scala
+  (add-to-list 'eglot-server-programs
+               '((scala-mode scala-ts-mode) . ("metals")))
+
+  ;; C/C++
+  (add-to-list 'eglot-server-programs
+               '((c-mode c-ts-mode c++-mode c++-ts-mode)
+                 . ("clangd" "--background-index" "--clang-tidy")))
+
+  ;; Rust
+  (add-to-list 'eglot-server-programs
+               '((rust-mode rust-ts-mode) . ("rust-analyzer")))
+
+  ;; Go
+  (add-to-list 'eglot-server-programs
+               '((go-mode go-ts-mode) . ("gopls")))
+
+  ;; Zig
+  (add-to-list 'eglot-server-programs
+               '(zig-mode . ("zls")))
+
+  ;; Python
+  (add-to-list 'eglot-server-programs
+               '((python-mode python-ts-mode)
+                 . ("pyright-langserver" "--stdio")))
+
+  ;; Terraform
+  (add-to-list 'eglot-server-programs
+               '(terraform-mode . ("terraform-ls" "serve")))
+
+  ;; Dockerfile
+  (add-to-list 'eglot-server-programs
+               '((dockerfile-mode dockerfile-ts-mode)
+                 . ("docker-langserver" "--stdio")))
+
+  ;; Nix
+  (add-to-list 'eglot-server-programs
+               '((nix-mode nix-ts-mode) . ("nil")))
+
+  (when (fboundp 'ian/eglot-add-workspace-config)
+    (ian/eglot-add-workspace-config
+     :clojure-lsp '(:lens (:enable t)
+                          :semantic-tokens (:enable t)
+                          :source-paths ["src" "test" "dev"]))
+    (ian/eglot-add-workspace-config
+     :rust-analyzer '(:check (:command "clippy")
+                      :cargo (:buildScripts (:enable t))
+                      :procMacro (:enable t)))
+    (ian/eglot-add-workspace-config
+     :gopls '(:staticcheck t
+            :usePlaceholders t
+            :completeUnimported t))
+    (ian/eglot-add-workspace-config
+     :python.analysis '(:autoSearchPaths t
+                        :useLibraryCodeForTypes t
+                        :diagnosticMode "workspace"
+                        :typeCheckingMode "basic"))))
 
 (use-package consult-eglot
   :after (consult eglot)
@@ -209,14 +303,12 @@
 ;; 4. SYNTAX CHECKING (Flymake)
 ;; ============================================================================
 
+(use-package flycheck
+  :defer t)
+
 (use-package flymake
   :straight (:type built-in)
   :hook (prog-mode . flymake-mode)
-  :bind (:map flymake-mode-map
-              ("M-n" . flymake-goto-next-error)
-              ("M-p" . flymake-goto-prev-error)
-              ("C-c ! l" . flymake-show-buffer-diagnostics)
-              ("C-c ! L" . flymake-show-project-diagnostics))
   :custom
   (flymake-no-changes-timeout 0.5)
   (flymake-start-on-save-buffer t))
@@ -372,12 +464,7 @@
 
 (use-package hideshow
   :straight (:type built-in)
-  :hook (prog-mode . hs-minor-mode)
-  :bind (:map hs-minor-mode-map
-              ("C-c h h" . hs-toggle-hiding)
-              ("C-c h a" . hs-hide-all)
-              ("C-c h s" . hs-show-all)
-              ("C-c h l" . hs-hide-level)))
+  :hook (prog-mode . hs-minor-mode))
 
 ;; ============================================================================
 ;; 15. MISC DEV TOOLS
@@ -394,8 +481,6 @@
 
 (use-package compile
   :straight (:type built-in)
-  :bind (("C-c c c" . compile)
-         ("C-c c r" . recompile))
   :custom
   (compilation-always-kill t)
   (compilation-ask-about-save nil)
@@ -409,4 +494,3 @@
 
 (provide 'tool-dev)
 ;;; tool-dev.el ends here
-

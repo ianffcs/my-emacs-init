@@ -18,12 +18,7 @@
   :mode (("\\.ex\\'" . elixir-ts-mode)
          ("\\.exs\\'" . elixir-ts-mode)
          ("mix\\.lock\\'" . elixir-ts-mode))
-  :hook ((elixir-ts-mode . subword-mode))
-  :config 
-  (add-to-list 'auto-mode-alist '("\\.eex\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.leex\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.heex\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.sface\\'" . web-mode)))
+  :hook ((elixir-ts-mode . subword-mode)))
 
 ;; Mix integration
 (use-package mix
@@ -149,25 +144,7 @@
               ("C-c C-b" . inf-elixir-send-buffer)))
 
 ;; ============================================================================
-;; 7. LSP CONFIGURATION
-;; ============================================================================
-
-(with-eval-after-load 'eglot
-  ;; ElixirLS
-  (add-to-list 'eglot-server-programs
-               '((elixir-ts-mode heex-ts-mode)
-                 . ("elixir-ls")))
-
-  ;; Erlang LS
-  (add-to-list 'eglot-server-programs
-               '(erlang-mode . ("erlang_ls")))
-
-  ;; Gleam LSP
-  (add-to-list 'eglot-server-programs
-               '((gleam-mode gleam-ts-mode) . ("gleam" "lsp"))))
-
-;; ============================================================================
-;; 8. APHELEIA FORMATTERS
+;; 7. APHELEIA FORMATTERS
 ;; ============================================================================
 
 (with-eval-after-load 'apheleia
@@ -217,4 +194,3 @@
 
 (provide 'lang-beam)
 ;;; lang-beam.el ends here
-

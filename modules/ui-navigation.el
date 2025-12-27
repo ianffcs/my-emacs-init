@@ -49,7 +49,6 @@
 
 (use-package imenu
   :straight (:type built-in)
-  :bind ("M-g i" . imenu)
   :custom
   (imenu-auto-rescan t)
   (imenu-max-item-length 100))
@@ -62,14 +61,8 @@
   (imenu-list-position 'right))
 
 ;; ============================================================================
-;; 4. BOOKMARKS
+;; 4. BOOKMARKS (bm)
 ;; ============================================================================
-
-(use-package bookmark
-  :straight (:type built-in)
-  :custom
-  (bookmark-save-flag 1)
-  (bookmark-default-file (expand-file-name "bookmarks" user-emacs-directory)))
 
 (use-package bm
   :bind (("C-c j b" . bm-toggle)
@@ -86,6 +79,9 @@
 
 (use-package pulse
   :straight (:type built-in)
+  :custom
+  (pulse-delay 0.04)
+  (pulse-iterations 10)
   :config
   (defun ian/pulse-line (&rest _)
     "Pulse the current line."

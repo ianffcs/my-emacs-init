@@ -58,5 +58,16 @@
 (when (file-exists-p custom-file)
   (load custom-file 'noerror 'nomessage))
 
+;; ============================================================================
+;; 5. AUTO MODE ASSOCIATIONS
+;; ============================================================================
+
+(add-to-list 'auto-mode-alist '("\\.eex\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.leex\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.heex\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.sface\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("template\\.yaml\\'" . cfn-mode))
+(add-to-list 'auto-mode-alist '("samconfig\\.toml\\'" . toml-mode))
+
 (provide 'core-settings)
 ;;; core-settings.el ends here

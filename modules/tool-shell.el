@@ -12,7 +12,6 @@
 
 (use-package eshell
   :straight (:type built-in)
-  :bind ("C-c t e" . eshell)
   :hook ((eshell-mode . (lambda ()
                           (setq-local scroll-margin 0)
                           (setq-local truncate-lines t)
@@ -117,15 +116,6 @@
   (vterm-kill-buffer-on-exit t)
   (vterm-always-compile-module t)
   :config
-  ;; Display vterm in bottom window
-  (add-to-list 'display-buffer-alist
-               '("\\*vterm\\*"
-                 (display-buffer-reuse-window display-buffer-in-side-window)
-                 (side . bottom)
-                 (slot . 0)
-                 (window-height . 0.3)
-                 (reusable-frames . visible)))
-
   ;; Directory tracking
   (defun ian/vterm-directory-sync ()
     "Sync vterm directory with default-directory."
@@ -151,8 +141,8 @@
 ;; Vterm toggle
 (use-package vterm-toggle
   :after vterm
-  :bind (("C-c t t" . vterm-toggle)
-         ("C-c t T" . vterm-toggle-cd))
+  ;;  :bind (("C-c t t" . vterm-toggle)
+  ;;       ("C-c t T" . vterm-toggle-cd))
   :custom
   (vterm-toggle-scope 'project)
   (vterm-toggle-fullscreen-p nil)
@@ -162,7 +152,7 @@
 ;; Multi-vterm (multiple terminals)
 (use-package multi-vterm
   :after vterm
-  :bind (("C-c t n" . multi-vterm)
+  :bind (;;("C-c t n" . multi-vterm)
          ("C-c t p" . multi-vterm-project)
          ("C-c t ]" . multi-vterm-next)
          ("C-c t [" . multi-vterm-prev)))
@@ -265,9 +255,8 @@
                            ["Navigate"
                             ("[" "Prev vterm" multi-vterm-prev)
                             ("]" "Next vterm" multi-vterm-next)
-                            ("s" "Shell pop" shell-pop)])
-
-  (global-set-key (kbd "C-c t") #'ian/terminal-menu))
+                            ("s" "Shell pop" shell-pop)]))
+;;(global-set-key (kbd "C-c t") #'ian/terminal-menu)
 
 (provide 'tool-shell)
 ;;; tool-shell.el ends here

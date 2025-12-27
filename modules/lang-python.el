@@ -214,33 +214,7 @@
                  :python (lambda () (pyvenv-virtualenv-name)))))
 
 ;; ============================================================================
-;; 9. EGLOT SERVER CONFIGURATION
-;; ============================================================================
-
-(with-eval-after-load 'eglot
-  ;; Pyright (faster, type-focused)
-  (add-to-list 'eglot-server-programs
-               '((python-mode python-ts-mode)
-                 . ("pyright-langserver" "--stdio")))
-
-  ;; Python/Pyright configuration using helper if available
-  (if (fboundp 'ian/eglot-add-workspace-config)
-      (ian/eglot-add-workspace-config
-       :python.analysis '(:autoSearchPaths t
-                          :useLibraryCodeForTypes t
-                          :diagnosticMode "workspace"
-                          :typeCheckingMode "basic"))
-    ;; Fallback if helper not yet loaded
-    (setq-default eglot-workspace-configuration
-                  (plist-put (default-value 'eglot-workspace-configuration)
-                             :python.analysis
-                             '(:autoSearchPaths t
-                               :useLibraryCodeForTypes t
-                               :diagnosticMode "workspace"
-                               :typeCheckingMode "basic")))))
-
-;; ============================================================================
-;; 10. APHELEIA FORMATTERS
+;; 9. APHELEIA FORMATTERS
 ;; ============================================================================
 
 (with-eval-after-load 'apheleia
@@ -311,14 +285,7 @@
   :mode "\\.pyx\\'")
 
 ;; ============================================================================
-;; 13. ORG-BABEL PYTHON
-;; ============================================================================
-
-(with-eval-after-load 'org
-  (add-to-list 'org-babel-load-languages '(python . t)))
-
-;; ============================================================================
-;; 14. TRANSIENT MENU
+;; 13. TRANSIENT MENU
 ;; ============================================================================
 
 (with-eval-after-load 'transient
@@ -352,4 +319,3 @@
 
 (provide 'lang-python)
 ;;; lang-python.el ends here
-

@@ -80,14 +80,10 @@
   :straight (:type built-in)
   :mode (("\\.js\\'"  . js-ts-mode)
          ("\\.mjs\\'" . js-ts-mode)
-         ("\\.cjs\\'" . js-ts-mode))
+         ("\\.cjs\\'" . js-ts-mode)
+         ("\\.jsx\\'" . js-ts-mode))
   :hook (js-ts-mode . (lambda ()
                         (setq-local js-indent-level 2))))
-
-;; JSX
-(use-package js-ts-mode
-  :straight (:type built-in)
-  :mode (("\\.jsx\\'" . js-ts-mode)))
 
 ;; ============================================================================
 ;; 5. TYPESCRIPT / TSX

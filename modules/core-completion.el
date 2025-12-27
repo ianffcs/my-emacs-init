@@ -37,6 +37,19 @@
                    "  ")
                  cand))))
 
+;; ============================================================================
+;; 2. COMPANY (Dependency for company-* integrations)
+;; ============================================================================
+
+(use-package company
+  :defer t
+  :config
+  (add-to-list 'company-backends 'company-ansible)
+  (add-to-list 'company-backends 'company-nginx)
+  (add-to-list 'company-backends 'company-math-symbols-latex)
+  (add-to-list 'company-backends 'company-latex-commands)
+  (add-to-list 'company-backends 'company-emoji))
+
 ;; Vertico extensions
 (use-package vertico-directory
   :straight nil
@@ -99,7 +112,6 @@
   :bind (;; C-c bindings
          ("C-c h" . consult-history)
          ("C-c m" . consult-mode-command)
-         ("C-c k" . consult-kmacro)
          ;; C-x bindings
          ("C-x M-:" . consult-complex-command)
          ("C-x b" . consult-buffer)
@@ -108,9 +120,7 @@
          ("C-x r b" . consult-bookmark)
          ("C-x p b" . consult-project-buffer)
          ;; M-g bindings (goto)
-         ("M-g e" . consult-compile-error)
          ("M-g f" . consult-flymake)
-         ("M-g g" . consult-goto-line)
          ("M-g M-g" . consult-goto-line)
          ("M-g o" . consult-outline)
          ("M-g m" . consult-mark)
@@ -171,9 +181,7 @@
 (use-package consult-flycheck
   :disabled t
   ;; NOTE: This config uses Flymake (via Eglot). Enable Flycheck if you want this.
-  :after (consult flycheck)
-  :bind (:map flycheck-mode-map
-              ("M-g f" . consult-flycheck)))
+  :after (consult flycheck))
 
 ;; Consult + Projectile
 (use-package consult-projectile
@@ -197,13 +205,7 @@
   (prefix-help-command #'embark-prefix-help-command)
   (embark-indicators '(embark-minimal-indicator
                        embark-highlight-indicator
-                       embark-isearch-highlight-indicator))
-  :config
-  ;; Hide the mode line of the Embark live/completions buffers
-  (add-to-list 'display-buffer-alist
-               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                 nil
-                 (window-parameters (mode-line-format . none)))))
+                       embark-isearch-highlight-indicator)))
 
 (use-package embark-consult
   :after (embark consult)

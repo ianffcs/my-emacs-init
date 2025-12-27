@@ -49,9 +49,7 @@
   :commands ansible-doc)
 
 (use-package company-ansible
-  :after (company ansible)
-  :config
-  (add-to-list 'company-backends 'company-ansible))
+  :after (company ansible))
 
 ;; ============================================================================
 ;; 4. DOCKER
@@ -145,9 +143,7 @@
          ("/nginx/.+\\.conf\\'" . nginx-mode)))
 
 (use-package company-nginx
-  :after (company nginx-mode)
-  :hook (nginx-mode . (lambda ()
-                        (add-to-list 'company-backends 'company-nginx))))
+  :after (company nginx-mode))
 
 ;; ============================================================================
 ;; 10. APACHE
@@ -202,8 +198,6 @@
 (add-hook 'yaml-ts-mode-hook #'ian/maybe-cfn-mode)
 
 ;; SAM (Serverless Application Model) templates
-(add-to-list 'auto-mode-alist '("template\\.yaml\\'" . cfn-mode))
-(add-to-list 'auto-mode-alist '("samconfig\\.toml\\'" . toml-mode))
 
 ;; AWS CLI helpers
 (defun ian/cfn-validate ()
@@ -220,28 +214,7 @@
                      file stack-name))))
 
 ;; ============================================================================
-;; 14. LSP CONFIGURATION (EGLOT)
-;; ============================================================================
-
-(with-eval-after-load 'eglot
-  ;; Terraform
-  (add-to-list 'eglot-server-programs
-               '(terraform-mode . ("terraform-ls" "serve")))
-
-  ;; Dockerfile
-  (add-to-list 'eglot-server-programs
-               '((dockerfile-mode dockerfile-ts-mode) . ("docker-langserver" "--stdio")))
-
-  ;; Nix
-  (add-to-list 'eglot-server-programs
-               '((nix-mode nix-ts-mode) . ("nil"))))
-
-;; NOTE: Ansible LSP should be configured per-project via .dir-locals.el:
-;; ((yaml-mode . ((eglot-server-programs . ((yaml-mode . ("ansible-language-server" "--stdio")))))))
-
-
-;; ============================================================================
-;; 15. APHELEIA FORMATTERS
+;; 14. APHELEIA FORMATTERS
 ;; ============================================================================
 
 (with-eval-after-load 'apheleia

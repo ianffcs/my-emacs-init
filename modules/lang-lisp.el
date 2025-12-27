@@ -48,10 +48,6 @@
 
 (use-package paredit
   :commands paredit-mode
-  :bind (:map paredit-mode-map
-              ("M-s" . nil)   ; Free for consult
-              ("M-?" . nil)   ; Free for xref
-              ("RET" . nil))  ; Let parinfer handle newlines
   :config
   ;; Don't insert space before delimiters in certain contexts
   (add-to-list 'paredit-space-for-delimiter-predicates
@@ -301,14 +297,7 @@
 (use-package elisp-mode
   :straight (:type built-in)
   :hook ((emacs-lisp-mode . eldoc-mode)
-         (emacs-lisp-mode . (lambda () (setq-local fill-column 80))))
-  :bind (:map emacs-lisp-mode-map
-              ("C-c C-c" . eval-defun)
-              ("C-c C-b" . eval-buffer)
-              ("C-c C-r" . eval-region)
-              ("C-c C-e" . eval-last-sexp)
-              ("C-c C-k" . (lambda () (interactive) (eval-buffer) (message "Buffer evaluated")))
-              ("C-c C-z" . ielm)))
+         (emacs-lisp-mode . (lambda () (setq-local fill-column 80)))))
 
 ;; Eros - Evaluation Result OverlayS (like CIDER for elisp)
 (use-package eros
@@ -363,35 +352,8 @@
 ;; 14. HY (Python Lisp)
 ;; ============================================================================
 
-(use-package hy-mode
-  :mode "\\.hy\\'"
-  :hook (hy-mode . subword-mode))
-
 ;; ============================================================================
-;; 15. EGLOT CONFIGURATION
-;; ============================================================================
-
-(with-eval-after-load 'eglot
-  ;; Clojure (clojure-lsp)
-  (add-to-list 'eglot-server-programs
-               '((clojure-mode clojure-ts-mode clojurec-mode
-                               clojure-ts-clojurec-mode clojurescript-mode
-                               clojure-ts-clojurescript-mode)
-                 . ("clojure-lsp")))
-
-  ;; Racket
-  (add-to-list 'eglot-server-programs
-               '(racket-mode . ("racket" "-l" "racket-langserver")))
-
-  ;; Clojure workspace config
-  (when (fboundp 'ian/eglot-add-workspace-config)
-    (ian/eglot-add-workspace-config
-     :clojure-lsp '(:lens (:enable t)
-                          :semantic-tokens (:enable t)
-                          :source-paths ["src" "test" "dev"]))))
-
-;; ============================================================================
-;; 16. APHELEIA FORMATTERS
+;; 15. APHELEIA FORMATTERS
 ;; ============================================================================
 
 (with-eval-after-load 'apheleia
@@ -418,12 +380,6 @@
 ;; ============================================================================
 ;; 17. ORG-BABEL
 ;; ============================================================================
-
-(with-eval-after-load 'org
-  (add-to-list 'org-babel-load-languages '(clojure . t))
-  (add-to-list 'org-babel-load-languages '(scheme . t))
-  (add-to-list 'org-babel-load-languages '(lisp . t))
-  (add-to-list 'org-babel-load-languages '(racket . t)))
 
 (use-package ob-clojure
   :straight (:type built-in)
@@ -510,9 +466,9 @@
                             ("d" "Eval defun" eval-defun)
                             ("b" "Eval buffer" eval-buffer)])
 
-  (dolist (map (list clojure-ts-mode-map
-                     emacs-lisp-mode-map
-                     lisp-mode-map))
+  (dolist (map '(clojure-ts-mode-map
+                 emacs-lisp-mode-map
+                 lisp-mode-map))
     (when (boundp map)
       (define-key (symbol-value map) (kbd "C-c L") #'ian/lisp-menu))))
 

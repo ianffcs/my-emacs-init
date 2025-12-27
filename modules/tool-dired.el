@@ -14,11 +14,6 @@
   :straight (:type built-in)
   :hook ((dired-mode . dired-hide-details-mode)
          (dired-mode . hl-line-mode))
-  :bind (:map dired-mode-map
-              ("b" . dired-up-directory)
-              (")" . dired-git-info-mode)
-              ("M-RET" . ian/dired-open-external)
-              ("C-c C-e" . wdired-change-to-wdired-mode))
   :custom
   ;; Use ls from coreutils on macOS
   (insert-directory-program (or (executable-find "gls")
@@ -88,8 +83,6 @@
   :straight (:type built-in)
   :after dired
   :hook (dired-mode . dired-omit-mode)
-  :bind (:map dired-mode-map
-              ("." . dired-omit-mode))
   :custom
   (dired-omit-verbose nil)
   :config

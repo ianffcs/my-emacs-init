@@ -104,7 +104,6 @@
 (use-package gnus
   :straight (:type built-in)
   :commands gnus
-  :bind ("C-c T g" . gnus)
   :custom
   (gnus-select-method '(nnnil nil))
   (gnus-asynchronous t)

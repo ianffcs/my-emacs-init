@@ -27,16 +27,6 @@
          (org-mode . org-indent-mode)
          (org-mode . flyspell-mode)
          (org-mode . ian/org-mode-setup))
-  :bind (("C-c o a" . org-agenda)
-         ("C-c o c" . org-capture)
-         ("C-c o l" . org-store-link)
-         ("C-c o b" . org-switchb)
-         ("C-c o s" . org-save-all-org-buffers)
-         :map org-mode-map
-         ("C-c C-x C-i" . org-clock-in)
-         ("C-c C-x C-o" . org-clock-out)
-         ("C-c C-x C-r" . org-clock-report)
-         ("C-'" . nil))
   :custom
   ;; --- Directories ---
   (org-directory "~/org")
@@ -317,7 +307,11 @@
      (latex . t)
      (org . t)
      (makefile . t)
+     (hy . t)
      (clojure . t)
+     (scheme . t)
+     (lisp . t)
+     (racket . t)
      (restclient . t)))
 
   ;; Don't ask for confirmation
@@ -632,7 +626,6 @@ Thank you!
          ("C-c n r" . org-roam-ref-find)
          ("C-c n t" . org-roam-tag-add)
          ("C-c n a" . org-roam-alias-add)
-         ("C-c n d" . org-roam-dailies-goto-today)
          ("C-c n D" . org-roam-dailies-capture-today)
          ("C-c n y" . org-roam-dailies-goto-yesterday)
          ("C-c n T" . org-roam-dailies-goto-tomorrow)
@@ -643,7 +636,6 @@ Thank you!
 
 (use-package deft
   :after org-roam
-  :bind ("C-c n d" . deft)
   :custom
   (deft-recursive t)
   (deft-use-filter-string-for-filename t)
@@ -916,10 +908,7 @@ Thank you!
 
 ;; Math preview in buffer
 (use-package company-math
-  :after (company tex)
-  :config
-  (add-to-list 'company-backends 'company-math-symbols-latex)
-  (add-to-list 'company-backends 'company-latex-commands))
+  :after (company tex))
 
 ;; PDF viewing
 (use-package pdf-tools
@@ -1063,8 +1052,7 @@ Thank you!
 
 ;; Darkroom - distraction-free writing
 (use-package darkroom
-  :commands darkroom-mode
-  :bind ("C-c d" . darkroom-tentative-mode))
+  :commands darkroom-mode)
 
 ;; ============================================================================
 ;; 11. WORD COUNT & STATISTICS
@@ -1104,9 +1092,7 @@ Thank you!
 
 ;; Unicode input
 (use-package company-emoji
-  :after company
-  :config
-  (add-to-list 'company-backends 'company-emoji))
+  :after company)
 
 ;; ============================================================================
 ;; 13. PANDOC (Universal Document Converter)

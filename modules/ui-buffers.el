@@ -16,7 +16,6 @@
 
 (use-package ibuffer
   :straight (:type built-in)
-  :bind ("C-x C-b" . ibuffer)
   :hook (ibuffer-mode . hl-line-mode)
   :custom
   (ibuffer-expert t)

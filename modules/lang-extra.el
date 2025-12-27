@@ -55,9 +55,7 @@
 
 ;; Org-babel support for Hy
 (use-package ob-hy
-  :after org
-  :config
-  (add-to-list 'org-babel-load-languages '(hy . t)))
+  :after org)
 
 ;; ============================================================================
 ;; 3. FORTH
@@ -83,10 +81,7 @@
   (ess-use-flymake nil)
   (ess-eval-visibly 'nowait)
   (ess-ask-for-ess-directory nil)
-  :config
-  ;; Org-babel support
-  (with-eval-after-load 'org
-    (add-to-list 'org-babel-load-languages '(R . t))))
+  :config)
 
 ;; ============================================================================
 ;; 5. OPENSCAD (3D Modeling)
@@ -137,25 +132,7 @@
               ("C-c C-c" . julia-repl-send-region-or-line)))
 
 ;; ============================================================================
-;; 8. LSP CONFIGURATION
-;; ============================================================================
-
-(with-eval-after-load 'eglot
-  ;; Dart
-  (add-to-list 'eglot-server-programs
-               '(dart-mode . ("dart" "language-server" "--protocol=lsp")))
-
-  ;; R
-  (add-to-list 'eglot-server-programs
-               '(ess-r-mode . ("R" "--slave" "-e" "languageserver::run()")))
-
-  ;; Julia
-  (add-to-list 'eglot-server-programs
-               '(julia-mode . ("julia" "--startup-file=no" "--history-file=no"
-                               "-e" "using LanguageServer; runserver()"))))
-
-;; ============================================================================
-;; 9. APHELEIA FORMATTERS
+;; 8. APHELEIA FORMATTERS
 ;; ============================================================================
 
 (with-eval-after-load 'apheleia

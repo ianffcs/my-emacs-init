@@ -25,6 +25,11 @@
 (add-to-list 'default-frame-alist '(width . 120))
 (add-to-list 'default-frame-alist '(height . 40))
 
+;; macOS title bar styling
+(when (eq system-type 'darwin)
+  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+  (add-to-list 'default-frame-alist '(ns-appearance . dark)))
+
 ;; Fringe
 (set-fringe-mode '(8 . 8))
 
@@ -32,6 +37,19 @@
 (setq-default cursor-type 'bar
               cursor-in-non-selected-windows nil)
 (blink-cursor-mode -1)
+
+;; Display buffer rules
+(add-to-list 'display-buffer-alist
+             '("\\*vterm\\*"
+               (display-buffer-reuse-window display-buffer-in-side-window)
+               (side . bottom)
+               (slot . 0)
+               (window-height . 0.3)
+               (reusable-frames . visible)))
+(add-to-list 'display-buffer-alist
+             '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+               nil
+               (window-parameters (mode-line-format . none))))
 
 ;; ============================================================================
 ;; 2. FONTS
@@ -276,21 +294,7 @@
 (global-hl-line-mode 1)
 
 ;; ============================================================================
-;; 9. PULSE (Visual feedback)
-;; ============================================================================
-
-(use-package pulse
-  :straight (:type built-in)
-  :custom
-  (pulse-delay 0.04)
-  (pulse-iterations 10)
-  :config
-  (defun ian/pulse-line (&rest _)
-    "Pulse the current line."
-    (pulse-momentary-highlight-one-line (point))))
-
-;; ============================================================================
-;; 10. BEACON (Cursor beacon)
+;; 9. BEACON (Cursor beacon)
 ;; ============================================================================
 
 (use-package beacon

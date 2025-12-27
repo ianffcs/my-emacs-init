@@ -72,7 +72,6 @@
 (use-package proced
   :straight (:type built-in)
   :commands proced
-  :bind ("C-x p P" . proced)
   :custom
   (proced-auto-update-flag t)
   (proced-auto-update-interval 1)

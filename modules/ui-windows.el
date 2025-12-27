@@ -13,8 +13,6 @@
 (use-package winner
   :straight (:type built-in)
   :hook (after-init . winner-mode)
-  :bind (("C-c w u" . winner-undo)
-         ("C-c w r" . winner-redo))
   :custom
   (winner-dont-bind-my-keys t))
 
@@ -77,16 +75,6 @@
   (tab-bar-tab-hints t)
   (tab-bar-select-tab-modifiers '(super))
   (tab-bar-format '(tab-bar-format-tabs tab-bar-separator))
-  :bind (("s-{" . tab-bar-switch-to-prev-tab)
-         ("s-}" . tab-bar-switch-to-next-tab)
-         ("s-t" . tab-bar-new-tab)
-         ("s-w" . tab-bar-close-tab)
-         ("s-1" . (lambda () (interactive) (tab-bar-select-tab 1)))
-         ("s-2" . (lambda () (interactive) (tab-bar-select-tab 2)))
-         ("s-3" . (lambda () (interactive) (tab-bar-select-tab 3)))
-         ("s-4" . (lambda () (interactive) (tab-bar-select-tab 4)))
-         ("s-5" . (lambda () (interactive) (tab-bar-select-tab 5)))
-         ("s-9" . tab-bar-switch-to-last-tab))
   :config
   (tab-bar-mode 1)
 
@@ -250,4 +238,3 @@
 
 (provide 'ui-windows)
 ;;; ui-windows.el ends here
-

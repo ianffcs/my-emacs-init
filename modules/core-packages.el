@@ -33,9 +33,7 @@
                          "/usr/local")))
     (when brew-prefix
       (setenv "LIBRARY_PATH" (concat brew-prefix "/lib/gcc/current:" brew-prefix "/lib"))
-      (setenv "PATH" (concat brew-prefix "/bin:" (getenv "PATH")))
-      (setq native-comp-async-report-warnings-errors 'silent
-            native-comp-driver-options '("-Wl,-w")))))
+      (setenv "PATH" (concat brew-prefix "/bin:" (getenv "PATH"))))))
 
 ;; 6. STRAIGHT.EL PERFORMANCE SETTINGS
 (setq straight-check-for-modifications '(check-on-save find-when-checking))
@@ -57,6 +55,7 @@
 
 ;; 8. CONFIGURE USE-PACKAGE
 (straight-use-package 'use-package)
+(straight-use-package 'transient)
 (setq straight-use-package-by-default t)
 (setq use-package-always-defer t)
 

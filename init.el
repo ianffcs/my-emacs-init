@@ -86,12 +86,5 @@
 ;; FINALIZE
 ;; ============================================================================
 
-;; Report startup time
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (message "Emacs loaded in %.2f seconds with %d garbage collections."
-                     (float-time (time-subtract after-init-time before-init-time))
-                     gcs-done)))
-
 (provide 'init)
 ;;; init.el ends here

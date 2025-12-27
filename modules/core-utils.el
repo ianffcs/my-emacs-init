@@ -145,15 +145,12 @@
 (use-package crux
   :bind (("C-a" . crux-move-beginning-of-line)
          ("C-k" . crux-smart-kill-line)
-         ("C-c D" . crux-delete-file-and-buffer)
          ("C-c R" . crux-rename-file-and-buffer)
          ("C-c I" . crux-find-user-init-file)
          ("C-c S" . crux-find-shell-init-file)
          ("C-S-RET" . crux-smart-open-line-above)
          ("S-RET" . crux-smart-open-line)
-         ("C-c d" . crux-duplicate-current-line-or-region)
-         ("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
-         ("C-c k" . crux-kill-other-buffers)))
+         ("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)))
 
 ;; ============================================================================
 ;; 10. GENERAL UTILITY FUNCTIONS

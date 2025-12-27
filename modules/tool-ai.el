@@ -491,12 +491,7 @@ If DEVICE-NAME is provided, use it instead of prompting."
 (use-package copilot
   :straight (:host github :repo "copilot-emacs/copilot.el" :files ("*.el"))
   :disabled  ; Enable if you have Copilot subscription
-  :hook (prog-mode . copilot-mode)
-  :bind (:map copilot-completion-map
-              ("TAB" . copilot-accept-completion)
-              ("C-TAB" . copilot-accept-completion-by-word)
-              ("C-n" . copilot-next-completion)
-              ("C-p" . copilot-previous-completion)))
+  :hook (prog-mode . copilot-mode))
 
 ;; ============================================================================
 ;; 12. MINUET (AI Completion in Buffer)
@@ -647,4 +642,3 @@ If DEVICE-NAME is provided, use it instead of prompting."
 
 (provide 'tool-ai)
 ;;; tool-ai.el ends here
-

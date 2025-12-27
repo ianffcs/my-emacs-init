@@ -98,12 +98,6 @@
   :hook ((go-ts-mode . subword-mode)
          (go-ts-mode . (lambda ()
                          (add-hook 'before-save-hook #'gofmt-before-save nil t))))
-  :bind (:map go-ts-mode-map
-              ("C-c C-r" . go-remove-unused-imports)
-              ("C-c C-g" . go-goto-imports)
-              ("C-c C-f" . gofmt)
-              ("C-c C-k" . godoc)
-              ("C-c C-d" . godef-describe))
   :custom
   (gofmt-command "goimports")
   (go-tag-args '("-transform" "camelcase")))
@@ -134,41 +128,7 @@
   (zig-format-on-save nil))
 
 ;; ============================================================================
-;; 5. LSP CONFIGURATION
-;; ============================================================================
-
-(with-eval-after-load 'eglot
-  ;; C/C++ (clangd)
-  (add-to-list 'eglot-server-programs
-               '((c-mode c-ts-mode c++-mode c++-ts-mode)
-                 . ("clangd" "--background-index" "--clang-tidy")))
-
-  ;; Rust (rust-analyzer)
-  (add-to-list 'eglot-server-programs
-               '((rust-mode rust-ts-mode) . ("rust-analyzer")))
-
-  ;; Go (gopls)
-  (add-to-list 'eglot-server-programs
-               '((go-mode go-ts-mode) . ("gopls")))
-
-  ;; Zig (zls)
-  (add-to-list 'eglot-server-programs
-               '(zig-mode . ("zls")))
-
-  ;; Rust configuration
-  (ian/eglot-add-workspace-config
-   :rust-analyzer '(:check (:command "clippy")
-                    :cargo (:buildScripts (:enable t))
-                    :procMacro (:enable t)))
-
-  ;; Go configuration
-  (ian/eglot-add-workspace-config
-   :gopls '(:staticcheck t
-            :usePlaceholders t
-            :completeUnimported t)))
-
-;; ============================================================================
-;; 6. APHELEIA FORMATTERS
+;; 5. APHELEIA FORMATTERS
 ;; ============================================================================
 
 (with-eval-after-load 'apheleia
@@ -223,4 +183,3 @@
 
 (provide 'lang-systems)
 ;;; lang-systems.el ends here
-

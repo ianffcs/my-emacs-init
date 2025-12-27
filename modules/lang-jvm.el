@@ -142,24 +142,7 @@
     (compile "./gradlew installDebug && adb shell am start -n $(./gradlew -q :app:printDebugApplicationId)/$(./gradlew -q :app:printDebugMainActivity)")))
 
 ;; ============================================================================
-;; 7. LSP CONFIGURATION
-;; ============================================================================
-
-(with-eval-after-load 'eglot
-  ;; Java (Eclipse JDT LS) - handled by eglot-java
-
-  ;; Kotlin
-  (add-to-list 'eglot-server-programs
-               '((kotlin-mode kotlin-ts-mode)
-                 . ("kotlin-language-server")))
-
-  ;; Scala (Metals)
-  (add-to-list 'eglot-server-programs
-               '((scala-mode scala-ts-mode)
-                 . ("metals"))))
-
-;; ============================================================================
-;; 8. APHELEIA FORMATTERS
+;; 7. APHELEIA FORMATTERS
 ;; ============================================================================
 
 (with-eval-after-load 'apheleia

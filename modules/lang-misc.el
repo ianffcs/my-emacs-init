@@ -146,28 +146,7 @@
               ("C-c C-r" . justl)))
 
 ;; ============================================================================
-;; 10. LSP CONFIGURATION
-;; ============================================================================
-
-(with-eval-after-load 'eglot
-  ;; Ruby (Solargraph)
-  (add-to-list 'eglot-server-programs
-               '((ruby-mode ruby-ts-mode) . ("solargraph" "stdio")))
-
-  ;; Haskell
-  (add-to-list 'eglot-server-programs
-               '(haskell-mode . ("haskell-language-server-wrapper" "--lsp")))
-
-  ;; Lua
-  (add-to-list 'eglot-server-programs
-               '(lua-mode . ("lua-language-server")))
-
-  ;; Bash
-  (add-to-list 'eglot-server-programs
-               '((sh-mode bash-ts-mode) . ("bash-language-server" "start"))))
-
-;; ============================================================================
-;; 11. APHELEIA FORMATTERS
+;; 10. APHELEIA FORMATTERS
 ;; ============================================================================
 
 (with-eval-after-load 'apheleia

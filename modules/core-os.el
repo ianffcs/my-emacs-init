@@ -49,16 +49,8 @@
         ns-pop-up-frames nil
         ns-use-proxy-icon nil)
 
-  ;; --- Title Bar ---
-  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-  (add-to-list 'default-frame-alist '(ns-appearance . dark))
-
   ;; --- Smooth Scrolling ---
   (setq mac-mouse-wheel-smooth-scroll t)
-
-  ;; --- Use gls for dired if available ---
-  (when-let ((gls (executable-find "gls")))
-    (setq insert-directory-program gls))
 
   ;; --- Trash ---
   (setq delete-by-moving-to-trash t
@@ -227,9 +219,6 @@
 
 ;; --- Time Zone ---
 (setq system-time-locale "C")
-
-;; --- Process Configuration ---
-(setq read-process-output-max (* 4 1024 1024))  ; 4MB
 
 ;; ============================================================================
 ;; 7. KEYCHAIN (SSH/GPG Agent)
