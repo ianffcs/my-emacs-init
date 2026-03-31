@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/modus-themes/modus-vivendi-deuteranopia-theme.el

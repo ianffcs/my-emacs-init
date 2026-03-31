@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/auctex/style/babel-german.el

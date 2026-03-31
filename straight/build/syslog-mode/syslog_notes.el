@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/syslog-mode/syslog_notes.el

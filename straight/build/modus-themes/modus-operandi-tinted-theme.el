@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/modus-themes/modus-operandi-tinted-theme.el

@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/fennel-mode/ob-fennel.el

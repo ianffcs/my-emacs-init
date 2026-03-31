@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/parent-mode/parent-mode.el

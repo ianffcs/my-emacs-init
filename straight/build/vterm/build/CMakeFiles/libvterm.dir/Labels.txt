@@ -1,0 +1,13 @@
+# Target labels
+ libvterm
+# Source files and their labels
+/home/ietcd/.emacs.d/straight/build/vterm/build/CMakeFiles/libvterm
+/home/ietcd/.emacs.d/straight/build/vterm/build/CMakeFiles/libvterm.rule
+/home/ietcd/.emacs.d/straight/build/vterm/build/CMakeFiles/libvterm-complete.rule
+/home/ietcd/.emacs.d/straight/build/vterm/build/libvterm-prefix/src/libvterm-stamp/libvterm-build.rule
+/home/ietcd/.emacs.d/straight/build/vterm/build/libvterm-prefix/src/libvterm-stamp/libvterm-configure.rule
+/home/ietcd/.emacs.d/straight/build/vterm/build/libvterm-prefix/src/libvterm-stamp/libvterm-download.rule
+/home/ietcd/.emacs.d/straight/build/vterm/build/libvterm-prefix/src/libvterm-stamp/libvterm-install.rule
+/home/ietcd/.emacs.d/straight/build/vterm/build/libvterm-prefix/src/libvterm-stamp/libvterm-mkdir.rule
+/home/ietcd/.emacs.d/straight/build/vterm/build/libvterm-prefix/src/libvterm-stamp/libvterm-patch.rule
+/home/ietcd/.emacs.d/straight/build/vterm/build/libvterm-prefix/src/libvterm-stamp/libvterm-update.rule

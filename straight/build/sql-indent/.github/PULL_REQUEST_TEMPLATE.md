@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/sql-indent/.github/PULL_REQUEST_TEMPLATE.md

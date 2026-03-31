@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/telega.el/etc/tonlib_api.tl

@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/corfu/extensions/corfu-popupinfo.el

@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/telega.el/contrib/telega-alert.el

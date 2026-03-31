@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/adoc-mode/adoc-mode-tempo.el

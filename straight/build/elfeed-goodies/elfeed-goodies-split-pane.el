@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/elfeed-goodies/elfeed-goodies-split-pane.el

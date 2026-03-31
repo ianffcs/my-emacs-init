@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/wc-mode/wc-mode.el

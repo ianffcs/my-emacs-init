@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/elfeed-goodies/elfeed-goodies-search-mode.el

@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/nix-mode/nix-store.el

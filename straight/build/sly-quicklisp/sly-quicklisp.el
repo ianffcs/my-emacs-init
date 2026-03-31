@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/sly-quicklisp/sly-quicklisp.el

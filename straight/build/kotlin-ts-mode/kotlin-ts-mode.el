@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/emacs-kotlin-ts-mode/kotlin-ts-mode.el

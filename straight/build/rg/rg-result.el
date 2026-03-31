@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/rg.el/rg-result.el

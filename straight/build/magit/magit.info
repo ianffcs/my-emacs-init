@@ -1,0 +1,212 @@
+This is magit.info, produced by makeinfo version 7.2 from magit.texi.
+
+     Copyright (C) 2015-2026 Jonas Bernoulli
+     <emacs.magit@jonas.bernoulli.dev>
+
+     You can redistribute this document and/or modify it under the terms
+     of the GNU General Public License as published by the Free Software
+     Foundation, either version 3 of the License, or (at your option)
+     any later version.
+
+     This document is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     General Public License for more details.
+
+INFO-DIR-SECTION Emacs
+START-INFO-DIR-ENTRY
+* Magit: (magit).       Using Git from Emacs with Magit.
+END-INFO-DIR-ENTRY
+
+
+Indirect:
+magit.info-1: 774
+magit.info-2: 303863
+
+Tag Table:
+(Indirect)
+Node: Top774
+Node: Introduction3569
+Node: Installation8269
+Node: Installing from Melpa8597
+Node: Installing from the Git Repository9668
+Node: Post-Installation Tasks12863
+Node: Getting Started14144
+Node: Interface Concepts19951
+Node: Modes and Buffers20330
+Ref: Switching Buffers21828
+Ref: Naming Buffers26480
+Ref: Quitting Windows29453
+Ref: Automatic Refreshing of Magit Buffers31256
+Ref: Automatic Saving of File-Visiting Buffers33986
+Ref: Automatic Reverting of File-Visiting Buffers34981
+Ref: Risk of Reverting Automatically39798
+Node: Sections42065
+Ref: Section Movement42870
+Ref: Section Visibility48236
+Ref: Section Hooks55246
+Ref: Section Types and Values57567
+Ref: Section Options58866
+Node: Transient Commands59245
+Node: Transient Arguments and Buffer Variables60719
+Node: Completion Confirmation and the Selection67728
+Ref: Action Confirmation67989
+Ref: Completion and Confirmation76346
+Ref: The Selection79383
+Ref: The hunk-internal region82120
+Ref: Support for Completion Frameworks83044
+Ref: Additional Completion Options87117
+Node: Mouse Support87567
+Node: Running Git88143
+Ref: Viewing Git Output88263
+Ref: Git Process Status90163
+Ref: Running Git Manually91261
+Ref: Git Executable93834
+Ref: Global Git Arguments96721
+Node: Inspecting97436
+Node: Status Buffer98583
+Ref: Status Sections102707
+Ref: Status File List Sections106169
+Ref: Status Log Sections108739
+Ref: Status Header Sections110089
+Ref: Status Module Sections112580
+Ref: Status Options114954
+Node: Repository List116229
+Node: Logging121016
+Ref: Refreshing Logs123747
+Ref: Log Buffer125091
+Ref: Log Margin129808
+Ref: Select from Log132871
+Ref: Reflog134993
+Ref: Cherries136546
+Node: Diffing138322
+Ref: Refreshing Diffs142267
+Ref: Commands Available in Diffs147545
+Ref: Diff Options149940
+Ref: Revision Buffer157441
+Node: Ediffing160695
+Node: References Buffer166739
+Ref: References Sections177302
+Node: Bisecting178087
+Node: Visiting Files and Blobs180394
+Ref: General-Purpose Visit Commands180836
+Ref: Visiting Files and Blobs from a Diff181654
+Node: Blaming186902
+Node: Manipulating193880
+Node: Creating Repository194222
+Node: Cloning Repository194759
+Node: Staging and Unstaging201198
+Ref: Staging from File-Visiting Buffers205126
+Node: Applying206141
+Node: Committing208214
+Ref: Initiating a Commit208839
+Ref: Creating a new commit209151
+Ref: Editing the last commit209261
+Ref: Editing any reachable commit211240
+Ref: Editing any reachable commit and rebasing immediately215653
+Ref: Options used by commit commands217301
+Ref: Used by all or most commit commands217373
+Ref: Used by all squash and fixup commands219602
+Ref: Used by specific commit commands220156
+Ref: Editing Commit Messages220480
+Ref: Using the Revision Stack223034
+Ref: Commit Pseudo Headers225994
+Ref: Commit Mode and Hooks227146
+Ref: Commit Message Conventions229855
+Node: Branching231743
+Ref: The Two Remotes231864
+Ref: Branch Commands234429
+Ref: Branch Git Variables247167
+Ref: Auxiliary Branch Commands252412
+Node: Merging253429
+Node: Resolving Conflicts257778
+Node: Rebasing263148
+Ref: Editing Rebase Sequences268345
+Ref: Information About In-Progress Rebase273574
+Ref: Rebasing-Footnote-1282566
+Node: Cherry Picking283162
+Ref: Reverting287470
+Node: Resetting288830
+Node: Stashing290654
+Node: Transferring296893
+Node: Remotes297115
+Ref: Remote Commands297212
+Ref: Remote Git Variables301156
+Node: Fetching303863
+Node: Pulling306346
+Node: Pushing307372
+Node: Plain Patches311659
+Node: Maildir Patches313130
+Node: Miscellaneous314609
+Node: Tagging314955
+Node: Notes316848
+Node: Submodules319183
+Ref: Listing Submodules319344
+Ref: Submodule Transient321405
+Node: Subtree323758
+Node: Worktree325689
+Node: Sparse checkouts327004
+Node: Bundle329776
+Node: Common Commands330151
+Node: Wip Modes332777
+Ref: Wip Graph337351
+Node: Commands for Buffers Visiting Files339790
+Node: Minor Mode for Buffers Visiting Blobs348105
+Node: Customizing349268
+Node: Per-Repository Configuration350860
+Node: Essential Settings353114
+Ref: Safety353403
+Ref: Performance355078
+Ref: Log Performance357869
+Ref: Diff Performance359168
+Ref: Refs Buffer Performance360509
+Ref: Committing Performance361082
+Ref: Microsoft Windows Performance362062
+Ref: MacOS Performance363149
+Ref: Global Bindings364032
+Ref: Essential Settings-Footnote-1366205
+Node: Plumbing366287
+Node: Calling Git367112
+Ref: Getting a Value from Git368571
+Ref: Calling Git for Effect372189
+Node: Section Plumbing378128
+Ref: Creating Sections378280
+Ref: Section Selection382090
+Ref: Matching Sections383787
+Node: Refreshing Buffers389689
+Node: Conventions392829
+Ref: Theming Faces392993
+Node: FAQ401026
+Node: FAQ - How to ...?401462
+Ref: How to pronounce Magit?401595
+Ref: How to show git's output?402287
+Ref: How to install the gitman info manual?402904
+Ref: How to show diffs for gpg-encrypted files?403709
+Ref: How does branching and pushing work?404118
+Ref: Should I disable VC?404282
+Node: FAQ - Issues and Errors404765
+Ref: Magit is slow404910
+Ref: I changed several thousand files at once and now Magit is unusable405056
+Ref: I am having problems committing405595
+Ref: I am using MS Windows and cannot push with Magit405860
+Ref: I am using macOS and SOMETHING works in shell but not in Magit406258
+Ref: Expanding a file to show the diff causes it to disappear406845
+Ref: Point is wrong in the COMMIT_EDITMSG buffer407195
+Ref: The mode-line information isn't always up-to-date408019
+Ref: A branch and tag sharing the same name breaks SOMETHING408850
+Ref: My Git hooks work on the command-line but not inside Magit409498
+Ref: git-commit-mode isn't used when committing from the command-line410090
+Ref: Point ends up inside invisible text when jumping to a file-visiting buffer412078
+Ref: I am no longer able to save popup defaults412670
+Node: Debugging Tools413463
+Node: Keystroke Index417398
+Node: Function and Command Index455567
+Node: Variable Index507212
+
+End Tag Table
+
+
+Local Variables:
+coding: utf-8
+Info-documentlanguage: en
+End:

@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/guile/src/geiser/completion.scm

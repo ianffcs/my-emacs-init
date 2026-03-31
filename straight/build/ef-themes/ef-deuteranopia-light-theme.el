@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/ef-themes/ef-deuteranopia-light-theme.el

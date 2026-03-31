@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/ellama/ellama-blueprint.el

@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/whisper.el/whisper-languages.el

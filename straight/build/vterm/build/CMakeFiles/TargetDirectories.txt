@@ -1,0 +1,5 @@
+/home/ietcd/.emacs.d/straight/build/vterm/build/CMakeFiles/vterm-module.dir
+/home/ietcd/.emacs.d/straight/build/vterm/build/CMakeFiles/libvterm.dir
+/home/ietcd/.emacs.d/straight/build/vterm/build/CMakeFiles/run.dir
+/home/ietcd/.emacs.d/straight/build/vterm/build/CMakeFiles/edit_cache.dir
+/home/ietcd/.emacs.d/straight/build/vterm/build/CMakeFiles/rebuild_cache.dir

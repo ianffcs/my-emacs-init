@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/telega.el/etc/td-api-1.5.0.tl

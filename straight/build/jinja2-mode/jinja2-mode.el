@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/jinja2-mode/jinja2-mode.el

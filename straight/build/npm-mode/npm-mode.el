@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/npm-mode/npm-mode.el

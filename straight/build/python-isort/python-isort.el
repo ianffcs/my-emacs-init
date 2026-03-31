@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/emacs-python-isort/python-isort.el

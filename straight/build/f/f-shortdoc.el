@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/f.el/f-shortdoc.el

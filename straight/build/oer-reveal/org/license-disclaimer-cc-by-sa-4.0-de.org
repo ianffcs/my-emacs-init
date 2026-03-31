@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/oer-reveal/org/license-disclaimer-cc-by-sa-4.0-de.org

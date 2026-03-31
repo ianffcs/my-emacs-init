@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/sly-quicklisp/slynk-quicklisp.asd

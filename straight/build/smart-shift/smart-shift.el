@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/smart-shift/smart-shift.el

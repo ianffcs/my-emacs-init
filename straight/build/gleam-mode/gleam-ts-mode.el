@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/gleam-mode/gleam-ts-mode.el

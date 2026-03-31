@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/emacs-spell-fu/spell-fu.el

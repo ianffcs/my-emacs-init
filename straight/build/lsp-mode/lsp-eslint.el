@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/lsp-mode/clients/lsp-eslint.el

@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/fennel-mode/antifennel.el

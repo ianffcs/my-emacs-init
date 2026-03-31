@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/ietcd/.emacs.d/straight/build/vterm/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

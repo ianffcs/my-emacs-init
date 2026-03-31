@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/ibuffer-projectile/ibuffer-projectile.el

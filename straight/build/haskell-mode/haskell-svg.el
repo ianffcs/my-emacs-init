@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/haskell-mode/haskell-svg.el

@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/markdown-toc/markdown-toc-pandoc.el

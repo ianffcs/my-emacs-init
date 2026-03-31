@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/sql-indent/sql-indent-left.el

@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/ef-themes/ef-duo-dark-theme.el

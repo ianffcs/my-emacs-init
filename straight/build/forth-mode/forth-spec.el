@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/forth-mode/forth-spec.el

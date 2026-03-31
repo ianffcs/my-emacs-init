@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/nginx-mode/nginx-mode.el

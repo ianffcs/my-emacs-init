@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/clojure-mode/clojure-mode.el

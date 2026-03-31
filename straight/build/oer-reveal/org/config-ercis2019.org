@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/oer-reveal/org/config-ercis2019.org

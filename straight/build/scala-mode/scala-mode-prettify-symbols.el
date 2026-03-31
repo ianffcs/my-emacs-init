@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/emacs-scala-mode/scala-mode-prettify-symbols.el

@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/company-emoji/company-emoji-list.el

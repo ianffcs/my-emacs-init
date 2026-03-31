@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/emacs-k8s-mode/k8s-mode.el

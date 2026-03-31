@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/chatgpt-shell/chatgpt-shell-kagi.el

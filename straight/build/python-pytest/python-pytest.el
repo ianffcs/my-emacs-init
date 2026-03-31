@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/emacs-python-pytest/python-pytest.el

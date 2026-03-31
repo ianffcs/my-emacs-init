@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/shell-maker/shell-maker.el

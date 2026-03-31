@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/fountain-mode/doc/fountain-mode.texi

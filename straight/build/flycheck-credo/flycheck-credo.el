@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/flycheck-credo/flycheck-credo.el

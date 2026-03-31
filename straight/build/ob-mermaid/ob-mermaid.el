@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/ob-mermaid/ob-mermaid.el

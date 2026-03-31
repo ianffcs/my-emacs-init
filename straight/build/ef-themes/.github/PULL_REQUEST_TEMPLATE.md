@@ -1,0 +1,1 @@
+/home/ietcd/.emacs.d/straight/repos/ef-themes/.github/PULL_REQUEST_TEMPLATE.md
