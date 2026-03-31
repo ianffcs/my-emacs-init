@@ -17,8 +17,8 @@
 
 (defconst ian/ai-host-env-map
   '(("api.openai.com" . "OPENAI_API_KEY")
-    ("api.anthropic.com" . "ANTHROPIC_API_KEY")
-    ("generativelanguage.googleapis.com" . "GEMINI_API_KEY"))
+    ;;("generativelanguage.googleapis.com" . "GEMINI_API_KEY")
+    ("api.anthropic.com" . "ANTHROPIC_API_KEY"))
   "Mapping from API host to environment variable fallback for API keys.")
 
 (defconst ian/ai-host-aliases
@@ -582,7 +582,7 @@ If DEVICE-NAME is provided, use it instead of prompting."
 
 (use-package mcp-server
   :straight (:type git :host github :repo "rhblind/emacs-mcp-server"
-             :files ("*.el" "mcp-wrapper.py" "mcp-wrapper.sh"))
+                   :files ("*.el" "mcp-wrapper.py" "mcp-wrapper.sh"))
   :commands (mcp-server-start-unix
              mcp-server-stop
              mcp-server-status
@@ -652,38 +652,41 @@ If DEVICE-NAME is provided, use it instead of prompting."
   :hook (after-init . mcp-hub-start-all-server)
   :config
   (require 'mcp-hub)
-  (require 'subr-x)
 
-  (setq mcp-hub-servers
-        `(;; Filesystem access
-          ("filesystem" . (:command "npx"
-                           :args ("-y" "@modelcontextprotocol/server-filesystem"
-                                  ,(if (boundp 'mcp-filesystem-server-project-root)
-                                       (string-join mcp-filesystem-server-project-root " ")
-                                     "/tmp"))))
+  (let ((filesystem-roots
+         (if (and (boundp 'mcp-filesystem-server-project-root)
+                  (listp mcp-filesystem-server-project-root)
+                  mcp-filesystem-server-project-root)
+             (mapcar #'expand-file-name mcp-filesystem-server-project-root)
+           '("/tmp"))))
+    (setq mcp-hub-servers
+          `(;; Filesystem access
+            ("filesystem" . (:command "npx"
+                                      :args ("-y" "@modelcontextprotocol/server-filesystem")
+                                      :roots ,filesystem-roots))
 
-          ;; DuckDuckGo search
-          ("duckduckgo" . (:command ,(or (executable-find "uvx") "uvx")
-                           :args ("duckduckgo-mcp-server")))
+            ;; DuckDuckGo search
+            ("duckduckgo" . (:command ,(or (executable-find "uvx") "uvx")
+                                      :args ("duckduckgo-mcp-server")))
 
-          ;; URL fetching
-          ("fetch" . (:command ,(or (executable-find "uvx") "uvx")
-                      :args ("mcp-server-fetch")))
+            ;; URL fetching
+            ("fetch" . (:command ,(or (executable-find "uvx") "uvx")
+                                 :args ("mcp-server-fetch")))
 
-          ;; Shell commands (restricted)
-          ("mcp-shell-server" . (:command ,(or (executable-find "uvx") "uvx")
-                                 :args ("mcp-shell-server")
-                                 :env (:ALLOW_COMMANDS
-                                       "bc,cat,chmod,curl,date,echo,find,git,grep,head,jq,ls,pwd,rg,sed,tail,wc")))
+            ;; Shell commands (restricted)
+            ("mcp-shell-server" . (:command ,(or (executable-find "uvx") "uvx")
+                                            :args ("mcp-shell-server")
+                                            :env (:ALLOW_COMMANDS
+                                                  "bc,cat,chmod,curl,date,echo,find,git,grep,head,jq,ls,pwd,rg,sed,tail,wc")))
 
-          ;; Clojure REPL (when CIDER is active)
-          ,@(when (and (fboundp 'cider-current-repl)
-                       (ignore-errors (cider-current-repl)))
-              `(("clojure" . (:command "clojure"
-                              :args ("-X:mcp"
-                                     "--port"
-                                     ,(number-to-string
-                                       (cider-current-repl-port))))))))))
+            ;; Clojure REPL (when CIDER is active)
+            ,@(when (and (fboundp 'cider-current-repl)
+                         (ignore-errors (cider-current-repl)))
+                `(("clojure" . (:command "clojure"
+                                         :args ("-X:mcp"
+                                                "--port"
+                                                ,(number-to-string
+                                                  (cider-current-repl-port)))))))))))
 
 ;; ============================================================================
 ;; 14. AIDER (AI Pair Programmer)
@@ -702,42 +705,45 @@ If DEVICE-NAME is provided, use it instead of prompting."
 
 (with-eval-after-load 'transient
   (transient-define-prefix ian/ai-menu ()
-    "AI tools menu"
-    ["Chat"
-     ("g" "GPTel send" gptel-send)
-     ("G" "GPTel buffer" gptel)
-     ("c" "ChatGPT shell" chatgpt-shell)
-     ("e" "Ellama chat" ellama-chat)]
-    ["Org-AI"
-     ("a" "Complete" org-ai-complete)
-     ("r" "On region" org-ai-on-region)
-     ("b" "Insert block" ian/org-ai-complete-block)
-     ("C" "Chat block" ian/org-ai-chat-block)]
-    ["Text"
-     ("s" "Summarize" ian/org-ai-summarize-buffer)
-     ("i" "Improve text" ian/org-ai-improve-text)
-     ("t" "Translate" ian/org-ai-translate)
-     ("x" "Explain code" ian/org-ai-explain-code)]
-    ["Speech"
-     ("w" "Whisper" whisper-run)
-     ("W" "Whisper large" ian/whisper-run-large)
-     ("T" "Talk toggle" org-ai-talk-toggle)
-     ("R" "Read region" org-ai-talk-read-region)]
-    ["Tools"
-     ("m" "GPTel menu" gptel-menu)
-     ("p" "Aider" aider-transient-menu)
-     ("d" "DALL-E" dall-e-shell)
-     ("E" "Start Emacs MCP" mcp-server-start-unix)
-     ("S" "Emacs MCP status" mcp-server-status)
-     ("o" "Start org-mcp" ian/org-mcp-start)
-     ("O" "Stop org-mcp" ian/org-mcp-stop)
-     ("L" "MCP setup info" mcp-server-lib-describe-setup)
-     ("F" "Allow Org file" ian/org-mcp-allow-current-file)]
-    ["Settings"
-     ("v" "Set voice" ian/org-ai-set-voice)
-     ("V" "Test voice" ian/org-ai-test-voice)
-     ("A" "Select audio" ian/select-default-audio-device)
-     ("K" "API key status" ian/ai-key-status)])
+                           "AI tools menu"
+                           ["Chat"
+                            ("g" "GPTel send" gptel-send)
+                            ("G" "GPTel buffer" gptel)
+                            ("c" "ChatGPT shell" chatgpt-shell)
+                            ("e" "Ellama chat" ellama-chat)]
+                           ["Org-AI"
+                            ("a" "Complete" org-ai-complete)
+                            ("r" "On region" org-ai-on-region)
+                            ("b" "Insert block" ian/org-ai-complete-block)
+                            ("C" "Chat block" ian/org-ai-chat-block)]
+                           ["Text"
+                            ("s" "Summarize" ian/org-ai-summarize-buffer)
+                            ("i" "Improve text" ian/org-ai-improve-text)
+                            ("t" "Translate" ian/org-ai-translate)
+                            ("x" "Explain code" ian/org-ai-explain-code)]
+                           ["Speech"
+                            ("w" "Whisper" whisper-run)
+                            ("W" "Whisper large" ian/whisper-run-large)
+                            ("T" "Talk toggle" org-ai-talk-toggle)
+                            ("R" "Read region" org-ai-talk-read-region)]
+                           ["Tools"
+                            ("m" "GPTel menu" gptel-menu)
+                            ("h" "MCP Hub" mcp-hub)
+                            ("M" "GPTel MCP connect" gptel-mcp-connect)
+                            ("D" "GPTel MCP disconnect" gptel-mcp-disconnect)
+                            ("p" "Aider" aider-transient-menu)
+                            ("d" "DALL-E" dall-e-shell)
+                            ("E" "Start Emacs MCP" mcp-server-start-unix)
+                            ("S" "Emacs MCP status" mcp-server-status)
+                            ("o" "Start org-mcp" ian/org-mcp-start)
+                            ("O" "Stop org-mcp" ian/org-mcp-stop)
+                            ("L" "MCP setup info" mcp-server-lib-describe-setup)
+                            ("F" "Allow Org file" ian/org-mcp-allow-current-file)]
+                           ["Settings"
+                            ("v" "Set voice" ian/org-ai-set-voice)
+                            ("V" "Test voice" ian/org-ai-test-voice)
+                            ("A" "Select audio" ian/select-default-audio-device)
+                            ("K" "API key status" ian/ai-key-status)])
 
   (global-set-key (kbd "C-c g") #'ian/ai-menu))
 
@@ -758,6 +764,9 @@ If DEVICE-NAME is provided, use it instead of prompting."
 ;; C-c g c   - chatgpt-shell
 ;; C-c g p   - aider menu
 ;; C-c g K   - show AI key status (from AI transient menu)
+;; C-c g h   - MCP hub
+;; C-c g M   - connect MCP tools to gptel
+;; C-c g D   - disconnect MCP tools from gptel
 ;; C-c g E   - start rhblind/emacs-mcp-server
 ;; C-c g S   - emacs-mcp-server status
 ;; C-c g o   - start org-mcp (via mcp-server-lib)
