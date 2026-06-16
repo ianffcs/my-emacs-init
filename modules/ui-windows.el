@@ -168,7 +168,12 @@
      ("*Org Agenda*" :align right :size 0.5 :select t)))
   (shackle-default-rule '(:select t))
   :config
-  (shackle-mode 1))
+  (shackle-mode 1)
+  (setq shackle-buffer-filter
+        (lambda (bufname)
+          (or (not (member bufname '("*Help*" "*helpful*")))
+              (let ((buf (get-buffer bufname)))
+                (and buf (with-current-buffer buf (bound-and-true-p dedicated-mode))))))))
 
 ;; ============================================================================
 ;; 9. WINDOW HELPER FUNCTIONS

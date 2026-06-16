@@ -21,7 +21,10 @@
   ;; --- Critical settings (must be in :init) ---
   (setq dashboard-icon-type 'nerd-icons)
   (setq dashboard-display-icons-p t)
-
+  ;; (setq dashboard-footer-messages
+  ;;       (list (format "Happy Hacking! You have %d TODOs across your projects."
+  ;;                     (length (cl-loop for f in (project-files)
+  ;;                                      if (string-contains-p (f-float-time f) "TODO") count t)))))
   ;; Dashboard content layout
   (setq dashboard-items '((recents . 10)
                           (bookmarks . 5)

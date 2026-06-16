@@ -49,6 +49,7 @@
 (require 'tool-ai)          ; AI assistants
 (require 'tool-comm)        ; Communication (Telega, IRC, RSS)
 (require 'tool-media)       ; Media player (EMMS, MPD)
+(require 'tool-games)       ; Games (NetHack)
 
 ;; ============================================================================
 ;; LANGUAGE MODULES

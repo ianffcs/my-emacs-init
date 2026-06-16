@@ -1,0 +1,387 @@
+#+TITLE: Emacs Config — Spark Debug & Maintainability Prompts
+#+DATE: 2026-03-17
+#+AUTHOR: Ian Fernandez
+#+DESCRIPTION: Prompts for debugging the Emacs config on spark (Linux/DGX) via Open WebUI
+
+* Overview
+
+Use these prompts in Open WebUI (https://oolong.lan) with ~qwen2.5-coder:32b~
+to systematically debug and improve the modular Emacs configuration.
+
+The config lives at =~/.emacs.d/= and is structured as:
+- =init.el= — bootstraps and loads all modules in order
+- =modules/core-*.el= — settings, packages, editor, UI, completion, auth, session
+- =modules/tool-*.el= — dev tools, shell, dired, AI, comms, media, games
+- =modules/lang-*.el= — language-specific configs (LSP, REPL, modes)
+- =modules/ui-*.el= — navigation, windows, buffers, dashboard
+- Package manager: =straight.el= + =use-package=
+
+* 1. Initial Startup Diagnosis
+
+** 1.1 Capture the startup error log
+
+#+begin_example
+I'm running an Emacs config that uses straight.el and use-package on a Linux machine
+(Ubuntu/Debian, DGX Spark). When I start Emacs with:
+
+  emacs --debug-init 2>&1 | tee /tmp/emacs-debug.log
+
+I get the following output. Please identify all errors, warnings, and "Symbol's function
+definition is void" or "Cannot open load file" messages, group them by module, and
+suggest a fix for each:
+
+[PASTE /tmp/emacs-debug.log HERE]
+#+end_example
+
+** 1.2 Quick triage without full debug
+
+#+begin_example
+I have a modular Emacs config (straight.el + use-package). On Linux it fails silently.
+Run this in *scratch* and paste the output:
+
+  (dolist (mod '(core-packages core-settings core-os core-utils core-editor
+                  core-ui core-completion core-auth core-session
+                  ui-navigation ui-windows ui-buffers ui-dashboard
+                  tool-dev tool-shell tool-dired tool-ai tool-comm
+                  lang-lisp lang-systems lang-python lang-web lang-org))
+    (condition-case err
+        (require mod)
+      (error (message "FAILED %s: %s" mod (error-message-string err)))))
+
+Which modules failed and why? Give me the fix for each.
+#+end_example
+
+* 2. Cross-Platform (macOS → Linux) Fixes
+
+** 2.1 Find all Darwin-only code that has no Linux fallback
+
+#+begin_example
+Review this Emacs Lisp module for macOS-specific code that will silently break or
+do nothing on Linux. For each issue: (1) show the problematic form, (2) explain
+why it breaks on Linux, (3) provide a corrected version with a proper Linux branch.
+
+Specifically look for:
+- (when (eq system-type 'darwin) ...) blocks that lack a Linux equivalent
+- References to "say", "osascript", "open", "pbcopy", "pbpaste", "afplay"
+- Homebrew paths (/opt/homebrew, /usr/local)
+- macOS-specific .so/.dylib files (e.g. parinfer-rust-darwin.so)
+- AVFoundation / ffmpeg device enumeration
+- (shell-command "say ...") for TTS
+
+[PASTE MODULE CONTENT HERE]
+#+end_example
+
+** 2.2 Fix hardcoded Ollama IP for spark
+
+#+begin_example
+In my tool-ai.el, gptel and ellama are configured with the hardcoded LAN IP
+of the Ollama server (192.168.178.161:11434).
+
+When running Emacs ON the spark machine itself, the correct address is
+localhost:11434 or 127.0.0.1:11434.
+
+Write an elisp helper that detects whether we're on spark (hostname contains "spark"
+or (system-name) returns "spark") and sets the Ollama host to "127.0.0.1:11434",
+otherwise falling back to "192.168.178.161:11434". Update both the gptel-make-ollama
+and make-llm-ollama calls to use this helper.
+#+end_example
+
+** 2.3 Text-to-speech on Linux
+
+#+begin_example
+My Emacs config uses macOS's `say` command for TTS (org-ai-talk, greader).
+On Linux (Ubuntu/Debian), provide drop-in replacements using:
+1. espeak-ng (available via apt)
+2. festival (alternative)
+3. piper (neural TTS, higher quality)
+
+Show me how to update these sections in tool-ai.el to detect the OS and use
+the appropriate TTS engine, with graceful fallback if none is installed.
+#+end_example
+
+* 3. Dependency & Package Audit
+
+** 3.1 Check all external tool dependencies
+
+#+begin_example
+This Emacs config requires many external tools (LSP servers, formatters, etc.).
+Generate a shell script for Ubuntu/Debian (apt + pip + cargo + go install) that
+installs all missing dependencies referenced in these modules:
+
+- tool-dev.el uses: clojure-lsp, elixir-ls, rust-analyzer, gopls, clangd,
+  pyright-langserver, metals, kotlin-language-server, bash-language-server,
+  zls, terraform-ls, docker-langserver, nil (nix), solargraph, lua-language-server
+- tool-dev.el uses: apheleia (formatters: prettier, black, gofmt, rustfmt, etc.)
+- tool-shell.el: vterm requires libvterm
+- tool-ai.el: whisper.el requires ffmpeg, whisper binary
+- lang-*.el: various REPL tools (cider needs Clojure, etc.)
+
+Output a commented install script grouped by category.
+#+end_example
+
+** 3.2 Find straight.el vs auto-package-update conflict
+
+#+begin_example
+My core-packages.el uses straight.el as the package manager AND installs
+auto-package-update via (use-package auto-package-update). The problem:
+auto-package-update was designed for package.el and does not understand straight.el
+managed packages.
+
+Explain: (1) what auto-package-update will actually do in a straight.el config,
+(2) whether it's harmful, (3) the correct straight.el idiom for keeping packages
+updated (straight-pull-all, straight-freeze-versions), and (4) how to safely
+remove auto-package-update.
+#+end_example
+
+** 3.3 Check for dangerous defvars in core-packages.el
+
+#+begin_example
+My core-packages.el contains these at the top:
+
+  (defvar thisfile nil "Workaround for magit compatibility")
+  (defvar symbol nil "Workaround for symbol compatibility")
+  (defvar value nil "Workaround for value compatibility")
+
+These are extremely generic names. Explain the risk of shadowing built-in
+variables or other package variables with these names, check if they're still
+needed for the current Magit version, and suggest safer alternatives.
+#+end_example
+
+* 4. Auth & Secrets Setup on Spark
+
+** 4.1 Set up .authinfo for API keys on Linux
+
+#+begin_example
+My Emacs config uses auth-source to retrieve API keys via this helper:
+
+  (defun ian/get-key (host)
+    (let ((secret (plist-get (car (auth-source-search
+                                   :host host :user "apikey"
+                                   :require '(:secret)))
+                             :secret)))
+      (if secret (funcall secret)
+        (error "No API key found for %s in .authinfo" host))))
+
+The hosts used are: api.openai.com, api.anthropic.com, generativelanguage.googleapis.com
+
+On a new Linux machine (spark), write the ~/.authinfo.gpg entries I need, explain
+how to create the GPG-encrypted version with gpg --symmetric, and show how to
+test that auth-source finds the keys correctly from the Emacs scratch buffer.
+
+Also show how to make the AI packages (gptel, org-ai, ellama) degrade gracefully
+(warn but don't error) when keys are missing, for machines where only local
+Ollama is available.
+#+end_example
+
+* 5. Performance & Startup Time
+
+** 5.1 Profile startup time
+
+#+begin_example
+Profile my Emacs startup to find slow modules. Run:
+
+  emacs -Q --batch --eval "(progn
+    (add-to-list 'load-path \"~/.emacs.d/modules\")
+    (require 'profiler)
+    (profiler-start 'cpu)
+    (load \"~/.emacs.d/init.el\")
+    (profiler-stop)
+    (profiler-report))"
+
+Or use esup: M-x esup
+
+Given that I use (setq use-package-always-defer t) globally, which modules might
+still be loading eagerly? Specifically look for:
+- :demand t overrides
+- :hook (after-init . ...) which fire immediately
+- top-level (require ...) calls outside use-package
+- (auto-package-update-maybe) called unconditionally
+
+For each, tell me if it's necessary or can be deferred.
+#+end_example
+
+** 5.2 Fix envrc + direnv double-loading
+
+#+begin_example
+My tool-dev.el loads BOTH envrc and direnv:
+
+  (use-package envrc :hook (after-init . envrc-global-mode))
+  (use-package direnv :config (direnv-mode))
+
+These do the same thing (load .envrc files into Emacs buffer environments).
+Explain the difference between envrc.el and direnv.el (the Emacs package),
+which one is better for modern Emacs (29+), whether running both causes conflicts,
+and which one to keep.
+#+end_example
+
+* 6. Emacs 29+ Modernization
+
+** 6.1 Replace deprecated constructs
+
+#+begin_example
+I'm running Emacs 29+ on Linux. Review the following module and identify:
+1. Deprecated functions that have modern replacements (e.g., cl- prefix, s.el/dash.el
+   functions now in core, old completion APIs)
+2. Use of (require 'cl) instead of (require 'cl-lib)
+3. face-attribute calls that should use customize-face
+4. Old-style :init vs :config patterns in use-package that could be simplified
+5. Any (add-hook 'X-hook 'Y) that should be (add-hook 'X-hook #'Y) (sharp-quote)
+
+[PASTE MODULE CONTENT HERE]
+#+end_example
+
+** 6.2 Migrate from flycheck to flymake
+
+#+begin_example
+My tool-dev.el loads both flycheck (deferred, no hooks) and flymake (hooked on
+prog-mode). flycheck appears to be dead code — no hooks, no keybindings, just
+(use-package flycheck :defer t).
+
+Confirm: (1) is flycheck actually doing anything? (2) Should I remove it entirely?
+(3) Are there any packages in my config that depend on flycheck as a backend?
+Check especially: lsp-mode, eglot, org-babel integrations.
+#+end_example
+
+* 7. Config Maintainability Improvements
+
+** 7.1 Externalize all hardcoded values
+
+#+begin_example
+Audit my entire ~/.emacs.d/modules/ directory for values that should be in a
+machine-local file rather than hardcoded:
+
+- IP addresses and hostnames (192.168.178.161, spark, oolong)
+- Model names (qwen3-next-80b-fixed:latest — becomes stale as models update)
+- API key hosts (should already be in .authinfo, flag any inline keys)
+- File paths that are user-home-specific and not using expand-file-name
+- Port numbers for local services (11434 Ollama, etc.)
+
+Propose a machine-local.el file that gets loaded if it exists, where these values
+can be overridden without touching the tracked config files. Show the pattern for
+providing sensible defaults in the main module with machine-local overrides.
+#+end_example
+
+** 7.2 Reduce AI package redundancy
+
+#+begin_example
+My tool-ai.el loads: gptel, ellama, org-ai, chatgpt-shell, dall-e-shell, minuet,
+mcp, aider, whisper, greader, org-ai-talk.
+
+All provide overlapping LLM chat/completion functionality. Given that:
+- gptel is the most actively maintained and supports all providers
+- ragmacs extends gptel with Emacs doc access
+- mcp gives gptel tool use
+- ellama, chatgpt-shell, org-ai overlap with gptel
+
+Which can be removed without losing functionality? Show a minimal AI setup that
+keeps gptel (with mcp + ragmacs), whisper for STT, and one TTS option, removing
+the rest. Keep org-ai only if there's a gptel equivalent for org blocks.
+#+end_example
+
+** 7.3 Add straight.el lockfile workflow
+
+#+begin_example
+My straight.el config does NOT use a lockfile (no straight-freeze-versions call).
+This means the config will silently use different package versions on spark vs my
+Mac, making bugs hard to reproduce.
+
+Show me:
+1. How to generate a lockfile: ~/.emacs.d/straight/versions/default.el
+2. How to commit it to git and load it automatically on startup
+3. How to update it after intentionally upgrading packages
+4. The tradeoffs: lockfile vs always-latest for a personal config
+#+end_example
+
+** 7.4 Improve error resilience for missing packages
+
+#+begin_example
+Some modules in my config will crash Emacs startup if an optional external
+tool is missing (e.g., clojure-lsp not installed, plantuml.jar download fails,
+npx not found for MCP servers).
+
+Review this module and wrap optional/external-dependent sections in condition-case
+or (when (executable-find "tool-name") ...) guards. The goal: Emacs should always
+start successfully even if 80% of the dev tools are missing; it should warn but
+not error.
+
+[PASTE MODULE CONTENT HERE]
+#+end_example
+
+* 8. Specific Known Issues to Investigate
+
+** 8.1 Plantuml download at startup
+
+#+begin_example
+In tool-dev.el, the plantuml-mode configuration runs at startup and downloads
+plantuml.jar from SourceForge if it's missing:
+
+  (url-copy-file plantuml-link plantuml-target t)
+
+This blocks Emacs startup if the network is slow or unavailable. Rewrite this to:
+1. Check for the jar asynchronously (after startup)
+2. Not block the UI
+3. Notify the user when download completes or fails
+4. Also check if plantuml is available as a system package (which plantuml) as
+   an alternative to the jar
+#+end_example
+
+** 8.2 TRAMP SSH ControlMaster socket path
+
+#+begin_example
+My tool-dev.el sets TRAMP to use SSH ControlMaster with this path:
+
+  -o ControlPath='~/.ssh/sockets/%%r@%%h-%%p'
+
+But the directory ~/.ssh/sockets/ may not exist on spark. This silently makes
+ControlMaster fail, causing each TRAMP operation to open a new SSH connection.
+
+Write elisp that:
+1. Creates ~/.ssh/sockets/ if it doesn't exist (with permissions 700)
+2. Verifies the path works before setting it
+3. Falls back gracefully if it can't be created
+#+end_example
+
+** 8.3 Clojure REPL MCP server conditional
+
+#+begin_example
+In my tool-ai.el, the MCP server list includes a conditional Clojure REPL entry:
+
+  ,@(when (and (fboundp 'cider-current-repl)
+               (ignore-errors (cider-current-repl)))
+      `(("clojure" ...)))
+
+This is evaluated once at config load time, before any REPL is started, so the
+Clojure MCP server will NEVER be added. The condition will always be nil at init.
+
+Rewrite this so the Clojure MCP entry is added dynamically when a CIDER REPL
+connects (using cider-connected-hook) and removed when it disconnects
+(using cider-disconnected-hook).
+#+end_example
+
+* 9. Open WebUI System Prompt for Emacs Sessions
+
+Use this as a system prompt when starting an Emacs debugging session in Open WebUI:
+
+#+begin_example
+You are an expert Emacs Lisp developer and system administrator. You are helping
+debug and improve a modular Emacs configuration on a Linux machine (Ubuntu/Debian,
+DGX Spark with NVIDIA GB10 GPU, 128GB RAM).
+
+The config uses:
+- straight.el for package management (NOT package.el)
+- use-package with (use-package-always-defer t)
+- Emacs 29+ with native compilation enabled
+- Modular structure: modules/core-*.el, tool-*.el, lang-*.el, ui-*.el
+
+Key constraints:
+- The config must work on BOTH macOS (primary dev machine) and Linux (spark)
+- External services: Ollama at localhost:11434 (on spark) or 192.168.178.161:11434 (from Mac)
+- API keys are in ~/.authinfo.gpg via auth-source
+- straight.el manages packages; ignore package.el idioms
+
+When I show you errors from --debug-init or M-x emacs-lisp-byte-compile, give me:
+1. The exact line causing the error
+2. Why it fails specifically on Linux (if macOS-only)
+3. A minimal fix that preserves the original intent
+4. Whether the fix should go in a machine-local.el override or the main module
+#+end_example

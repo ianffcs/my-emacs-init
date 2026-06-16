@@ -597,18 +597,18 @@ Thank you!
 ;; --- Transient Menu for Reveal.js ---
 (with-eval-after-load 'transient
   (transient-define-prefix ian/reveal-menu ()
-                           "Reveal.js presentation commands"
-                           ["Export"
-                            ("e" "Export to HTML" ian/reveal-export-to-html)
-                            ("E" "Export and open" ian/reveal-export-to-html-and-open)]
-                           ["Insert"
-                            ("s" "New slide" ian/reveal-insert-slide)
-                            ("n" "Speaker notes" ian/reveal-insert-notes)
-                            ("f" "Fragment" ian/reveal-insert-fragment)
-                            ("c" "Two columns" ian/reveal-insert-two-columns)
-                            ("b" "Background" ian/reveal-insert-background)]
-                           ["Create"
-                            ("N" "New presentation" ian/reveal-new-presentation)])
+    "Reveal.js presentation commands"
+    ["Export"
+     ("e" "Export to HTML" ian/reveal-export-to-html)
+     ("E" "Export and open" ian/reveal-export-to-html-and-open)]
+    ["Insert"
+     ("s" "New slide" ian/reveal-insert-slide)
+     ("n" "Speaker notes" ian/reveal-insert-notes)
+     ("f" "Fragment" ian/reveal-insert-fragment)
+     ("c" "Two columns" ian/reveal-insert-two-columns)
+     ("b" "Background" ian/reveal-insert-background)]
+    ["Create"
+     ("N" "New presentation" ian/reveal-new-presentation)])
 
   (with-eval-after-load 'org
     (define-key org-mode-map (kbd "C-c r r") #'ian/reveal-menu)))

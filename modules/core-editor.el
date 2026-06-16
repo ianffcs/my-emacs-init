@@ -342,6 +342,7 @@
   :diminish auto-revert-mode
   :custom
   (auto-revert-verbose nil)
+  (auto-revert-interval 1)
   (auto-revert-check-vc-info t)
   (global-auto-revert-non-file-buffers t)
   :config
@@ -436,6 +437,11 @@
 (global-set-key (kbd "C-c e d") #'ian/duplicate-line)
 (global-set-key (kbd "C-S-<return>") #'ian/open-line-above)
 (global-set-key (kbd "S-<return>") #'ian/open-line-below)
+
+(use-package highlight-indent-guides
+  :hook ((lisp-mode python-mode tsx-ts-mode) . highlight-indent-global-mode)
+  :custom
+  (highlight-indent-gui-indentation-offset t))
 
 (provide 'core-editor)
 ;;; core-editor.el ends here
