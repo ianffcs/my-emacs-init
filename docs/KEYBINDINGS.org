@@ -106,7 +106,8 @@ Generated from the configuration files in =~/.emacs.d/modules/=.
 | C-c d p | ian/dired-projects    | Open projects            |
 | C-c d c | ian/dired-config      | Open config directory    |
 | C-c d o | ian/dired-org         | Open org directory       |
-| C-c d s | dired-sidebar-toggle  | Toggle sidebar           |
+| C-x C-n | dired-sidebar-toggle-sidebar | Toggle tree sidebar |
+| C-c d s | dired-sidebar-toggle-sidebar | Toggle tree sidebar |
 
 * Navigation/Jump (C-c j)
 

@@ -149,8 +149,6 @@
         (ian/dired-project-root)
         (display-buffer (get-buffer ian/dired-tree-buffer-name))))))
 
-(global-set-key (kbd "C-x C-n") #'ian/dired-tree-toggle)
-
 ;; Narrow - filter files
 (use-package dired-narrow
   :after dired
@@ -294,9 +292,16 @@
 ;; ============================================================================
 
 (use-package dired-sidebar
-  :bind ("C-c d s" . dired-sidebar-toggle-sidebar)
-  :commands dired-sidebar-toggle-sidebar
+  :bind (("C-x C-n" . dired-sidebar-toggle-sidebar)
+         ("C-c d s" . dired-sidebar-toggle-sidebar))
+  :commands (dired-sidebar-toggle-sidebar)
+  :init
+  (add-hook 'dired-sidebar-mode-hook
+            (lambda ()
+              (unless (file-remote-p default-directory)
+                (auto-revert-mode 1))))
   :custom
+  (dired-sidebar-width 36)
   (dired-sidebar-theme 'icons)
   (dired-sidebar-use-term-integration t)
   (dired-sidebar-use-custom-font t))
