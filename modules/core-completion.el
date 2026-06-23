@@ -19,7 +19,7 @@
               ("C-u" . vertico-scroll-down)
               ("C-d" . vertico-scroll-up)
               ("RET" . vertico-directory-enter)
-              ("DEL" . vertico-directory-delete-char)
+              ("DEL" . ian/vertico-directory-delete-char)
               ("M-DEL" . vertico-directory-delete-word))
   :custom
   (vertico-count 15)
@@ -36,6 +36,12 @@
                      (propertize "» " 'face 'vertico-current)
                    "  ")
                  cand))))
+
+(defun ian/vertico-directory-delete-char ()
+  "Delete directory component or char, guarding against read-only prompt."
+  (interactive)
+  (when (> (point) (minibuffer-prompt-end))
+    (vertico-directory-delete-char 1)))
 
 ;; Vertico extensions
 (use-package vertico-directory
