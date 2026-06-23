@@ -108,6 +108,7 @@
 
 ;; Ligatures (for supported fonts)
 (use-package ligature
+  :hook (after-init . global-ligature-mode)
   :config
   (ligature-set-ligatures 'prog-mode
                           '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
@@ -122,8 +123,7 @@
                             "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
                             "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
                             "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
-                            "\\\\" "://"))
-  (global-ligature-mode t))
+                            "\\\\" "://")))
 
 ;; ============================================================================
 ;; 3. ICONS
@@ -133,30 +133,19 @@
   :custom
   (nerd-icons-font-family "Symbols Nerd Font Mono"))
 
-(use-package all-the-icons
-  :if (display-graphic-p))
-
-(use-package all-the-icons-completion
-  :after (marginalia all-the-icons)
-  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
+(use-package nerd-icons-completion
+  :after (marginalia nerd-icons)
+  :hook (marginalia-mode . nerd-icons-completion-marginalia-setup)
   :config
-  (all-the-icons-completion-mode))
+  (nerd-icons-completion-mode))
 
 ;; ============================================================================
 ;; 3.5 EMOJI
 ;; ============================================================================
 
 (use-package emojify
-  :hook (after-init . ian/enable-emojify-if-available)
-  :init
-  (defun ian/enable-emojify-if-available ()
-    "Enable `global-emojify-mode' when package data is installed."
-    (if-let* ((library (locate-library "emojify"))
-              (data-file (expand-file-name "data/emoji-sets.json"
-                                           (file-name-directory library)))
-              ((file-exists-p data-file)))
-        (global-emojify-mode 1)
-      (message "emojify: data files missing; run M-x straight-rebuild-package RET emojify RET")))
+  :hook ((org-mode . emojify-mode)
+         (markdown-mode . emojify-mode))
   :custom
   (emojify-display-style 'unicode)
   (emojify-emoji-styles '(unicode)))
@@ -167,6 +156,7 @@
 
 ;; Modus themes (built-in in Emacs 28+)
 (use-package modus-themes
+  :demand t
   :custom
   (modus-themes-italic-constructs t)
   (modus-themes-bold-constructs t)
@@ -219,23 +209,20 @@
 
 ;; Mode icons in modeline
 (use-package mode-icons
-  :config
-  (mode-icons-mode))
+  :hook (after-init . mode-icons-mode))
 
 ;; Nyan cat progress indicator
 (use-package nyan-mode
+  :hook (after-init . nyan-mode)
   :custom
   (nyan-animate-nyancat t)
-  (nyan-wavy-trail t)
-  :config
-  (nyan-mode 1))
+  (nyan-wavy-trail t))
 
-;; Parrot animation on save
+;; Parrot animation (manual trigger only — was firing on every save)
 (use-package parrot
+  :hook (after-init . parrot-mode)
   :config
-  (parrot-set-parrot-type 'emacs)
-  (parrot-mode)
-  (add-hook 'before-save-hook #'parrot-start-animation))
+  (parrot-set-parrot-type 'emacs))
 
 ;; Doom modeline
 (use-package doom-modeline
@@ -306,15 +293,14 @@
 
 (use-package beacon
   :diminish
+  :hook (after-init . beacon-mode)
   :custom
   (beacon-blink-when-window-scrolls t)
   (beacon-blink-when-window-changes t)
   (beacon-blink-when-point-moves nil)
   (beacon-blink-duration 0.3)
   (beacon-size 40)
-  (beacon-color "#5B6268")
-  :config
-  (beacon-mode 1))
+  (beacon-color "#5B6268"))
 
 ;; ============================================================================
 ;; 11. VISUAL BELL
@@ -353,8 +339,7 @@
 
 (use-package page-break-lines
   :diminish
-  :config
-  (global-page-break-lines-mode))
+  :hook (after-init . global-page-break-lines-mode))
 
 ;; ============================================================================
 ;; 16. TRANSIENT UI MENU

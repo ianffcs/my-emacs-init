@@ -1,4 +1,4 @@
-;;; early-init.el --- Early Initialization -*- lexical-binding: t; no-byte-compile: t -*-
+;;; early-init.el --- Early Initialization -*- lexical-binding: t; -*-
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6)
 
@@ -38,19 +38,29 @@
   (setenv "PATH" (concat "/opt/homebrew/bin:" (getenv "PATH")))
   (setq native-comp-driver-options '("-Wl,-w")))
 
+;; Seed exec-path from common locations so exec-path-from-shell can defer
+;; to after-init without leaving the early frames PATH-less.
+(when (eq system-type 'darwin)
+  (dolist (p '("/opt/homebrew/bin" "/opt/homebrew/sbin"
+               "/usr/local/bin" "/usr/bin" "/bin" "/usr/sbin" "/sbin"))
+    (unless (member p exec-path)
+      (push p exec-path)))
+  (setenv "PATH" (mapconcat #'identity exec-path path-separator)))
+
 (setq package-enable-at-startup nil)
 (setq package-quickstart nil)
 
+;; Redirect native-compiled .eln files out of ~/.emacs.d root
+(when (fboundp 'startup-redirect-eln-cache)
+  (startup-redirect-eln-cache
+   (expand-file-name "var/eln-cache/" user-emacs-directory)))
+
 (add-hook 'emacs-startup-hook
           (lambda ()
-            (setq gc-cons-threshold (* 20 1024 1024)
-                  gc-cons-percentage 0.1
-                  file-name-handler-alist default-file-name-handler-alist)
-
-            ;; Clean up the temporary variable
+            ;; gcmh handles GC tuning from here
+            (setq file-name-handler-alist default-file-name-handler-alist)
             (makunbound 'default-file-name-handler-alist)
-
-            (message "🚀 Emacs loaded in %.2fs with %d garbage collections."
+            (message "Emacs loaded in %.2fs with %d garbage collections."
                      (float-time (time-subtract after-init-time before-init-time))
                      gcs-done)))
 

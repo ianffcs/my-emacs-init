@@ -37,20 +37,6 @@
                    "  ")
                  cand))))
 
-;; ============================================================================
-;; 2. COMPANY (Dependency for company-* integrations)
-;; ============================================================================
-
-(use-package company
-  :defer t
-  :config
-  (add-to-list 'company-backends 'company-ansible)
-  (add-to-list 'company-backends 'company-math-symbols-latex)
-  (add-to-list 'company-backends 'company-latex-commands)
-  (add-to-list 'company-backends 'company-emoji)
-  (with-eval-after-load 'company-nginx
-    (add-to-list 'company-backends 'company-nginx)))
-
 ;; Vertico extensions
 (use-package vertico-directory
   :straight nil
@@ -110,8 +96,8 @@
 ;; ============================================================================
 
 (use-package consult
-  :bind (;; C-c bindings
-         ("C-c h" . consult-history)
+  :bind (;; C-c bindings (C-c h is taken by ian/dashboard-menu in ui-dashboard.el)
+         ("C-c H" . consult-history)
          ("C-c m" . consult-mode-command)
          ;; C-x bindings
          ("C-x M-:" . consult-complex-command)
@@ -202,10 +188,9 @@
   :after (consult projectile))
 
 (use-package anzu
+  :hook (after-init . global-anzu-mode)
   :bind (("M-%" . anzu-query-replace)
-         ("C-M-%" . anzu-query-replace-regexp))
-  :config
-  (global-anzu-mode))
+         ("C-M-%" . anzu-query-replace-regexp)))
 
 ;; ============================================================================
 ;; 5. EMBARK (Actions on Targets)
@@ -230,6 +215,7 @@
 ;; ============================================================================
 
 (use-package corfu
+  :hook (after-init . global-corfu-mode)
   :bind (:map corfu-map
               ("TAB" . corfu-next)
               ([tab] . corfu-next)
@@ -255,7 +241,6 @@
   (corfu-scroll-margin 5)
   (corfu-popupinfo-delay '(0.5 . 0.2))
   :config
-  (global-corfu-mode 1)
   (corfu-popupinfo-mode 1)
   (corfu-history-mode 1)
   (add-to-list 'savehist-additional-variables 'corfu-history))
@@ -285,10 +270,10 @@
          ("C-c C-p l" . cape-line)
          ("C-c C-p w" . cape-dict))
   :init
-  ;; Add to completion-at-point-functions
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  ;; cape-file and cape-elisp-block first; cape-dabbrev last (it scans all buffers)
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-elisp-block)
+  (add-hook 'completion-at-point-functions #'cape-dabbrev t)
   :config
   ;; Silence pcomplete capf (no messages)
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
@@ -341,7 +326,9 @@
                             ("L" "Line multi" consult-line-multi)
                             ("r" "Ripgrep" consult-ripgrep)
                             ("g" "Grep" consult-grep)
-                            ("f" "Find file" consult-find)]
+                            ("f" "Find file" consult-find)
+                            ("d" "Deadgrep" deadgrep)
+                            ("R" "Rg menu" rg-menu)]
                            ["Navigate"
                             ("i" "Imenu" consult-imenu)
                             ("I" "Imenu multi" consult-imenu-multi)

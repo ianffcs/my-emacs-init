@@ -91,23 +91,7 @@
 ;; 4. WHITESPACE
 ;; ============================================================================
 
-;; Cleanup whitespace on save
-(add-hook 'before-save-hook #'whitespace-cleanup)
-
-;; Visualize whitespace
-(use-package whitespace
-  :straight (:type built-in)
-  :diminish
-  :hook ((prog-mode . whitespace-mode)
-         (text-mode . whitespace-mode)
-         (conf-mode . whitespace-mode))
-  :custom
-  (whitespace-line-column 120)
-  :config
-  ;; Don't show spaces, just problematic whitespace
-  (setq whitespace-style '(face trailing tabs empty)))
-
-;; Delete trailing whitespace
+;; ws-butler handles whitespace cleanup (only touches changed lines)
 (use-package ws-butler
   :straight (:type git :host github :repo "lewang/ws-butler" :branch "master")
   :diminish
@@ -191,6 +175,7 @@
 
 ;; Smart shift (indent regions)
 (use-package smart-shift
+  :demand t
   :config
   (global-smart-shift-mode t))
 
@@ -235,9 +220,7 @@
       mouse-wheel-progressive-speed nil
       mouse-wheel-follow-mouse t)
 
-;; Pixel scroll (smooth scrolling)
-(when (fboundp 'pixel-scroll-precision-mode)
-  (pixel-scroll-precision-mode 1))
+;; pixel-scroll-precision-mode disabled — causes jank on macOS
 
 ;; ============================================================================
 ;; 10. WRAPPING
@@ -273,16 +256,13 @@
 
 (use-package volatile-highlights
   :diminish
-  :config
-  (volatile-highlights-mode t))
+  :hook (after-init . volatile-highlights-mode))
 
 (use-package highlight-symbol
   :diminish
-  :hook ((prog-mode . highlight-symbol-mode)
-         (highlight-symbol-mode . highlight-symbol-nav-mode))
+  :hook (prog-mode . highlight-symbol-mode)
   :custom
-  (highlight-symbol-idle-delay 0.25)
-  (highlight-symbol-on-navigation-p t)
+  (highlight-symbol-idle-delay 1.5)
   (highlight-symbol-highlight-single-occurrence nil))
 
 ;; Highlight TODO keywords
@@ -325,8 +305,7 @@
 
 (use-package editorconfig
   :diminish
-  :config
-  (editorconfig-mode 1))
+  :hook (after-init . editorconfig-mode))
 
 ;; ============================================================================
 ;; 16. SO-LONG (Handle files with long lines)
@@ -343,7 +322,8 @@
   :diminish auto-revert-mode
   :custom
   (auto-revert-verbose nil)
-  (auto-revert-interval 1)
+  (auto-revert-interval 5)
+  (auto-revert-use-notify t)
   (auto-revert-check-vc-info t)
   (global-auto-revert-non-file-buffers t)
   :config
@@ -440,9 +420,11 @@
 (global-set-key (kbd "S-<return>") #'ian/open-line-below)
 
 (use-package highlight-indent-guides
-  :hook ((lisp-mode python-mode tsx-ts-mode) . highlight-indent-global-mode)
+  :hook ((lisp-mode python-mode tsx-ts-mode) . highlight-indent-guides-mode)
   :custom
-  (highlight-indent-gui-indentation-offset t))
+  (highlight-indent-guides-method 'column)
+  (highlight-indent-guides-auto-odd-face-perc 15)
+  (highlight-indent-guides-auto-even-face-perc 20))
 
 (provide 'core-editor)
 ;;; core-editor.el ends here

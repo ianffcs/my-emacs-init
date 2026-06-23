@@ -96,9 +96,7 @@
 ;; Ibuffer with Projectile groups
 (use-package ibuffer-projectile
   :after (ibuffer projectile)
-  :hook (ibuffer . ibuffer-projectile-set-filter-groups)
-  :config
-  (setq ibuffer-projectile-prefix "Project: "))
+  :commands ibuffer-projectile-set-filter-groups)
 
 ;; Ibuffer with VC status
 (use-package ibuffer-vc
@@ -123,6 +121,7 @@
 
 (use-package midnight
   :straight (:type built-in)
+  :hook (after-init . midnight-mode)
   :custom
   (clean-buffer-list-delay-general 2)  ; Days
   (clean-buffer-list-delay-special (* 4 3600))  ; 4 hours for special buffers
@@ -135,14 +134,10 @@
   ;; Patterns for buffers to never kill
   (add-to-list 'clean-buffer-list-kill-never-regexps "^\\*EGLOT")
   (add-to-list 'clean-buffer-list-kill-never-regexps "^\\*cider")
-  (add-to-list 'clean-buffer-list-kill-never-regexps "^\\*vterm")
-
-  (midnight-mode 1))
+  (add-to-list 'clean-buffer-list-kill-never-regexps "^\\*vterm"))
 
 (use-package vlf
-  :defer t
-  :config
-  (require 'vlf-setup))
+  :hook (after-init . (lambda () (require 'vlf-setup))))
 
 ;; ============================================================================
 ;; 4. BUFFER HELPER FUNCTIONS

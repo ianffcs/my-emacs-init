@@ -79,6 +79,7 @@
 
 (use-package pulse
   :straight (:type built-in)
+  :demand t
   :custom
   (pulse-delay 0.04)
   (pulse-iterations 10)
@@ -111,22 +112,21 @@
   (wgrep-change-readonly-file t))
 
 (use-package pcre2el
-  :config
-  (pcre-mode))
+  :commands (rxt-toggle-elisp-rx pcre-mode rxt-convert-pcre-to-elisp))
 
 ;; ============================================================================
 ;; 7. DEADGREP (Fast ripgrep interface)
 ;; ============================================================================
 
 (use-package deadgrep
-  :bind ("C-c s d" . deadgrep))
+  :commands deadgrep)
 
 ;; ============================================================================
 ;; 8. RG (Ripgrep)
 ;; ============================================================================
 
 (use-package rg
-  :bind ("C-c s r" . rg-menu)
+  :commands (rg rg-menu)
   :config
   (rg-enable-default-bindings))
 

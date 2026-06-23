@@ -22,10 +22,9 @@
 
 (use-package windmove
   :straight (:type built-in)
+  :demand t
   :config
-  ;; Use Super + arrows to move between windows
   (windmove-default-keybindings 'super)
-  ;; Use Super + Shift + arrows to swap windows
   (windmove-swap-states-default-keybindings '(super shift)))
 
 ;; ============================================================================
@@ -75,17 +74,16 @@
 
 (use-package tab-bar
   :straight (:type built-in)
-  :custom
-  (tab-bar-show 1)
-  (tab-bar-close-button-show nil)
-  (tab-bar-new-button-show nil)
-  (tab-bar-new-tab-choice "*scratch*")
-  (tab-bar-new-tab-to 'rightmost)
-  (tab-bar-tab-hints t)
-  (tab-bar-select-tab-modifiers '(super))
-  (tab-bar-format '(tab-bar-format-tabs tab-bar-separator))
+  :hook (after-init . tab-bar-mode)
   :config
-  (tab-bar-mode 1)
+  (setq tab-bar-show 1
+        tab-bar-close-button-show nil
+        tab-bar-new-button-show nil
+        tab-bar-new-tab-choice "*scratch*"
+        tab-bar-new-tab-to 'rightmost
+        tab-bar-tab-hints t
+        tab-bar-select-tab-modifiers '(super)
+        tab-bar-format '(tab-bar-format-tabs tab-bar-separator))
 
   ;; Custom tab bar appearance
   (setq tab-bar-tab-name-function
@@ -130,6 +128,7 @@
 ;; ============================================================================
 
 (use-package popper
+  :hook (after-init . popper-mode)
   :bind (("C-`" . popper-toggle)
          ("M-`" . popper-cycle)
          ("C-M-`" . popper-toggle-type))
@@ -144,36 +143,14 @@
      help-mode
      helpful-mode
      compilation-mode
-     flymake-diagnostics-buffer-mode))
-  :config
-  (popper-mode +1))
+     flymake-diagnostics-buffer-mode)))
 
 ;; ============================================================================
 ;; 8. SHACKLE (Window Rule Management)
 ;; ============================================================================
 
-(use-package shackle
-  :custom
-  (shackle-rules
-   '(("*Help*" :align below :size 0.4 :select t)
-     ("*helpful*" :align below :size 0.4 :select t)
-     ("*compilation*" :align below :size 0.3)
-     ("*Warnings*" :align below :size 0.2)
-     ("*Messages*" :align below :size 0.2)
-     ("*Backtrace*" :align below :size 0.4 :select t)
-     ("\\*vterm.*" :regexp t :align below :size 0.4)
-     ("*eshell*" :align below :size 0.4)
-     ("*shell*" :align below :size 0.4)
-     (magit-status-mode :align right :size 0.5 :select t)
-     ("*Org Agenda*" :align right :size 0.5 :select t)))
-  (shackle-default-rule '(:select t))
-  :config
-  (shackle-mode 1)
-  (setq shackle-buffer-filter
-        (lambda (bufname)
-          (or (not (member bufname '("*Help*" "*helpful*")))
-              (let ((buf (get-buffer bufname)))
-                (and buf (with-current-buffer buf (bound-and-true-p dedicated-mode))))))))
+;; shackle disabled: conflicts with popper which also manages display-buffer rules.
+;; popper (section 7) handles popup placement instead.
 
 ;; ============================================================================
 ;; 9. WORKSPACE HUD

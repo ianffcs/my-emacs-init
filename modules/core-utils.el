@@ -17,6 +17,7 @@
 
 (use-package which-key
   :diminish
+  :hook (after-init . which-key-mode)
   :custom
   (which-key-idle-delay 0.5)
   (which-key-idle-secondary-delay 0.05)
@@ -28,7 +29,6 @@
   (which-key-sort-order 'which-key-key-order-alpha)
   (which-key-allow-evil-operators t)
   :config
-  (which-key-mode)
 
   ;; Custom prefixes
   (which-key-add-key-based-replacements
@@ -95,9 +95,10 @@
 ;; ============================================================================
 
 (use-package transient
-  :custom
-  (transient-default-level 5)
-  (transient-display-buffer-action '(display-buffer-below-selected)))
+  :demand t
+  :config
+  (setq transient-default-level 5
+        transient-display-buffer-action '(display-buffer-below-selected)))
 
 ;; ============================================================================
 ;; 5. RESTART EMACS
@@ -119,24 +120,13 @@
 ;; ============================================================================
 
 (use-package gcmh
+  :demand t
   :diminish
   :custom
   (gcmh-idle-delay 5)
-  (gcmh-high-cons-threshold (* 64 1024 1024))  ; 64MB
+  (gcmh-high-cons-threshold (* 64 1024 1024))
   :config
   (gcmh-mode 1))
-
-;; ============================================================================
-;; 8. NO-LITTERING (Keep .emacs.d clean)
-;; ============================================================================
-
-(use-package no-littering
-  :demand t
-  :config
-  (setq auto-save-file-name-transforms
-        `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
-  (setq backup-directory-alist
-        `((".*" . ,(no-littering-expand-var-file-name "backup/")))))
 
 ;; ============================================================================
 ;; 9. CRUX (Useful Interactive Commands)
