@@ -165,19 +165,7 @@
   (modus-themes-headings '((1 . (rainbow overline background 1.4))
                            (2 . (rainbow background 1.3))
                            (3 . (rainbow bold 1.2))
-                           (t . (semilight 1.1))))
-  :config
-  (modus-themes-load-theme 'modus-vivendi))
-
-;; Ef themes
-(use-package ef-themes
-  :config
-  (setq ef-themes-to-toggle '(ef-day ef-night)))
-
-;; Catppuccin
-(use-package catppuccin-theme
-  :custom
-  (catppuccin-flavor 'mocha))
+                           (t . (semilight 1.1)))))
 
 ;; Theme switcher
 (defvar ian/light-theme 'modus-operandi)
@@ -201,21 +189,17 @@
         (load-theme ian/light-theme t)
       (load-theme ian/dark-theme t))))
 
-;; (add-hook 'after-init-hook #'ian/auto-theme)
-;; (run-at-time "1 hour" 3600 #'ian/auto-theme)
+(add-hook 'after-init-hook #'ian/auto-theme)
+(run-at-time "1 hour" 3600 #'ian/auto-theme)
 ;; ============================================================================
 ;; 5. MODELINE
 ;; ============================================================================
-
-;; Mode icons in modeline
-(use-package mode-icons
-  :hook (after-init . mode-icons-mode))
 
 ;; Nyan cat progress indicator
 (use-package nyan-mode
   :hook (after-init . nyan-mode)
   :custom
-  (nyan-animate-nyancat t)
+  (nyan-animate-nyancat nil)
   (nyan-wavy-trail t))
 
 ;; Parrot animation (manual trigger only — was firing on every save)

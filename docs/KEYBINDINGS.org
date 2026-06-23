@@ -1,351 +1,379 @@
-#+TITLE: Emacs Keybindings Reference
+#+TITLE: Keybindings Reference
 #+AUTHOR: Ian Fernandez
-#+DATE: 2025-12-27
 #+STARTUP: overview
 
-* Introduction
+All custom keybindings use the =C-c= prefix. Each prefix maps to a
+transient menu — press the prefix alone to open the menu, or add a
+suffix directly for the shortcut.
 
-This document provides a comprehensive reference for all custom keybindings
-in this Emacs configuration. Keybindings are organized by prefix.
+* Prefix Map
 
-Generated from the configuration files in =~/.emacs.d/modules/=.
+| Prefix  | Domain               | Menu function          |
+|---------+----------------------+------------------------|
+| =C-c b= | Buffers              | =ian/buffer-menu=      |
+| =C-c d= | Dired                | =ian/dired-menu=       |
+| =C-c e= | Editor operations    | —                      |
+| =C-c f= | File utilities       | —                      |
+| =C-c g= | AI / Git             | =ian/ai-menu=          |
+| =C-c j= | Jump / Navigation    | =ian/jump-menu=        |
+| =C-c l= | LSP (Eglot)          | — (eglot-mode-map)     |
+| =C-c n= | Org-roam             | —                      |
+| =C-c p= | Projectile           | =projectile-command-map= |
+| =C-c q= | Quit / Utility       | —                      |
+| =C-c s= | Search               | =ian/completion-menu=  |
+| =C-c t= | Terminals            | =ian/terminal-menu=    |
+| =C-c w= | Windows              | =ian/window-menu=      |
+| =C-c y= | Snippets             | —                      |
 
-* Global Prefixes Overview
+* Editing
 
-| Prefix  | Purpose                    | Module              |
-|---------+----------------------------+---------------------|
-| C-c b   | Buffer operations          | ui-buffers.el       |
-| C-c d   | Dired / Dictionary         | tool-dired.el       |
-| C-c e   | Editor operations          | core-editor.el      |
-| C-c f   | File operations            | core-os.el          |
-| C-c g   | AI/GPT commands            | tool-ai.el          |
-| C-c h   | Dashboard                  | ui-dashboard.el     |
-| C-c j   | Jump/Navigation            | ui-navigation.el    |
-| C-c l   | LSP/Eglot                  | tool-dev.el         |
-| C-c n   | Org-roam notes             | lang-org.el         |
-| C-c N   | Denote notes               | lang-org.el         |
-| C-c o   | Org-mode                   | lang-org.el         |
-| C-c p   | Projectile                 | tool-dev.el         |
-| C-c q   | Quit/Utility               | core-utils.el       |
-| C-c r   | Reveal.js presentations    | lang-org.el         |
-| C-c s   | Search                     | ui-navigation.el    |
-| C-c t   | Terminal/Text              | tool-shell.el       |
-| C-c u   | UI toggle menu             | core-ui.el          |
-| C-c w   | Window management          | ui-windows.el       |
-| C-c /   | Google search              | core-utils.el       |
-| C-c ;   | iedit mode                 | core-editor.el      |
-| C-c T   | Communication/TRAMP        | tool-comm.el        |
-| C-c C   | Clojure/CIDER              | lang-lisp.el        |
-| C-c D   | Docker                     | lang-ops.el         |
-| C-c K   | Kubernetes                 | lang-ops.el         |
-| C-c L   | Lisp menu                  | lang-lisp.el        |
-| C-c O   | DevOps menu                | lang-ops.el         |
+** Basic
 
-* Core Editing (C-c e)
+| Key             | Command                       | Notes                     |
+|-----------------+-------------------------------+---------------------------|
+| =C-a=           | =crux-move-beginning-of-line= | Smart home                |
+| =C-k=           | =crux-smart-kill-line=        | Smart kill line           |
+| =C-==           | =er/expand-region=            | Expand selection          |
+| =C-+=           | =er/contract-region=          | Shrink selection          |
+| =C->=           | =mc/mark-next-like-this=      | Multiple cursors next     |
+| =C-<=           | =mc/mark-previous-like-this=  | Multiple cursors previous |
+| =C-c C-<=       | =mc/mark-all-like-this=       | Multiple cursors all      |
+| =M-;=           | =comment-dwim-2=              | Smart comment             |
+| =M-z=           | =zzz-up-to-char=              | Zap up to char            |
+| =M-y=           | =popup-kill-ring=             | Visual kill ring picker   |
+| =M-Q=           | =ian/unfill-paragraph=        | Join paragraph to one line|
+| =M-<up>=        | =move-text-up=                | Move line up              |
+| =M-<down>=      | =move-text-down=              | Move line down            |
+| =S-<return>=    | =ian/open-line-below=         | Open line below           |
+| =C-S-<return>=  | =ian/open-line-above=         | Open line above           |
+| =C-c ;=         | =iedit-mode=                  | Edit all occurrences      |
+| =C-c q c=       | =string-inflection-all-cycle= | Cycle case style          |
+| =C-c R=         | =crux-rename-file-and-buffer= | Rename file + buffer      |
+| =C-c I=         | =crux-find-user-init-file=    | Open init.el              |
+| =C-c S=         | =crux-find-shell-init-file=   | Open shell rc             |
+| =C-c M-d=       | =crux-duplicate-and-comment-current-line-or-region= | Duplicate + comment |
 
-| Key     | Command                | Description                  |
-|---------+------------------------+------------------------------|
-| C-c e c | ian/cleanup-buffer     | Clean up whitespace          |
-| C-c e d | ian/duplicate-line     | Duplicate current line       |
-| C-c e i | ian/indent-buffer      | Indent entire buffer         |
-| C-c ;   | iedit-mode             | Edit multiple occurrences    |
-| C-=     | er/expand-region       | Expand selection             |
-| C-+     | er/contract-region     | Contract selection           |
-| C->     | mc/mark-next-like-this | Multiple cursors next        |
-| C-<     | mc/mark-previous       | Multiple cursors previous    |
-| M-;     | comment-dwim-2         | Smart commenting             |
-| M-z     | zzz-up-to-char         | Zap up to char               |
-| M-y     | popup-kill-ring        | Visual kill ring             |
-| M-Q     | ian/unfill-paragraph   | Unfill paragraph             |
+** Editor Operations (=C-c e=)
 
-* Buffer Management (C-c b)
-
-| Key     | Command                   | Description              |
-|---------+---------------------------+--------------------------|
-| C-c b   | ian/buffer-menu           | Buffer transient menu    |
-| C-c b k | ian/kill-other-buffers    | Kill all other buffers   |
-| C-c b m | ian/switch-to-messages    | Switch to *Messages*     |
-| C-c b n | ian/new-empty-buffer      | Create empty buffer      |
-| C-c b r | ian/revert-buffer-no-confirm | Revert without confirm |
-| C-c b s | ian/switch-to-scratch     | Switch to *scratch*      |
-| C-x k   | ian/kill-current-buffer   | Kill current buffer      |
-
-* Window Management (C-c w)
-
-| Key     | Command                       | Description              |
-|---------+-------------------------------+--------------------------|
-| C-c w   | ian/window-menu               | Window transient menu    |
-| C-c w = | balance-windows               | Balance windows          |
-| C-c w D | ian/toggle-window-dedicated   | Toggle dedicated window  |
-| C-c w d | ian/delete-window-or-frame    | Delete window/frame      |
-| C-c w h | ian/split-window-below-focus  | Split below and focus    |
-| C-c w H | workspace-hud-toggle          | Toggle workspace HUD     |
-| C-c w m | ian/toggle-maximize-buffer    | Maximize/restore buffer  |
-| C-c w v | ian/split-window-right-focus  | Split right and focus    |
-| C-c w t | transpose-frame               | Transpose frame          |
-| M-o     | ace-window                    | Ace window switching     |
-| C-x o   | switch-window                 | Visual window switch     |
-| C-`     | popper-toggle                 | Toggle popup             |
-
-* File Operations (C-c f)
-
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-c f d | ian/copy-directory-path | Copy directory path    |
-| C-c f i | ian/system-info       | Show system info         |
-| C-c f m | ian/open-file-manager | Open in file manager     |
-| C-c f n | ian/copy-file-name    | Copy file name           |
-| C-c f p | ian/copy-file-path    | Copy file path           |
-
-* Dired (C-c d)
-
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-c d   | ian/dired-menu        | Dired transient menu     |
-| C-c d h | ian/dired-home        | Open home directory      |
-| C-c d d | ian/dired-downloads   | Open downloads           |
-| C-c d p | ian/dired-projects    | Open projects            |
-| C-c d c | ian/dired-config      | Open config directory    |
-| C-c d o | ian/dired-org         | Open org directory       |
-| C-x C-n | dired-sidebar-toggle-sidebar | Toggle tree sidebar |
-| C-c d s | dired-sidebar-toggle-sidebar | Toggle tree sidebar |
-
-* Navigation/Jump (C-c j)
-
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-c j   | ian/jump-menu         | Jump transient menu      |
-| C-c j , | goto-last-change      | Go to last change        |
-| C-c j i | imenu-list-smart-toggle | Toggle imenu list      |
-| C-c j b | bm-toggle             | Toggle bookmark          |
-| C-'     | avy-goto-char-timer   | Avy jump to char         |
-
-* Search (C-c s)
-
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-c s   | ian/completion-menu   | Search transient menu    |
-| C-c s d | deadgrep              | Deadgrep search          |
-| C-c s r | rg-menu               | Ripgrep menu             |
-
-* Terminal (C-c t)
-
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-c t   | ian/terminal-menu     | Terminal transient menu  |
-| C-c t v | vterm                 | Open vterm               |
-| C-c t t | vterm-toggle          | Toggle vterm             |
-| C-c t s | shell-pop             | Pop shell                |
-| C-c t h | ian/eshell-here       | Eshell in current dir    |
-| C-c t P | ian/eshell-project    | Eshell in project root   |
-
-* AI/GPT (C-c g)
-
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-c g   | ian/ai-menu           | AI transient menu        |
-| C-c g g | gptel-send            | Send to LLM              |
-| C-c g G | gptel                 | Open chat buffer         |
-| C-c g m | gptel-menu            | GPTel settings           |
-| C-c g a | gptel-add             | Add context              |
-| C-c g f | gptel-add-file        | Add file to context      |
-| C-c g r | gptel-rewrite         | Rewrite selection        |
-| C-c g w | whisper-run           | Speech-to-text           |
-| C-c g s | greader-mode          | Text-to-speech           |
-| C-c g c | chatgpt-shell         | ChatGPT shell            |
-| C-c g p | aider-transient-menu  | Aider menu               |
-
-* Org-Roam Notes (C-c n)
-
-| Key     | Command                   | Description              |
-|---------+---------------------------+--------------------------|
-| C-c n f | org-roam-node-find        | Find node                |
-| C-c n i | org-roam-node-insert      | Insert node              |
-| C-c n l | org-roam-buffer-toggle    | Toggle buffer            |
-| C-c n c | org-roam-capture          | Capture note             |
-| C-c n g | org-roam-graph            | Show graph               |
-| C-c n r | org-roam-ref-find         | Find reference           |
-| C-c n t | org-roam-tag-add          | Add tag                  |
-| C-c n a | org-roam-alias-add        | Add alias                |
-| C-c n D | org-roam-dailies-capture-today | Capture daily       |
-| C-c n y | org-roam-dailies-goto-yesterday | Yesterday's daily  |
-| C-c n T | org-roam-dailies-goto-tomorrow | Tomorrow's daily   |
-
-* Denote Notes (C-c N)
-
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-c N n | denote                | Create note              |
-| C-c N N | denote-type           | Create typed note        |
-| C-c N d | denote-date           | Create dated note        |
-| C-c N s | denote-subdirectory   | Create in subdirectory   |
-| C-c N t | denote-template       | Create from template     |
-| C-c N r | denote-rename-file    | Rename file              |
-| C-c N l | denote-link           | Insert link              |
-| C-c N L | denote-link-add-links | Add multiple links       |
-| C-c N b | denote-link-backlinks | Show backlinks           |
-| C-c N f | denote-link-find-file | Find linked file         |
-
-* Org Mode (C-c o)
-
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-c o j | org-journal-new-entry | New journal entry        |
-| C-c o p | org-pomodoro          | Start pomodoro           |
-
-* Reveal.js Presentations (C-c r)
-
-| Key     | Command                      | Description              |
-|---------+------------------------------+--------------------------|
-| C-c r r | ian/reveal-menu              | Reveal transient menu    |
-| C-c r e | ian/reveal-export-to-html    | Export to HTML           |
-| C-c r E | ian/reveal-export-and-open   | Export and open browser  |
-| C-c r s | ian/reveal-insert-slide      | Insert slide             |
-| C-c r n | ian/reveal-insert-notes      | Insert speaker notes     |
-| C-c r f | ian/reveal-insert-fragment   | Insert fragment          |
-| C-c r c | ian/reveal-insert-two-columns | Two-column layout       |
-| C-c r b | ian/reveal-insert-background | Slide background         |
-| C-c r N | ian/reveal-new-presentation  | New presentation         |
-
-* Project Management (C-c p)
-
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-c p   | (keymap)              | Projectile prefix        |
-| C-c p p | projectile-switch-project | Switch project        |
-| C-c p f | projectile-find-file  | Find file in project     |
-| C-c p s | projectile-ripgrep    | Search in project        |
-| C-c p b | projectile-switch-to-buffer | Project buffers     |
-
-* Git (C-x g, C-c g)
-
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-x g   | magit-status          | Magit status             |
-| C-c g t | git-timemachine       | Git time machine         |
-| C-c g b | browse-at-remote      | Browse on GitHub/GitLab  |
-
-* LSP/Eglot (C-c l)
-
-| Key     | Command                   | Description              |
-|---------+---------------------------+--------------------------|
-| C-c l r | eglot-rename              | Rename symbol            |
-| C-c l a | eglot-code-actions        | Code actions             |
-| C-c l f | eglot-format              | Format region            |
-| C-c l F | eglot-format-buffer       | Format buffer            |
-| C-c l d | eldoc-box-help-at-point   | Show docs                |
-| C-c l . | xref-find-definitions     | Find definition          |
-| C-c l , | xref-find-references      | Find references          |
-| C-c l i | eglot-find-implementation | Find implementation      |
-| C-c l o | eglot-code-action-organize-imports | Organize imports |
-| C-c l q | eglot-shutdown            | Shutdown LSP             |
-| C-c l Q | eglot-shutdown-all        | Shutdown all LSP         |
-| C-c l R | eglot-reconnect           | Reconnect LSP            |
-
-* Utility (C-c q)
-
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-c q i | ian/reload-init       | Reload init.el           |
-| C-c q I | ian/open-init-file    | Open init.el             |
-| C-c q k | ian/kill-all-buffers  | Kill all buffers         |
-| C-c q m | ian/toggle-maximize-buffer | Maximize buffer      |
-| C-c q r | restart-emacs         | Restart Emacs            |
-| C-c q c | string-inflection-all-cycle | Cycle string case  |
-
-* DevOps (C-c D, C-c K, C-c O)
-
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-c D   | docker                | Docker interface         |
-| C-c K   | kubel                 | Kubernetes interface     |
-| C-c O   | ian/ops-menu          | DevOps transient menu    |
-
-* Communication (C-c T)
-
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-c T T | ian/comm-menu         | Communication menu       |
-| C-c T t | telega                | Telegram client          |
-| C-c T i | circe                 | IRC client               |
-| C-c T r | elfeed                | RSS reader               |
-| C-c T e | ian/sudo-edit         | Edit as root             |
-| C-c T s | ian/ssh-connect       | SSH connect              |
-
-* Completion (Vertico/Consult/Embark)
-
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-.     | embark-act            | Embark act               |
-| C-;     | embark-dwim           | Embark do what I mean    |
-| C-h B   | embark-bindings       | Show bindings            |
-| C-x b   | consult-buffer        | Switch buffer            |
-| M-s l   | consult-line          | Search lines             |
-| M-s g   | consult-grep          | Grep                     |
-| M-s r   | consult-ripgrep       | Ripgrep                  |
-| M-g g   | consult-goto-line     | Go to line               |
-| M-g o   | consult-outline       | Show outline             |
-
-* Text/Writing (C-c t)
-
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-c t w | ian/writing-mode      | Enter writing mode       |
-| C-c t p | ian/toggle-prose-mode | Toggle prose mode        |
-| C-c t d | ian/insert-date       | Insert date              |
-| C-c w   | writegood-mode        | Toggle writegood         |
-
-* macOS Keys (s- = Command)
-
-| Key       | Command                   | Description              |
-|-----------+---------------------------+--------------------------|
-| s-a       | mark-whole-buffer         | Select all               |
-| s-c       | kill-ring-save            | Copy                     |
-| s-v       | yank                      | Paste                    |
-| s-x       | kill-region               | Cut                      |
-| s-z       | undo-fu-only-undo         | Undo                     |
-| s-Z       | undo-fu-only-redo         | Redo                     |
-| s-s       | save-buffer               | Save                     |
-| s-w       | delete-window             | Close window             |
-| s-W       | delete-frame              | Close frame              |
-| s-n       | make-frame-command        | New frame                |
-| s-q       | save-buffers-kill-terminal | Quit                    |
-| s-`       | other-frame               | Cycle frames             |
-| s-<return>| toggle-frame-fullscreen   | Fullscreen               |
-| s-,       | customize                 | Preferences              |
-| s-o       | ian/open-with-default-app | Open externally          |
-| s-r       | ian/reveal-in-finder      | Reveal in Finder         |
-| s-m       | ian/media-menu            | Media transient menu     |
+| Key       | Command              | Notes                    |
+|-----------+----------------------+--------------------------|
+| =C-c e c= | =ian/cleanup-buffer= | Indent + untabify + trim |
+| =C-c e d= | =ian/duplicate-line= | Duplicate line (no kill ring) |
+| =C-c e i= | =ian/indent-buffer=  | Re-indent entire buffer  |
 
 * Undo
 
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-z     | undo-fu-only-undo     | Undo                     |
-| C-S-z   | undo-fu-only-redo     | Redo                     |
-| C-x u   | vundo                 | Visual undo tree         |
+| Key       | Command                | Notes                   |
+|-----------+------------------------+-------------------------|
+| =C-z=     | =undo-fu-only-undo=    | Undo                    |
+| =C-S-z=   | =undo-fu-only-redo=    | Redo                    |
+| =/=       | =undo-fu-only-undo=    | Alternate undo          |
+| =C-?=     | =undo-fu-only-redo=    | Alternate redo          |
+| =C-x u=   | =vundo=                | Visual undo tree        |
 
-* Lisp Editing
+* Completion (Vertico / Consult / Corfu / Embark)
 
-| Key     | Command                       | Description              |
-|---------+-------------------------------+--------------------------|
-| C-c (   | ian/toggle-lisp-editing-mode  | Toggle paredit/parinfer  |
-| C-c L   | ian/lisp-menu                 | Lisp transient menu      |
+** Minibuffer
 
-* UI Toggles (C-c u)
+| Key         | Command                   | Notes                      |
+|-------------+---------------------------+----------------------------|
+| =C-x b=     | =consult-buffer=          | Switch buffer              |
+| =C-x 4 b=   | =consult-buffer-other-window= |                        |
+| =C-x p b=   | =consult-project-buffer=  | Project buffers            |
+| =C-x r b=   | =consult-bookmark=        | Jump to bookmark           |
+| =M-g M-g=   | =consult-goto-line=       | Go to line                 |
+| =M-g f=     | =consult-flymake=         | Flymake diagnostics        |
+| =M-g o=     | =consult-outline=         | Jump to heading            |
+| =M-g i=     | =consult-imenu=           | Imenu                      |
+| =M-g I=     | =consult-imenu-multi=     | Imenu across buffers       |
+| =M-s l=     | =consult-line=            | Search lines               |
+| =M-s L=     | =consult-line-multi=      | Search lines (all buffers) |
+| =M-s r=     | =consult-ripgrep=         | Ripgrep project            |
+| =M-s g=     | =consult-grep=            | Grep                       |
+| =M-s G=     | =consult-git-grep=        | Git grep                   |
+| =M-s d=     | =consult-find=            | Find file                  |
+| =C-c s=     | =ian/completion-menu=     | Search transient menu      |
+| =C-c m=     | =consult-mode-command=    | Run mode command           |
+| =C-c H=     | =consult-history=         | Minibuffer history         |
+| =M-%=       | =anzu-query-replace=      | Query replace with count   |
+| =C-M-%=     | =anzu-query-replace-regexp= | Regexp replace           |
 
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-c u   | ian/ui-menu           | UI transient menu        |
-| C-M-=   | default-text-scale-increase | Increase font size  |
-| C-M--   | default-text-scale-decrease | Decrease font size  |
+** Embark
+
+| Key     | Command             | Notes                          |
+|---------+---------------------+--------------------------------|
+| =C-.=   | =embark-act=        | Act on target at point         |
+| =C-;=   | =embark-dwim=       | Do what I mean                 |
+| =C-h B= | =embark-bindings=   | Show all active bindings       |
+
+** Cape (in-buffer, =C-c C-p=)
+
+| Key         | Command              |
+|-------------+----------------------|
+| =C-c C-p d= | =cape-dabbrev=       |
+| =C-c C-p f= | =cape-file=          |
+| =C-c C-p h= | =cape-history=       |
+| =C-c C-p k= | =cape-keyword=       |
+| =C-c C-p l= | =cape-line=          |
+| =C-c C-p s= | =cape-elisp-symbol=  |
+| =C-c C-p w= | =cape-dict=          |
+
+** Vertico map (inside minibuffer)
+
+| Key     | Command                         |
+|---------+---------------------------------|
+| =C-j=   | =vertico-next=                  |
+| =C-k=   | =vertico-previous=              |
+| =C-l=   | =vertico-insert=                |
+| =M-q=   | =vertico-quick-insert=          |
+| =C-q=   | =vertico-quick-exit=            |
+| =RET=   | =vertico-directory-enter=       |
+| =DEL=   | =vertico-directory-delete-char= |
+
+* Navigation (=C-c j=)
+
+| Key       | Command                   | Notes                    |
+|-----------+---------------------------+--------------------------|
+| =C-c j=   | =ian/jump-menu=           | Jump transient menu      |
+| =C-'=     | =avy-goto-char-timer=     | Jump to char (timed)     |
+| =C-:=     | =avy-goto-char-2=         | Jump to 2 chars          |
+| =C-c j j= | =avy-goto-char-timer=     | Same as =C-'=            |
+| =C-c j c= | =avy-goto-char=           | Jump to single char      |
+| =C-c j C= | =avy-goto-char-2=         |                          |
+| =C-c j w= | =avy-goto-word-1=         | Jump to word             |
+| =C-c j l= | =avy-goto-line=           | Jump to line             |
+| =M-g g=   | =avy-goto-line=           | Also on M-g g            |
+| =M-g w=   | =avy-goto-word-1=         |                          |
+| =C-c j ,= | =goto-last-change=        | Jump to last edit        |
+| =C-c j .= | =goto-last-change-reverse=|                          |
+| =C-c j i= | =imenu-list-smart-toggle= | Toggle imenu sidebar     |
+| =C-c j b= | =bm-toggle=               | Toggle visual bookmark   |
+| =C-c j n= | =bm-next=                 |                          |
+| =C-c j p= | =bm-previous=             |                          |
+| =C-c j B= | =bm-show-all=             | Show all bookmarks       |
+
+* Buffers (=C-c b=)
+
+| Key       | Command                        | Notes                   |
+|-----------+--------------------------------+-------------------------|
+| =C-c b=   | =ian/buffer-menu=              | Buffer transient menu   |
+| =C-x k=   | =ian/kill-current-buffer=      | Kill without confirm    |
+| =C-c b k= | =ian/kill-other-buffers=       | Kill all others         |
+| =C-c b m= | =ian/switch-to-messages=       |                         |
+| =C-c b n= | =ian/new-empty-buffer=         | New untitled buffer     |
+| =C-c b r= | =ian/revert-buffer-no-confirm= |                         |
+| =C-c b s= | =ian/switch-to-scratch=        |                         |
+
+* Windows (=C-c w=)
+
+| Key       | Command                          | Notes                   |
+|-----------+----------------------------------+-------------------------|
+| =C-c w=   | =ian/window-menu=                | Window transient menu   |
+| =M-o=     | =ace-window=                     | Visual window pick      |
+| =C-c w v= | =ian/split-window-right-and-focus= | Split right + focus   |
+| =C-c w h= | =ian/split-window-below-and-focus= | Split below + focus   |
+| =C-c w d= | =ian/delete-window-or-frame=     | Delete window/frame     |
+| =C-c w D= | =ian/toggle-window-dedicated=    | Dedicate window         |
+| =C-c w m= | =ian/toggle-maximize-buffer=     | Maximize / restore      |
+| =C-c w == | =balance-windows=                |                         |
+| =C-c w t= | =transpose-frame=                |                         |
+| =C-c w f= | =flip-frame=                     |                         |
+| =C-c w F= | =flop-frame=                     |                         |
+| =C-c w R= | =rotate-frame-clockwise=         |                         |
+| =C-c w H= | =workspace-hud-toggle=           | WASM workspace HUD      |
+| =C-`=     | =popper-toggle=                  | Toggle popup window     |
+| =M-`=     | =popper-cycle=                   | Cycle popups            |
+| =C-M-`=   | =popper-toggle-type=             | Promote/demote popup    |
+| =C-c w [= → =C-c w ]=  | Tab bar prev/next | (in window menu)    |
+| =s-<arrow>= | =windmove-*=                   | Move to adjacent window |
+| =s-S-<arrow>= | =windmove-swap-*=            | Swap adjacent window    |
+
+* File Utilities (=C-c f=)
+
+| Key       | Command                   | Notes                   |
+|-----------+---------------------------+-------------------------|
+| =C-c f p= | =ian/copy-file-path=      | Full path to clipboard  |
+| =C-c f n= | =ian/copy-file-name=      | Filename to clipboard   |
+| =C-c f d= | =ian/copy-directory-path= | Directory to clipboard  |
+| =C-c f i= | =ian/system-info=         | Show OS / Emacs info    |
+| =C-c f m= | =ian/open-file-manager=   | Open in Nautilus/Finder (Linux) |
+
+* Dired (=C-c d=)
+
+| Key             | Command                  | Notes                     |
+|-----------------+--------------------------+---------------------------|
+| =C-c d=         | =ian/dired-menu=         | Dired transient menu      |
+| =TAB=           | =dired-subtree-toggle=   | Expand/collapse dir       |
+| =<backtab>=     | =dired-subtree-cycle=    | Cycle subtree             |
+| =C-x C-n=       | =dired-subtree-toggle=   | Also works globally       |
+| =/=             | =dired-narrow=           | Filter listing            |
+| =)=             | =dired-git-info-mode=    | Show git status           |
+| =P=             | =peep-dired=             | Preview files             |
+| =W=             | =dired-ranger-copy=      | Copy (ranger-style)       |
+| =X=             | =dired-ranger-move=      |                           |
+| =Y=             | =dired-ranger-paste=     |                           |
+| =C-c t= (dired) | =ian/dired-tree-toggle=  | Toggle tree sidebar       |
+| =C-c F= (dired) | =ian/dired-tree-follow-current= | Sidebar → current dir |
+
+* Terminals (=C-c t=)
+
+| Key       | Command                | Notes                      |
+|-----------+------------------------+----------------------------|
+| =C-c t=   | =ian/terminal-menu=    | Terminal transient menu    |
+| =C-c t v= | =vterm=                | Open vterm                 |
+| =C-c t V= | =vterm-other-window=   |                            |
+| =C-c t p= | =multi-vterm-project=  | Vterm for current project  |
+| =C-c t ]=  | =multi-vterm-next=    | Next vterm                 |
+| =C-c t [=  | =multi-vterm-prev=    | Previous vterm             |
+| =C-c t s= | =shell-pop=            | Pop shell at bottom        |
+| =C-c t h= | =ian/eshell-here=      | Eshell in current dir      |
+| =C-c t P= | =ian/eshell-project=   | Eshell at project root     |
+
+* Version Control (=C-x g=, =C-c g=)
+
+| Key       | Command              | Notes                      |
+|-----------+----------------------+----------------------------|
+| =C-x g=   | =magit-status=       | Magit status               |
+| =C-c g t= | =git-timemachine=    | Step through file history  |
+| =C-c g b= | =browse-at-remote=   | Open on GitHub / GitLab    |
+
+* LSP / Eglot (=C-c l=, active in =eglot-mode-map=)
+
+| Key       | Command                              | Notes                  |
+|-----------+--------------------------------------+------------------------|
+| =C-c l r= | =eglot-rename=                       | Rename symbol          |
+| =C-c l a= | =eglot-code-actions=                 | Code actions           |
+| =C-c l f= | =eglot-format=                       | Format region          |
+| =C-c l F= | =eglot-format-buffer=                | Format buffer          |
+| =C-c l d= | =eldoc-box-help-at-point=            | Popup docs             |
+| =C-c l .= | =xref-find-definitions=             | Go to definition       |
+| =C-c l ,= | =xref-find-references=              | Find references        |
+| =C-c l i= | =eglot-find-implementation=          | Find implementation    |
+| =C-c l o= | =eglot-code-action-organize-imports= | Organize imports       |
+| =C-c l q= | =eglot-shutdown=                     | Stop LSP               |
+| =C-c l Q= | =eglot-shutdown-all=                 | Stop all LSP           |
+| =C-c l R= | =eglot-reconnect=                    | Reconnect              |
+| =M-s s=   | =consult-eglot-symbols=              | Workspace symbols      |
+
+* AI Tools (=C-c g=)
+
+| Key       | Command                   | Notes                       |
+|-----------+---------------------------+-----------------------------|
+| =C-c g=   | =ian/ai-menu=             | AI transient menu           |
+| =C-c g g= | =gptel-send=              | Send to LLM                 |
+| =C-c g G= | =gptel=                   | Open chat buffer            |
+| =C-c g m= | =gptel-menu=              | GPTel settings / model pick |
+| =C-c g a= | =gptel-add=               | Add buffer/region to context|
+| =C-c g f= | =gptel-add-file=          | Add file to context         |
+| =C-c g r= | =gptel-rewrite=           | Rewrite selection           |
+| =C-c g w= | =whisper-run=             | Speech-to-text              |
+| =C-c g s= | =greader-mode=            | Text-to-speech              |
+| =C-c g c= | =chatgpt-shell=           | ChatGPT shell               |
+| =C-c g p= | =aider-transient-menu=    | Aider pair programmer       |
+| =M-RET=   | =minuet-complete-with-minibuffer= | AI inline completion |
+
+** Org-AI (inside =org-mode=, =C-c M-=)
+
+| Key         | Command                     |
+|-------------+-----------------------------|
+| =C-c M-a=   | =org-ai-complete=           |
+| =C-c M-r=   | =org-ai-on-region=          |
+| =C-c M-p=   | =org-ai-prompt=             |
+| =C-c M-s=   | =org-ai-summarize=          |
+| =C-c M-x=   | =org-ai-refactor-code=      |
+| =C-c M-b=   | =ian/org-ai-complete-block= |
+| =C-c M-c=   | =ian/org-ai-chat-block=     |
+| =C-c M-C=   | =ian/org-ai-code-block=     |
+| =C-c M-S=   | =ian/org-ai-summarize-buffer= |
+| =C-c M-e=   | =ian/org-ai-explain-code=   |
+| =C-c M-i=   | =ian/org-ai-improve-text=   |
+| =C-c M-t=   | =ian/org-ai-translate=      |
+| =C-c M-T=   | =org-ai-talk-toggle=        |
+| =C-c M-R=   | =org-ai-talk-read-region=   |
+
+* Project Management (=C-c p=)
+
+=C-c p= is bound to =projectile-command-map=. Common entries:
+
+| Key       | Command                      |
+|-----------+------------------------------|
+| =C-c p p= | =projectile-switch-project=  |
+| =C-c p f= | =projectile-find-file=       |
+| =C-c p b= | =projectile-switch-to-buffer=|
+| =C-c p s r= | =projectile-ripgrep=       |
+| =C-c p k= | =projectile-kill-buffers=    |
+
+* Org-Roam (=C-c n=)
+
+| Key         | Command                            |
+|-------------+------------------------------------|
+| =C-c n f=   | =org-roam-node-find=               |
+| =C-c n i=   | =org-roam-node-insert=             |
+| =C-c n l=   | =org-roam-buffer-toggle=           |
+| =C-c n c=   | =org-roam-capture=                 |
+| =C-c n g=   | =org-roam-graph=                   |
+| =C-c n r=   | =org-roam-ref-find=                |
+| =C-c n t=   | =org-roam-tag-add=                 |
+| =C-c n a=   | =org-roam-alias-add=               |
+| =C-c n D=   | =org-roam-dailies-capture-today=   |
+| =C-c n y=   | =org-roam-dailies-goto-yesterday=  |
+| =C-c n T=   | =org-roam-dailies-goto-tomorrow=   |
+
+* Snippets (=C-c y=)
+
+| Key       | Command              |
+|-----------+----------------------|
+| =C-c y i= | =yas-insert-snippet= |
+| =C-c y n= | =yas-new-snippet=    |
+| =C-c y v= | =yas-visit-snippet-file= |
+| =C-c y r= | =yas-reload-all=     |
+| =C-c y c= | =consult-yasnippet=  |
+
+* Utility (=C-c q=)
+
+| Key       | Command                     |
+|-----------+-----------------------------|
+| =C-c q i= | =ian/reload-init=           |
+| =C-c q I= | =ian/open-init-file=        |
+| =C-c q k= | =ian/kill-all-buffers=      |
+| =C-c q m= | =ian/toggle-maximize-buffer=|
+| =C-c q r= | =restart-emacs=             |
+| =C-c q c= | =string-inflection-all-cycle= |
 
 * Help
 
-| Key     | Command               | Description              |
-|---------+-----------------------+--------------------------|
-| C-h f   | helpful-callable      | Describe function        |
-| C-h v   | helpful-variable      | Describe variable        |
-| C-h k   | helpful-key           | Describe key             |
-| C-h x   | helpful-command       | Describe command         |
-| C-c C-d | helpful-at-point      | Help at point            |
+| Key         | Command               |
+|-------------+-----------------------|
+| =C-h f=     | =helpful-callable=    |
+| =C-h v=     | =helpful-variable=    |
+| =C-h k=     | =helpful-key=         |
+| =C-h x=     | =helpful-command=     |
+| =C-h F=     | =helpful-function=    |
+| =C-h C=     | =helpful-command=     |
+| =C-c C-d=   | =helpful-at-point=    |
+| =C-M-==     | =default-text-scale-increase= |
+| =C-M--=     | =default-text-scale-decrease= |
+| =C-M-0=     | =default-text-scale-reset=    |
+
+* macOS Only (=s-= = ⌘)
+
+| Key           | Command                          |
+|---------------+----------------------------------|
+| =s-a=         | =mark-whole-buffer=              |
+| =s-c=         | =kill-ring-save=                 |
+| =s-v=         | =yank=                           |
+| =s-x=         | =kill-region=                    |
+| =s-z=         | =undo-fu-only-undo=              |
+| =s-Z=         | =undo-fu-only-redo=              |
+| =s-s=         | =save-buffer=                    |
+| =s-w=         | =delete-window=                  |
+| =s-W=         | =delete-frame=                   |
+| =s-n=         | =make-frame-command=             |
+| =s-q=         | =save-buffers-kill-terminal=     |
+| =s-`=         | =other-frame=                    |
+| =s-<return>=  | =toggle-frame-fullscreen=        |
+| =s-,=         | =customize=                      |
+| =s-o=         | =ian/open-with-default-app=      |
+| =s-r=         | =ian/reveal-in-finder=           |
+| =s-<arrow>=   | =windmove-*=                     |
+| =s-S-<arrow>= | =windmove-swap-states-*=         |

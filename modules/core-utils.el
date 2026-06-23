@@ -124,7 +124,7 @@
   :diminish
   :custom
   (gcmh-idle-delay 5)
-  (gcmh-high-cons-threshold (* 64 1024 1024))
+  (gcmh-high-cons-threshold (* 32 1024 1024))
   :config
   (gcmh-mode 1))
 

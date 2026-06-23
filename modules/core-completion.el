@@ -174,7 +174,7 @@
            ((fboundp 'projectile-project-root) (projectile-project-root))
            ((fboundp 'project-root)
             (when-let ((p (project-current nil)))
-              (car (project-roots p))))
+              (project-root p)))
            (t default-directory)))))
 
 ;; Consult + Flycheck

@@ -90,7 +90,8 @@
               ("TAB" . dired-subtree-toggle)
               ("<tab>" . dired-subtree-toggle)
               ("<backtab>" . dired-subtree-cycle)
-              ("C-<tab>" . dired-subtree-cycle))
+              ("C-<tab>" . dired-subtree-cycle)
+              ("C-x C-n" . dired-subtree-toggle))
   :config
   (setq dired-kill-when-opening-new-dired-buffer t
         dired-recursive-deletes 'top
@@ -242,7 +243,9 @@
 ;; Dired-mode keybindings
 (with-eval-after-load 'dired
   (define-key dired-mode-map (kbd "C-c t") #'ian/dired-tree-toggle)
-  (define-key dired-mode-map (kbd "C-c F") #'ian/dired-tree-follow-current))
+  (define-key dired-mode-map (kbd "C-c F") #'ian/dired-tree-follow-current)
+  ;; Free C-x C-n from set-goal-column in dired
+  (define-key dired-mode-map (kbd "C-x C-n") nil))
 
 ;; Sidebar-specific keybindings (applied when buffer is created)
 (defun ian/dired-tree--setup-keys ()

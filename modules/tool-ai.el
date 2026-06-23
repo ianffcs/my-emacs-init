@@ -73,6 +73,7 @@ When NOERROR is non-nil, return nil instead of signaling an error."
          (response (with-temp-buffer
                      (when (zerop (call-process "curl" nil t nil
                                                 "--noproxy" "*"
+                                                "--connect-timeout" "3"
                                                 "-s" url))
                        (buffer-string))))
          (models '()))
@@ -550,7 +551,7 @@ If DEVICE-NAME is provided, use it instead of prompting."
     (cond
      ((and (stringp openai-key) (not (string-empty-p openai-key)))
       (setq minuet-provider 'openai)
-      (plist-put minuet-openai-options :model "gpt-5.4-nano")
+      (plist-put minuet-openai-options :model "gpt-4.1-nano")
       (plist-put minuet-openai-options :api-key (lambda () (ian/get-key "api.openai.com")))
       (minuet-set-optional-options minuet-openai-options :max_completion_tokens 128)
       (minuet-set-optional-options minuet-openai-options :reasoning_effort "none"))

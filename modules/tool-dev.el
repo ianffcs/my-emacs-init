@@ -148,6 +148,12 @@
          (elixir-ts-mode . eglot-ensure)
          (haskell-mode . eglot-ensure)
          (terraform-mode . eglot-ensure)
+         (sh-mode . eglot-ensure)
+         (bash-ts-mode . eglot-ensure)
+         (dockerfile-mode . eglot-ensure)
+         (dockerfile-ts-mode . eglot-ensure)
+         (nix-mode . eglot-ensure)
+         (nix-ts-mode . eglot-ensure)
          (eglot-managed-mode . eglot-inlay-hints-mode))
   :bind (:map eglot-mode-map
               ("C-c l r" . eglot-rename)
@@ -286,6 +292,16 @@
                         :diagnosticMode "workspace"
                         :typeCheckingMode "basic"))))
 
+;; Cape + Eglot: merge eglot's capf with cape sources so file/dabbrev
+;; completion still works in LSP buffers (eglot otherwise replaces all capfs).
+(add-hook 'eglot-managed-mode-hook
+          (lambda ()
+            (setq-local completion-at-point-functions
+                        (list (cape-capf-super
+                               #'eglot-completion-at-point
+                               #'cape-file
+                               #'cape-dabbrev)))))
+
 (use-package consult-eglot
   :after (consult eglot)
   :bind (:map eglot-mode-map
@@ -306,7 +322,6 @@
 
 (use-package flymake
   :straight (:type built-in)
-  :hook (prog-mode . flymake-mode)
   :custom
   (flymake-no-changes-timeout 0.5)
   (flymake-start-on-save-buffer t))

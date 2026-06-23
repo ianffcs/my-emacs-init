@@ -245,7 +245,7 @@
                             ("[" "Prev vterm" multi-vterm-prev)
                             ("]" "Next vterm" multi-vterm-next)
                             ("s" "Shell pop" shell-pop)]))
-;;(global-set-key (kbd "C-c t") #'ian/terminal-menu)
+(global-set-key (kbd "C-c t") #'ian/terminal-menu)
 
 (provide 'tool-shell)
 ;;; tool-shell.el ends here

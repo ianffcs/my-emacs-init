@@ -6,12 +6,7 @@
 
 ;;; Code:
 
-;; 1. COMPATIBILITY HACKS
-(defvar thisfile nil "Workaround for magit compatibility")
-(defvar symbol nil "Workaround for symbol compatibility")
-(defvar value nil "Workaround for value compatibility")
-
-;; 2. USER INFO (from Personal Keymap section)
+;; 1. USER INFO (from Personal Keymap section)
 (setq user-full-name "Ian Fernandez"
       user-mail-address "d.ian.b@live.com")
 
@@ -32,13 +27,7 @@
       jit-lock-stealth-nice 0.1)
 
 ;; 5. NATIVE COMPILATION TWEAKS
-(when (and (eq system-type 'darwin) (featurep 'native-compile))
-  (let ((brew-prefix (or (getenv "HOMEBREW_PREFIX")
-                         (when (file-exists-p "/opt/homebrew") "/opt/homebrew")
-                         "/usr/local")))
-    (when brew-prefix
-      (setenv "LIBRARY_PATH" (concat brew-prefix "/lib/gcc/current:" brew-prefix "/lib"))
-      (setenv "PATH" (concat brew-prefix "/bin:" (getenv "PATH"))))))
+;; PATH/LIBRARY_PATH for Homebrew already set in early-init.el.
 
 ;; Suppress spurious native-compiler warnings from broken straight.el symlinks
 ;; (built on a different machine path). Run M-x straight-rebuild-all to fix permanently.

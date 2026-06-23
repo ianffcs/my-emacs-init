@@ -21,7 +21,7 @@
   (desktop-base-file-name "desktop")
   (desktop-base-lock-name "desktop.lock")
   (desktop-save t)
-  (desktop-load-locked-desktop t)
+  (desktop-load-locked-desktop 'ask)
   (desktop-restore-eager 5)
   (desktop-auto-save-timeout 300)
   :config

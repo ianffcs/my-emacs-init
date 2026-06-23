@@ -388,14 +388,14 @@
   (message "Buffer cleaned up"))
 
 (defun ian/duplicate-line ()
-  "Duplicate the current line."
+  "Duplicate the current line without touching the kill ring."
   (interactive)
-  (save-excursion
-    (move-beginning-of-line 1)
-    (kill-line)
-    (yank)
+  (let ((line (buffer-substring-no-properties
+               (line-beginning-position)
+               (line-end-position))))
+    (end-of-line)
     (newline)
-    (yank)))
+    (insert line)))
 
 (defun ian/open-line-above ()
   "Open a new line above the current one."

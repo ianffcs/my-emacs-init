@@ -84,6 +84,7 @@
 ;; Miscellaneous
 (require 'lang-misc)        ; Other languages (Ruby, Lua, SQL, etc.)
 (require 'lang-extra)       ; Extra languages (Dart, Julia, R, etc.)
+(require 'lang-proof)       ; Proof assistants: Agda, Idris 2, Lean 4, TLA+
 
 ;; ============================================================================
 ;; FINALIZE

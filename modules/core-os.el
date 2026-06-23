@@ -117,6 +117,13 @@
 ;; ============================================================================
 
 (when (eq system-type 'gnu/linux)
+  ;; --- PATH: ensure /usr/local/bin is present (eglot needs clojure-lsp etc.) ---
+  (dolist (dir '("/usr/local/bin" "/usr/local/sbin" "/usr/bin"))
+    (unless (member dir exec-path)
+      (add-to-list 'exec-path dir t)))
+  (setenv "PATH" (concat (getenv "PATH") path-separator
+                         (mapconcat #'identity '("/usr/local/bin" "/usr/local/sbin" "/usr/bin") path-separator)))
+
   ;; --- Trash ---
   (setq delete-by-moving-to-trash t)
 

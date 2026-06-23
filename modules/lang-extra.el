@@ -1,7 +1,7 @@
 ;;; lang-extra.el --- Extra Languages -*- lexical-binding: t; -*-
 
 ;;; Commentary:
-;; Support for additional languages: Dart/Flutter, Hy, Forth, R, OpenSCAD, Agda.
+;; Support for additional languages: Dart/Flutter, Hy, Forth, R, OpenSCAD.
 ;; Migrated from README.org literate config.
 
 ;;; Code:
@@ -101,28 +101,7 @@
               ("C-c C-p" . scad-preview-mode)))
 
 ;; ============================================================================
-;; 6. AGDA (Dependently Typed Language)
-;; ============================================================================
-
-;; Agda-mode is typically installed via agda itself:
-;; Run: agda-mode setup
-;; This will add the following to your init:
-
-(when (executable-find "agda-mode")
-  (run-with-idle-timer 2 nil
-    (lambda ()
-      (load-file (let ((coding-system-for-read 'utf-8))
-                   (shell-command-to-string "agda-mode locate"))))))
-
-;; If agda-mode is installed manually:
-(use-package agda2-mode
-  :disabled  ; Enable if you have agda-mode installed
-  :mode "\\.agda\\'"
-  :custom
-  (agda2-highlight-face-groups 'default-faces))
-
-;; ============================================================================
-;; 7. JULIA (Optional - via ESS or julia-mode)
+;; 6. JULIA (Optional - via ESS or julia-mode)
 ;; ============================================================================
 
 (use-package julia-mode

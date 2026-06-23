@@ -1,7 +1,6 @@
 # Ian's Emacs Configuration
 
-A modular, well-organized Emacs configuration focused on software development,
-writing, and productivity.
+A modular Emacs configuration using `straight.el` + `use-package`. Focused on software development, writing, AI tooling, and formal verification.
 
 ## Quick Start
 
@@ -10,340 +9,203 @@ git clone https://github.com/ianffcs/.emacs.d ~/.emacs.d
 emacs
 ```
 
-First launch will install packages automatically via `straight.el`.
+First launch installs all packages automatically via `straight.el`. Be patient — it takes a few minutes.
 
-## Architecture Overview
+## File Structure
 
 ```
 ~/.emacs.d/
-├── early-init.el          # Early initialization (GC, native-comp)
-├── init.el                 # Main entry point, loads modules
-├── modules/                # Modular configuration
-│   ├── core-*.el          # Core functionality (8 files)
-│   ├── ui-*.el            # UI components (4 files)
-│   ├── tool-*.el          # Tools and utilities (6 files)
-│   └── lang-*.el          # Language support (12 files)
+├── early-init.el          # GC tuning, native-comp, GUI suppression
+├── init.el                # Entry point — loads modules in order
+├── modules/               # All configuration (33 .el files)
+│   ├── core-*.el          # 8 files: packages, settings, editor, UI, completion…
+│   ├── ui-*.el            # 4 files: navigation, windows, buffers, dashboard
+│   ├── tool-*.el          # 7 files: git/LSP, shells, dired, AI, comms, media, games
+│   └── lang-*.el          # 13 files: language support
 ├── docs/
-│   └── KEYBINDINGS.org    # Comprehensive keybinding reference
+│   └── KEYBINDINGS.org    # Full keybinding reference
+├── snippets/              # YASnippet snippets
 └── custom/
-    └── custom.el          # Customize settings (gitignored)
+    └── custom.el          # Customize output (gitignored)
 ```
 
-## Module Categories
+## Modules
 
-### Core Modules (`core-*.el`)
-
-| Module | Purpose |
-|--------|---------|
-| `core-packages.el` | Package management (straight.el, use-package) |
-| `core-settings.el` | Basic Emacs settings |
-| `core-os.el` | OS-specific configuration (macOS/Linux/Windows) |
-| `core-utils.el` | Utility packages (which-key, helpful, try, google-this) |
-| `core-editor.el` | Editing behavior (parens, undo, multiple-cursors) |
-| `core-ui.el` | Theme, fonts, modeline, icons |
-| `core-completion.el` | Completion framework (vertico, consult, corfu, embark) |
-| `core-auth.el` | Authentication and security |
-| `core-session.el` | Session management and persistence |
-
-### UI Modules (`ui-*.el`)
+### Core (`core-*.el`)
 
 | Module | Purpose |
 |--------|---------|
-| `ui-navigation.el` | Navigation (avy, search, jumping) |
-| `ui-windows.el` | Window and workspace management |
-| `ui-buffers.el` | Buffer management (ibuffer) |
+| `core-packages.el` | straight.el bootstrap, use-package, gcmh, treesit-auto |
+| `core-settings.el` | Fundamental Emacs settings, auto-mode associations |
+| `core-os.el` | macOS / Linux / Windows / WSL specifics, PATH setup |
+| `core-utils.el` | which-key, helpful, yasnippet, crux, gcmh, google-this |
+| `core-editor.el` | Parens, undo-fu, multiple-cursors, expand-region, hl-todo |
+| `core-ui.el` | Modus themes, fonts, ligatures, nerd-icons, doom-modeline |
+| `core-completion.el` | Vertico, Orderless, Marginalia, Consult, Embark, Corfu, Cape |
+| `core-auth.el` | GPG, pinentry, auth-source, password-store |
+| `core-session.el` | savehist, recentf, saveplace, desktop, alerts |
+
+### UI (`ui-*.el`)
+
+| Module | Purpose |
+|--------|---------|
+| `ui-navigation.el` | Avy, goto-chg, imenu-list, bm bookmarks, wgrep, deadgrep, rg |
+| `ui-windows.el` | winner, windmove, ace-window, tab-bar, popper, workspace-hud |
+| `ui-buffers.el` | ibuffer, uniquify, midnight cleanup, vlf |
 | `ui-dashboard.el` | Startup dashboard |
 
-### Tool Modules (`tool-*.el`)
+### Tools (`tool-*.el`)
 
 | Module | Purpose |
 |--------|---------|
-| `tool-dev.el` | Development tools (git, LSP/eglot, projectile) |
-| `tool-shell.el` | Terminals (vterm, eshell) |
-| `tool-dired.el` | File manager |
-| `tool-ai.el` | AI assistants (gptel, whisper, aider) |
-| `tool-comm.el` | Communication (telega, IRC, RSS) |
-| `tool-media.el` | Media player (EMMS) |
+| `tool-dev.el` | Magit, diff-hl, Eglot (LSP), Projectile, apheleia, envrc, dape |
+| `tool-shell.el` | vterm, multi-vterm, eshell, eat, shell-pop, comint |
+| `tool-dired.el` | dired + subtree sidebar, dired-narrow, diredfl, dired-ranger |
+| `tool-ai.el` | gptel, minuet, whisper, aider, org-ai, MCP, ellama, chatgpt-shell |
+| `tool-comm.el` | Telega (Telegram), Circe (IRC), Elfeed (RSS) |
+| `tool-media.el` | EMMS media player |
+| `tool-games.el` | NetHack |
 
-### Language Modules (`lang-*.el`)
+### Languages (`lang-*.el`)
 
 | Module | Languages |
 |--------|-----------|
-| `lang-lisp.el` | Clojure, Common Lisp, Scheme, Racket, Elisp |
+| `lang-lisp.el` | Clojure, Common Lisp, Scheme, Racket, Fennel, Elisp |
 | `lang-systems.el` | C, C++, Rust, Go, Zig |
 | `lang-jvm.el` | Java, Kotlin, Scala, Groovy |
 | `lang-beam.el` | Elixir, Erlang, Gleam |
-| `lang-python.el` | Python |
-| `lang-web.el` | HTML, CSS, JavaScript, TypeScript |
-| `lang-org.el` | Org-mode, Roam, Babel, Export |
-| `lang-markdown.el` | Markdown, writing tools |
-| `lang-latex.el` | LaTeX, PDF viewing |
-| `lang-ops.el` | Terraform, Ansible, Docker, K8s |
-| `lang-misc.el` | Ruby, Lua, Haskell, SQL |
-| `lang-extra.el` | Dart, Julia, R, etc. |
+| `lang-python.el` | Python (pyright, ruff, black) |
+| `lang-web.el` | HTML, CSS, JavaScript, TypeScript, JSON, YAML |
+| `lang-org.el` | Org-mode, Org-roam, Babel, Reveal.js, Denote |
+| `lang-markdown.el` | Markdown, writing tools, spell check |
+| `lang-latex.el` | LaTeX, PDF viewing, BibTeX |
+| `lang-ops.el` | Terraform, Ansible, Docker, Kubernetes, Nix |
+| `lang-misc.el` | Ruby, Lua, Haskell, SQL, Bash, R |
+| `lang-extra.el` | Dart/Flutter, Hy, Forth, Julia |
+| `lang-proof.el` | Agda, Idris 2, Lean 4, TLA+ |
 
 ## Key Features
 
-- **Modern Completion**: Vertico + Consult + Corfu + Embark + Marginalia
-- **LSP**: Eglot (built-in) with auto-configuration for 20+ languages
-- **Git**: Magit + diff-hl + git-timemachine
-- **AI Integration**: GPTel, Whisper, Aider, ChatGPT-shell
-- **Org-mode**: Full GTD setup, Roam, Babel, Reveal.js presentations
-- **Tree-sitter**: Automatic grammar installation for syntax highlighting
-- **Formatting**: Apheleia for automatic code formatting
+- **Completion**: Vertico + Corfu + Orderless + Consult + Embark + Cape + Marginalia
+- **LSP**: Eglot (built-in) for 25+ languages with workspace configuration
+- **Formatting**: Apheleia automatic on-save formatting for all major languages
+- **Git**: Magit + diff-hl + git-timemachine + browse-at-remote
+- **AI**: GPTel, Minuet (inline completion), Aider, Whisper, MCP servers, org-ai
+- **Org**: GTD workflow, Org-roam knowledge base, Babel literate programming, Reveal.js slides, Denote notes
+- **Tree-sitter**: Auto grammar installation via treesit-auto
+- **Proof Assistants**: Agda, Idris 2, Lean 4, TLA+
+- **Terminals**: vterm + eshell + eat + shell-pop
+- **Themes**: Modus themes with auto light/dark switching by time of day
 
 ## Keybinding Philosophy
 
-All custom keybindings use the `C-c` prefix:
+All custom bindings live under `C-c`:
 
-| Prefix | Purpose |
-|--------|---------|
-| `C-c b` | Buffer operations |
+| Prefix | Domain |
+|--------|--------|
+| `C-c b` | Buffers |
 | `C-c d` | Dired |
 | `C-c e` | Editor operations |
-| `C-c g` | AI/GPT commands |
-| `C-c j` | Jump/navigation |
-| `C-c l` | LSP/Eglot |
+| `C-c f` | File utilities |
+| `C-c g` | AI / Git |
+| `C-c j` | Jump / navigation |
+| `C-c l` | LSP (Eglot) |
 | `C-c n` | Org-roam notes |
 | `C-c p` | Projectile |
-| `C-c q` | Quit/utility |
-| `C-c t` | Terminal |
-| `C-c w` | Window management |
+| `C-c q` | Quit / utility |
+| `C-c s` | Search menu |
+| `C-c t` | Terminals |
+| `C-c w` | Windows |
+| `C-c y` | Snippets |
 
-See `docs/KEYBINDINGS.org` for the complete reference.
+See `docs/KEYBINDINGS.org` for the full reference.
 
 ---
 
-# LLM Modification Guide
+## Modification Guide
 
-This section explains how to modify this configuration using an LLM (like Claude).
+### Adding a Package
 
-## Understanding the Structure
-
-### File Naming Convention
-
-```
-{category}-{name}.el
-```
-
-- `core-*`: Essential functionality loaded first
-- `ui-*`: Visual/interface components
-- `tool-*`: External tool integrations
-- `lang-*`: Programming language support
-
-### Module Template
-
-Every module follows this structure:
-
-```elisp
-;;; module-name.el --- Short Description -*- lexical-binding: t; -*-
-
-;;; Commentary:
-;; Longer description of what this module does.
-;; List related modules or dependencies.
-
-;;; Code:
-
-;; ============================================================================
-;; 1. SECTION NAME
-;; ============================================================================
-
-(use-package package-name
-  :hook (mode . function)
-  :bind (("key" . command))
-  :custom
-  (variable value)
-  :config
-  (setup-code))
-
-;; ============================================================================
-;; 2. NEXT SECTION
-;; ============================================================================
-
-;; ... more configuration ...
-
-(provide 'module-name)
-;;; module-name.el ends here
-```
-
-## Common Modification Tasks
-
-### Adding a New Package
+Add to the appropriate module file:
 
 ```elisp
 (use-package new-package
-  :straight t                    ; Install via straight.el
-  :defer t                       ; Lazy load (default)
+  :straight t
+  :defer t                              ; omit if you need :demand t
   :hook (some-mode . new-package-mode)
-  :bind (("C-c x" . new-package-command))
+  :bind ("C-c x" . new-package-command)
   :custom
   (new-package-option value)
   :config
-  (new-package-setup))
+  (setup-code))
 ```
 
-### Adding a Keybinding
+### Adding a Language
 
-For global keybindings:
+1. Find the right `lang-*.el` or create `modules/lang-newlang.el`
+2. Add `(require 'lang-newlang)` to `init.el`
+3. Follow this pattern:
+
 ```elisp
-(global-set-key (kbd "C-c x y") #'my-command)
-```
-
-For mode-specific keybindings:
-```elisp
-(with-eval-after-load 'some-mode
-  (define-key some-mode-map (kbd "C-c x") #'command))
-```
-
-Or with use-package:
-```elisp
-(use-package some-mode
-  :bind (:map some-mode-map
-              ("C-c x" . command)))
-```
-
-### Adding a New Language
-
-1. Create `modules/lang-{name}.el`
-2. Add to `init.el`: `(require 'lang-{name})`
-3. Follow the module template
-
-Example:
-```elisp
-;;; lang-newlang.el --- NewLang Support -*- lexical-binding: t; -*-
-
+;;; lang-newlang.el --- NewLang support -*- lexical-binding: t; -*-
 ;;; Code:
 
 (use-package newlang-mode
+  :straight t
   :mode "\\.nl\\'"
   :hook (newlang-mode . eglot-ensure))
 
-;; Add LSP server
 (with-eval-after-load 'eglot
   (add-to-list 'eglot-server-programs
                '(newlang-mode . ("newlang-lsp"))))
 
-;; Add formatter
 (with-eval-after-load 'apheleia
-  (setf (alist-get 'newlang-mode apheleia-mode-alist) '(newlangfmt)))
+  (setf (alist-get 'newlang-fmt apheleia-formatters) '("newlangfmt"))
+  (setf (alist-get 'newlang-mode apheleia-mode-alist) '(newlang-fmt)))
 
 (provide 'lang-newlang)
 ;;; lang-newlang.el ends here
 ```
 
-### Modifying Existing Configuration
-
-**DO:**
-- Use `Edit` tool to modify specific sections
-- Keep changes minimal and focused
-- Preserve existing structure and comments
-- Check for keybinding conflicts before adding new ones
-
-**DON'T:**
-- Rewrite entire files unnecessarily
-- Remove comments or section headers
-- Add packages without checking if they already exist
-- Create duplicate keybindings
-
 ### Checking for Conflicts
 
-Before adding keybindings, check for conflicts:
 ```bash
-grep -r "C-c x" modules/*.el
+# Before adding a keybinding
+grep -r "C-c x" modules/
+
+# Before adding a package
+grep -r "package-name" modules/
 ```
 
-Before adding packages, check if already installed:
+### Testing Changes
+
 ```bash
-grep -r "use-package package-name" modules/*.el
+# Syntax check
+emacs --batch -Q --eval "(find-file \"modules/file.el\") (check-parens)"
+
+# Full startup test
+emacs --debug-init
 ```
 
-## Key Files to Know
+Check `*Warnings*` buffer after startup.
 
-| File | When to Modify |
-|------|----------------|
-| `init.el` | Adding new modules |
-| `early-init.el` | Performance tuning, native-comp |
-| `core-packages.el` | Package manager settings |
-| `core-settings.el` | Basic Emacs behavior |
-| `core-editor.el` | Editing behavior, text manipulation |
-| `core-ui.el` | Theme, fonts, visual settings |
+### Conventions
+
+- Functions: `ian/{verb}-{noun}` (e.g. `ian/cleanup-buffer`)
+- Variables: `ian/{name}` (e.g. `ian/private-dir`)
+- Custom options: `defcustom` under `:group 'ian`
+- Each module ends with `(provide 'module-name)`
+
+### Key Files
+
+| File | Edit when… |
+|------|-----------|
+| `early-init.el` | Changing startup performance settings |
+| `init.el` | Adding or reordering modules |
+| `core-packages.el` | Changing straight.el / use-package behaviour |
+| `core-ui.el` | Theme, fonts, modeline |
 | `core-completion.el` | Completion framework |
-| `tool-dev.el` | LSP, git, development tools |
-
-## Conventions
-
-### Variable Naming
-- Custom variables: `ian/{name}`
-- Custom functions: `ian/{verb}-{noun}`
-
-### Keybinding Prefixes
-- `C-c` for custom commands
-- `s-` (Super/Cmd) for macOS shortcuts
-- Mode-specific bindings in mode maps
-
-### Section Numbers
-Each module uses numbered sections (1, 2, 3...) for organization.
-Keep these when modifying.
-
-## Testing Changes
-
-After modifications:
-
-1. **Syntax check**:
-   ```bash
-   emacs --batch -Q --eval "(find-file \"modules/file.el\") (check-parens)"
-   ```
-
-2. **Load test**:
-   ```bash
-   emacs --debug-init
-   ```
-
-3. **Check for warnings**:
-   Look at `*Warnings*` buffer after startup
-
-## Common Patterns
-
-### Adding a hook
-```elisp
-(add-hook 'some-mode-hook #'my-function)
-```
-
-### Adding to a list
-```elisp
-(add-to-list 'some-list 'new-item)
-```
-
-### Conditional by OS
-```elisp
-(when (eq system-type 'darwin)
-  ;; macOS specific
-  )
-```
-
-### After package loads
-```elisp
-(with-eval-after-load 'package-name
-  ;; runs after package loads
-  )
-```
-
-## Troubleshooting
-
-### Package won't install
-- Check `straight-use-package-by-default` is `t`
-- Try `M-x straight-pull-package`
-
-### Keybinding not working
-- Check with `C-h k` then press the key
-- Look for conflicts with grep
-
-### Mode not activating
-- Check `auto-mode-alist` entries
-- Verify file extension pattern
-
----
-
-## License
-
-This configuration is provided as-is for personal use.
+| `core-editor.el` | Editing behaviour, text manipulation |
+| `core-os.el` | OS-specific paths, keybindings |
+| `tool-dev.el` | LSP servers, git, formatters |
+| `tool-ai.el` | AI backends, models, MCP |
