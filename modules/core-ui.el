@@ -147,7 +147,16 @@
 ;; ============================================================================
 
 (use-package emojify
-  :hook (after-init . global-emojify-mode)
+  :hook (after-init . ian/enable-emojify-if-available)
+  :init
+  (defun ian/enable-emojify-if-available ()
+    "Enable `global-emojify-mode' when package data is installed."
+    (if-let* ((library (locate-library "emojify"))
+              (data-file (expand-file-name "data/emoji-sets.json"
+                                           (file-name-directory library)))
+              ((file-exists-p data-file)))
+        (global-emojify-mode 1)
+      (message "emojify: data files missing; run M-x straight-rebuild-package RET emojify RET")))
   :custom
   (emojify-display-style 'unicode)
   (emojify-emoji-styles '(unicode)))

@@ -63,7 +63,7 @@
 
   ;; --- Banner Configuration ---
   ;; Options: 'official, 'logo, 1-3 for text banners, or path to image
-  (setq dashboard-startup-banner 'logo)
+  (setq dashboard-startup-banner 1)
   ;; Custom ASCII banner (uncomment to use)
   ;; (setq dashboard-startup-banner (expand-file-name "banner.txt" user-emacs-directory))
 
@@ -218,15 +218,12 @@
   (add-to-list 'desktop-modes-not-to-save 'dashboard-mode))
 
 ;; ============================================================================
-;; 4. STARTUP FUNCTIONS
+;; 4. DASHBOARD NAVIGATION
 ;; ============================================================================
 
-(defun ian/force-dashboard-startup ()
-  "Ensure dashboard is shown on startup."
-  (when (< (length command-line-args) 2)  ; Only if no file arguments
-    (dashboard-open)))
-
-(add-hook 'window-setup-hook #'ian/force-dashboard-startup)
+;; `dashboard-setup-startup-hook' above owns startup.  Opening the dashboard a
+;; second time from `window-setup-hook' resets point to the banner, where
+;; dashboard section navigation cannot determine the current section.
 
 (defun ian/dashboard-goto-recent-files ()
   "Jump to recent files section."

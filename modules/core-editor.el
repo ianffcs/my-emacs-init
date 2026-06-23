@@ -109,6 +109,7 @@
 
 ;; Delete trailing whitespace
 (use-package ws-butler
+  :straight (:type git :host github :repo "lewang/ws-butler" :branch "master")
   :diminish
   :hook ((prog-mode . ws-butler-mode)
          (text-mode . ws-butler-mode)))

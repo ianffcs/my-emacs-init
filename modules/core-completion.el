@@ -168,12 +168,18 @@
 
   ;; Some Consult versions don't expose all internal sources.
   ;; Guard these to avoid startup warnings.
-  (dolist (source '(consult--source-bookmark
-                    consult--source-file-register
-                    consult--source-recent-file
-                    consult--source-project-recent-file))
-    (when (boundp source)
-      (consult-customize source :preview-key '(:debounce 0.4 any))))
+  (when (boundp 'consult--source-bookmark)
+    (consult-customize consult--source-bookmark
+                       :preview-key '(:debounce 0.4 any)))
+  (when (boundp 'consult--source-file-register)
+    (consult-customize consult--source-file-register
+                       :preview-key '(:debounce 0.4 any)))
+  (when (boundp 'consult--source-recent-file)
+    (consult-customize consult--source-recent-file
+                       :preview-key '(:debounce 0.4 any)))
+  (when (boundp 'consult--source-project-recent-file)
+    (consult-customize consult--source-project-recent-file
+                       :preview-key '(:debounce 0.4 any)))
 
   ;; Use Projectile for project root
   (setq consult-project-function

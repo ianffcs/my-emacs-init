@@ -176,7 +176,43 @@
                 (and buf (with-current-buffer buf (bound-and-true-p dedicated-mode))))))))
 
 ;; ============================================================================
-;; 9. WINDOW HELPER FUNCTIONS
+;; 9. WORKSPACE HUD
+;; ============================================================================
+
+(use-package emacs-egui
+  :straight (emacs-egui
+             :type git
+             :host github
+             :repo "nohzafk/emacs-egui"
+             :files ("lisp/*.el")))
+
+(use-package workspace-hud
+  :straight (workspace-hud
+             :type git
+             :host github
+             :repo "nohzafk/emacs-workspace-hud"
+             :local-repo "emacs-workspace-hud"
+             :files ("lisp/*.el" "ui" "emacs-egui")
+             :pre-build ("git" "submodule" "update" "--init" "--recursive")
+             :post-build ("sh" "-c" "if command -v wasm-pack >/dev/null 2>&1; then cd ui && wasm-pack build --target web --release; else echo 'workspace-hud: wasm-pack not found; install it and run M-x straight-rebuild-package RET workspace-hud RET'; fi"))
+  :commands (workspace-hud-toggle
+             workspace-hud-show
+             workspace-hud-hide
+             workspace-hud-refresh
+             workspace-hud-cleanup
+             workspace-hud-auto-mode)
+  :bind ("C-c w H" . workspace-hud-toggle)
+  :custom
+  (workspace-hud-width 260)
+  (workspace-hud-margin-right 19)
+  (workspace-hud-margin-top 20)
+  :init
+  ;; Keep this manual for now. Auto mode currently errors in some buffers when
+  ;; the package cannot resolve a Git root.
+  (setq workspace-hud-auto-mode nil))
+
+;; ============================================================================
+;; 10. WINDOW HELPER FUNCTIONS
 ;; ============================================================================
 
 (defun ian/split-window-right-and-focus ()
@@ -216,7 +252,7 @@
 (global-set-key (kbd "C-c w m") #'ian/toggle-maximize-buffer)
 
 ;; ============================================================================
-;; 10. WINDOW TRANSIENT MENU
+;; 11. WINDOW TRANSIENT MENU
 ;; ============================================================================
 
 (with-eval-after-load 'transient

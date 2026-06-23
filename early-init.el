@@ -9,6 +9,16 @@
 (add-to-list 'warning-suppress-types '(native-compiler))
 ;; (setq native-comp-jit-compilation nil) ; Uncomment if you want to disable JIT entirely (rare)
 
+;; GUI Emacs can inherit stale compiler overrides from launchd.  Native
+;; packages such as vterm should let CMake select the system compiler when an
+;; override no longer exists.
+(dolist (variable '("CC" "CXX"))
+  (let ((compiler (getenv variable)))
+    (when (and compiler
+               (file-name-absolute-p compiler)
+               (not (file-executable-p compiler)))
+      (setenv variable nil))))
+
 (setq inhibit-startup-screen t
       inhibit-startup-message t
       inhibit-startup-echo-area-message user-login-name)

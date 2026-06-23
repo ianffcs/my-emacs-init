@@ -137,7 +137,10 @@
   ;; Use aspell if available
   (when (executable-find "aspell")
     (setq ispell-program-name "aspell"
-          ispell-extra-args '("--sug-mode=ultra" "--lang=en_US")))
+          ispell-extra-args '("--sug-mode=ultra" "--lang=en_US"))
+    ;; aspell has pt_BR/pt_PT but not bare "pt"; org-mode maps #+LANGUAGE: pt-br → "pt"
+    (add-to-list 'ispell-local-dictionary-alist
+                 '("pt" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "pt_BR") nil utf-8)))
 
   ;; Or use hunspell
   (when (and (not (executable-find "aspell"))

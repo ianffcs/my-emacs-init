@@ -35,6 +35,11 @@
       (setenv "LIBRARY_PATH" (concat brew-prefix "/lib/gcc/current:" brew-prefix "/lib"))
       (setenv "PATH" (concat brew-prefix "/bin:" (getenv "PATH"))))))
 
+;; Suppress spurious native-compiler warnings from broken straight.el symlinks
+;; (built on a different machine path). Run M-x straight-rebuild-all to fix permanently.
+(with-eval-after-load 'comp
+  (setq native-comp-async-report-warnings-errors 'silent))
+
 ;; 6. STRAIGHT.EL PERFORMANCE SETTINGS
 (setq straight-check-for-modifications '(check-on-save find-when-checking))
 (setq straight-vc-git-default-clone-depth 1)
@@ -58,14 +63,6 @@
 (straight-use-package 'transient)
 (setq straight-use-package-by-default t)
 (setq use-package-always-defer t)
-
-(use-package auto-package-update
-  :custom
-  (auto-package-update-delete-old-versions t)
-  (auto-package-update-hide-results t)
-  :config
-  (auto-package-update-maybe))
-
 
 ;; Async operations (from Async section)
 (use-package async

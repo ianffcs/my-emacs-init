@@ -79,6 +79,7 @@ Generated from the configuration files in =~/.emacs.d/modules/=.
 | C-c w D | ian/toggle-window-dedicated   | Toggle dedicated window  |
 | C-c w d | ian/delete-window-or-frame    | Delete window/frame      |
 | C-c w h | ian/split-window-below-focus  | Split below and focus    |
+| C-c w H | workspace-hud-toggle          | Toggle workspace HUD     |
 | C-c w m | ian/toggle-maximize-buffer    | Maximize/restore buffer  |
 | C-c w v | ian/split-window-right-focus  | Split right and focus    |
 | C-c w t | transpose-frame               | Transpose frame          |

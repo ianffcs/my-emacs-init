@@ -2,7 +2,7 @@
 
 ;;; Commentary:
 ;; Configuration for all Lisp-family languages:
-;; - Clojure/ClojureScript (clojure-ts-mode preferred, CIDER)
+;; - Clojure/ClojureScript/Basilisp (clojure-ts-mode preferred, CIDER)
 ;; - Common Lisp (Sly)
 ;; - Scheme (Geiser)
 ;; - Racket
@@ -101,6 +101,7 @@
          ("\\.cljs\\'" . clojure-ts-clojurescript-mode)
          ("\\.edn\\'" . clojure-ts-mode)
          ("\\.bb\\'" . clojure-ts-mode)     ; Babashka
+         ("\\.lpy\\'" . clojure-ts-mode)   ; Basilisp
          ("\\.cljd\\'" . clojure-ts-mode))  ; ClojureDart
   :hook ((clojure-ts-mode . subword-mode)
          (clojure-ts-clojurescript-mode . subword-mode)
@@ -116,6 +117,12 @@
   (clojure-indent-style 'always-align)
   (clojure-align-forms-automatically t)
   (clojure-toplevel-inside-comment-form t))
+
+;; clojure-mode also registers .lpy; move the tree-sitter rule ahead of its
+;; broader extension rule.
+(let ((basilisp-mode '("\\.lpy\\'" . clojure-ts-mode)))
+  (setq auto-mode-alist
+        (cons basilisp-mode (delete basilisp-mode auto-mode-alist))))
 
 ;; ============================================================================
 ;; 4. CIDER (Clojure Interactive Development)
@@ -133,6 +140,7 @@
   :bind (:map clojure-ts-mode-map
               ("C-c M-j" . cider-jack-in-clj)
               ("C-c M-J" . cider-jack-in-cljs)
+              ("C-c M-b" . ian/cider-jack-in-basilisp)
               ("C-c M-c" . cider-connect-clj)
               ("C-c C-k" . cider-load-buffer)
               ("C-c C-z" . cider-switch-to-repl-buffer)
@@ -418,6 +426,11 @@
 ;; 20. HELPER FUNCTIONS
 ;; ============================================================================
 
+(defun ian/cider-jack-in-basilisp ()
+  "Start a Basilisp nREPL server and connect CIDER to it."
+  (interactive)
+  (cider-jack-in-universal 5))
+
 (defun ian/cider-jack-in-with-profile (profile)
   "Jack in with a specific PROFILE."
   (interactive "sProfile: ")
@@ -454,6 +467,7 @@
                            ["Clojure/CIDER"
                             ("j" "Jack-in CLJ" cider-jack-in-clj)
                             ("J" "Jack-in CLJS" cider-jack-in-cljs)
+                            ("b" "Jack-in Basilisp" ian/cider-jack-in-basilisp)
                             ("c" "Connect" cider-connect-clj)
                             ("q" "Quit CIDER" cider-quit)]
                            ["Common Lisp"
