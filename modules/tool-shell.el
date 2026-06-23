@@ -102,9 +102,7 @@
 
 (use-package vterm
   :commands vterm
-  :bind (("C-c t v" . vterm)
-         ("C-c t V" . vterm-other-window)
-         :map vterm-mode-map
+  :bind (:map vterm-mode-map
          ("C-c C-c" . vterm-send-C-c)
          ("C-c C-d" . vterm-send-C-d)
          ("C-q" . vterm-send-next-key))
@@ -141,10 +139,7 @@
 ;; Multi-vterm (multiple terminals)
 (use-package multi-vterm
   :after vterm
-  :bind (;;("C-c t n" . multi-vterm)
-         ("C-c t p" . multi-vterm-project)
-         ("C-c t ]" . multi-vterm-next)
-         ("C-c t [" . multi-vterm-prev)))
+  :defer t)
 
 ;; ============================================================================
 ;; 3. EAT (Emulate A Terminal)
@@ -189,7 +184,7 @@
 ;; ============================================================================
 
 (use-package shell-pop
-  :bind ("C-c t s" . shell-pop)
+  :defer t
   :custom
   (shell-pop-shell-type '("vterm" "*vterm*" (lambda () (vterm))))
   (shell-pop-window-size 30)
@@ -219,10 +214,6 @@
   "Send ESC in term-mode."
   (interactive)
   (term-send-raw-string "\e"))
-
-;; Additional keybindings
-(global-set-key (kbd "C-c t h") #'ian/eshell-here)
-(global-set-key (kbd "C-c t P") #'ian/eshell-project)
 
 ;; ============================================================================
 ;; 7. TERMINAL TRANSIENT MENU
