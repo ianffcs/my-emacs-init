@@ -15,6 +15,12 @@
 ;; 1. EXEC-PATH-FROM-SHELL (PATH synchronization)
 ;; ============================================================================
 
+;; Prepend mise shims on all platforms so eglot finds mise-managed tools (clojure, node, etc.)
+(let ((mise-shims (expand-file-name "~/.local/share/mise/shims")))
+  (when (file-directory-p mise-shims)
+    (add-to-list 'exec-path mise-shims)
+    (setenv "PATH" (concat mise-shims path-separator (getenv "PATH")))))
+
 (use-package exec-path-from-shell
   :if (memq window-system '(mac ns x))
   :defer 1
