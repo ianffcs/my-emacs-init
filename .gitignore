@@ -30,6 +30,7 @@ straight/repos/
 var/auto-save/
 var/backup/
 var/ielm-history.eld
+var/org/clock-persist.el
 var/org/persist/
 var/projectile/known-projects.el
 var/spell-fu/
