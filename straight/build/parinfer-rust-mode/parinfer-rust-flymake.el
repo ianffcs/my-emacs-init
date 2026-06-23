@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/parinfer-rust-mode/parinfer-rust-flymake.el

@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/pip-requirements.el/pip-requirements.el

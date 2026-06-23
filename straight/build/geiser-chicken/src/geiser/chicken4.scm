@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/chicken/src/geiser/chicken4.scm

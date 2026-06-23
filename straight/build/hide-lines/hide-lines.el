@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/hide-lines/hide-lines.el

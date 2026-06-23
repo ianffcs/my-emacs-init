@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/kaocha-runner.el/kaocha-runner.el

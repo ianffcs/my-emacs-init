@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/org-mcp/org-mcp.el

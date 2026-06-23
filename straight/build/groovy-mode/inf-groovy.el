@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/groovy-emacs-modes/inf-groovy.el

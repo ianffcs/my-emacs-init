@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/mermaid-mode/mermaid-mode.el

@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/scad-preview/scad-preview.el

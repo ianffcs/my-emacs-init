@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/treemacs/src/scripts/treemacs-find-ignored-files.py

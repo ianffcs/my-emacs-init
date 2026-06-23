@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/chatgpt-shell/chatgpt-shell-deepseek.el

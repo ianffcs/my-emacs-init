@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/sphinx-mode/sphinx-mode.el

@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/fountain-mode/contrib/fountain-theme.el

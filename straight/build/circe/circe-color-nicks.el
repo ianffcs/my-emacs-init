@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/circe/circe-color-nicks.el

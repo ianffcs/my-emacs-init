@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/telega.el/contrib/telega-channels-export.el

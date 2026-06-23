@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/just-mode.el/just-mode.el

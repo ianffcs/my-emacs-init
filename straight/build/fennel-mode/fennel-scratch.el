@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/fennel-mode/fennel-scratch.el

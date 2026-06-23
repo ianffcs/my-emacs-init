@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/llm/.github/PULL_REQUEST_TEMPLATE.md

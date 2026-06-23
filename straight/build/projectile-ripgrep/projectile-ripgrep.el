@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/ripgrep.el/projectile-ripgrep.el

@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/emacs-sbt-mode/sbt-mode-hydra.el

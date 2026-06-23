@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/ef-themes/ef-trio-light-theme.el

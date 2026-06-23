@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/highlight-numbers/highlight-numbers.el

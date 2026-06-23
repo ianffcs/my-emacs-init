@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/oer-reveal/oer-reveal.el

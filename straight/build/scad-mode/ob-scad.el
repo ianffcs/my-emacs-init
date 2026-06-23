@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/emacs-scad-mode/ob-scad.el

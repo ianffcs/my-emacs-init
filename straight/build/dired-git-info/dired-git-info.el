@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/dired-git-info/dired-git-info.el

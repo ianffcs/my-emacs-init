@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/consult-projectile/consult-projectile.el

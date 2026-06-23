@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/package-lint/package-lint.el

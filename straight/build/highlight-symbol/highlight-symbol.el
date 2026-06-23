@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/highlight-symbol.el/highlight-symbol.el

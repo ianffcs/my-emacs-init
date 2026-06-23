@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/keepass-mode/keepass-mode-pkg.el

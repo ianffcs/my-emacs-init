@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/auctex/style/german-de-1901.el

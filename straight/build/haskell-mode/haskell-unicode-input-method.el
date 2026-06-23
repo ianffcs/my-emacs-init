@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/haskell-mode/haskell-unicode-input-method.el

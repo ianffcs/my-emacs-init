@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/emacs-fish-completion/fish-completion.el

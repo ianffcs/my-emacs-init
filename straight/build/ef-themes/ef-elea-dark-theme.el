@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/ef-themes/ef-elea-dark-theme.el

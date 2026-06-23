@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/company-ansible/company-ansible.el

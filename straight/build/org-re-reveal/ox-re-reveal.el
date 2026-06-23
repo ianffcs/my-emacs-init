@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/org-re-reveal/ox-re-reveal.el

@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/plz-event-source/.github/PULL_REQUEST_TEMPLATE.md

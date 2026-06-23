@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/corfu/extensions/corfu-auto.el

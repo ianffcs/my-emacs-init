@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/cfn-mode/cfn-mode/cfn-mode.el

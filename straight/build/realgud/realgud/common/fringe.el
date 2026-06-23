@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/realgud/realgud/common/fringe.el

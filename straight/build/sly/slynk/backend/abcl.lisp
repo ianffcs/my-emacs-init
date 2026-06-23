@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/sly/slynk/backend/abcl.lisp

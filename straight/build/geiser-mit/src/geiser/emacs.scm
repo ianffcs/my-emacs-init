@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/mit/src/geiser/emacs.scm

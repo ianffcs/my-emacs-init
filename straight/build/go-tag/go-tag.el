@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/emacs-go-tag/go-tag.el

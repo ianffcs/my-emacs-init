@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/default-text-scale/default-text-scale.el

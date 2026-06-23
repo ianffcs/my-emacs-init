@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/flycheck-package/flycheck-package.el

@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/mcp-server-lib.el/emacs-mcp-stdio.sh

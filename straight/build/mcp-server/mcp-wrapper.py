@@ -1,1 +1,0 @@
-/home/ietcd/.emacs.d/straight/repos/emacs-mcp-server/mcp-wrapper.py
