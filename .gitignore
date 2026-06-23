@@ -1,0 +1,40 @@
+# macOS
+.DS_Store
+
+# Emacs session and history files
+desktop
+desktop.lock
+recentf
+cider-repl-history
+tramp
+tramp-autosave/
+url/
+
+# Emacs generated files
+auto-save-list/
+eln-cache/
+elpa/
+tree-sitter/
+*.elc
+*.eln
+
+# Local native modules
+*.so
+
+# straight.el generated package state
+straight/build/
+straight/build-cache.el
+straight/repos/
+
+# no-littering / var state
+var/auto-save/
+var/backup/
+var/ielm-history.eld
+var/org/persist/
+var/projectile/known-projects.el
+var/spell-fu/
+
+# Local-only/private configuration
+private/
+custom/custom.el
+org-pessoal.el
