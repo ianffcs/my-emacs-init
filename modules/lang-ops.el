@@ -48,8 +48,7 @@
   :after ansible
   :commands ansible-doc)
 
-(use-package company-ansible
-  :after (company ansible))
+;;(use-package company-ansible :after (company ansible))  ; company not used — config uses corfu
 
 ;; ============================================================================
 ;; 4. DOCKER
@@ -100,13 +99,14 @@
 ;; 6. NIX
 ;; ============================================================================
 
+;; nix-mode kept for non-ts fallback syntax; nix-ts-mode takes .nix when grammar available
 (use-package nix-mode
-  :mode ("\\.nix\\'" . nix-mode)
+  :commands nix-mode
   :hook (nix-mode . subword-mode))
 
 (use-package nix-ts-mode
   :straight (:type built-in)
-  :mode ("\\.nix\\'" . nix-ts-mode)
+  :mode "\\.nix\\'"
   :hook (nix-ts-mode . subword-mode))
 
 ;; ============================================================================
@@ -142,9 +142,7 @@
   :mode (("nginx.*\\.conf\\'" . nginx-mode)
          ("/nginx/.+\\.conf\\'" . nginx-mode)))
 
-(use-package company-nginx
-  :straight (:host github :repo "emacsmirror/company-nginx")
-  :after (company nginx-mode))
+;;(use-package company-nginx ...)  ; company not used — config uses corfu
 
 ;; ============================================================================
 ;; 10. APACHE

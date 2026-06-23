@@ -49,10 +49,8 @@
               ("C-c e a" . exunit-verify-all)
               ("C-c e r" . exunit-rerun)))
 
-;; Flycheck for Elixir
-(use-package flycheck-credo
-  :after (flycheck elixir-ts-mode)
-  :hook (elixir-ts-mode . flycheck-credo-setup))
+;; flycheck-credo requires flycheck which conflicts with flymake/eglot used here.
+;; Credo runs via eglot through the elixir-ls LSP server instead.
 
 ;; ============================================================================
 ;; 2. ERLANG
@@ -77,12 +75,12 @@
 ;; 3. GLEAM
 ;; ============================================================================
 
+;; gleam-mode kept as non-ts fallback; gleam-ts-mode takes .gleam when grammar available
 (use-package gleam-mode
   :straight (:host github :repo "gleam-lang/gleam-mode")
-  :mode "\\.gleam\\'"
+  :commands gleam-mode
   :hook (gleam-mode . subword-mode))
 
-;; Gleam tree-sitter
 (use-package gleam-ts-mode
   :straight (:host github :repo "gleam-lang/gleam-mode")
   :mode "\\.gleam\\'")

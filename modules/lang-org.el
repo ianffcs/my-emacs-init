@@ -120,8 +120,6 @@
   (org-archive-location "%s_archive::datetree/")
 
   ;; --- Refiling ---
-  (org-refile-targets '((nil :maxlevel . 3)
-                        (org-agenda-files :maxlevel . 3)))
   (org-refile-use-outline-path 'file)
   (org-outline-path-complete-in-steps nil)
   (org-refile-allow-creating-parent-nodes 'confirm)
@@ -308,30 +306,6 @@
   :straight (:type built-in)
   :after org
   :config
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((emacs-lisp . t)
-     (shell . t)
-     (python . t)
-     (ruby . t)
-     (js . t)
-     (sql . t)
-     (sqlite . t)
-     (css . t)
-     (sass . t)
-     (plantuml . t)
-     (mermaid . t)
-     (dot . t)
-     (gnuplot . t)
-     (R . t)
-     (latex . t)
-     (org . t)
-     (makefile . t)
-     (clojure . t)
-     (scheme . t)
-     (lisp . t)
-     (restclient . t)))
-
   ;; Don't ask for confirmation
   (setq org-confirm-babel-evaluate nil)
 
@@ -343,7 +317,15 @@
           (:cache . "no")
           (:noweb . "no")
           (:hlines . "no")
-          (:tangle . "no"))))
+          (:tangle . "no")))
+
+  ;; Lazy-load babel backends: each require triggers on first src block eval.
+  ;; ob-emacs-lisp and ob-shell ship with org and are always available.
+  (dolist (lang '(ob-python ob-ruby ob-js ob-sql ob-sqlite
+                  ob-css ob-dot ob-gnuplot ob-R ob-latex ob-org
+                  ob-makefile ob-clojure ob-scheme ob-lisp))
+    (add-to-list 'org-babel-load-languages
+                 (cons (intern (substring (symbol-name lang) 3)) t))))
 
 ;; Async babel execution
 (use-package ob-async
@@ -362,8 +344,7 @@
   :straight (:host github :repo "hasu/emacs-ob-racket")
   :after ob
   :config
-  (add-to-list 'org-babel-load-languages '(racket . t))
-  (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages))
+  (add-to-list 'org-babel-load-languages '(racket . t)))
 
 ;; ============================================================================
 ;; 5. ORG EXPORT
@@ -439,7 +420,6 @@
   (oer-reveal-hlevel 2)
   (oer-reveal-highlight-theme "monokai")
   :config
-  (require 'oer-reveal)
   (setq oer-reveal-theme "white")
   (setq oer-reveal-notes-popup t)
   (setq oer-reveal-audio-slideshow-config
@@ -726,7 +706,7 @@ Thank you!
 (use-package org-cliplink
   :after org
   :bind (:map org-mode-map
-              ("C-c C-l" . org-cliplink)))
+              ("C-c C-L" . org-cliplink)))
 
 ;; --- Org Web Tools (Fetch web content) ---
 (use-package org-web-tools

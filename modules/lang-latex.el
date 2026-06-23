@@ -50,18 +50,8 @@
   (reftex-plug-into-AUCTeX t)
   (reftex-default-bibliography '("~/Documents/bibliography.bib")))
 
-;; ============================================================================
-;; 3. COMPANY COMPLETION FOR LATEX
-;; ============================================================================
-
-(use-package company-auctex
-  :after (company tex)
-  :config
-  (company-auctex-init))
-
-;; Math preview in buffer
-(use-package company-math
-  :after (company tex))
+;; company-auctex and company-math removed: config uses corfu, not company.
+;; LaTeX completion comes from eglot (texlab LSP server) via corfu.
 
 ;; ============================================================================
 ;; 4. PDF VIEWING

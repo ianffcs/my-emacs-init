@@ -23,18 +23,13 @@
 (use-package dart-server
   :after dart-mode)
 
-(use-package lsp-dart
-  :after (dart-mode lsp-mode)
-  :hook (dart-mode . lsp)
-  :custom
-  (lsp-dart-flutter-sdk-dir (getenv "FLUTTER_HOME"))
-  :config
-  ;; Optional: Debug template for Flutter
-  ;; (dap-register-debug-template "Flutter :: Custom debug"
-  ;;   (list :flutterPlatform "x86_64"
-  ;;         :program "lib/main_debug.dart"
-  ;;         :args '("--flavor" "customer_a")))
-  )
+;; Use eglot for Dart (consistent with the rest of this config).
+;; lsp-dart pulled in lsp-mode which conflicts with eglot.
+(with-eval-after-load 'dart-mode
+  (add-hook 'dart-mode-hook #'eglot-ensure)
+  (when (getenv "FLUTTER_HOME")
+    (setq-default eglot-workspace-configuration
+                  `(:dart (:flutterSdkPath ,(getenv "FLUTTER_HOME"))))))
 
 (use-package flutter
   :after dart-mode
@@ -63,8 +58,7 @@
   :after ob
   :if (executable-find "hy")
   :config
-  (add-to-list 'org-babel-load-languages '(hy . t))
-  (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages))
+  (add-to-list 'org-babel-load-languages '(hy . t)))
 
 ;; ============================================================================
 ;; 3. FORTH
@@ -115,8 +109,10 @@
 ;; This will add the following to your init:
 
 (when (executable-find "agda-mode")
-  (load-file (let ((coding-system-for-read 'utf-8))
-               (shell-command-to-string "agda-mode locate"))))
+  (run-with-idle-timer 2 nil
+    (lambda ()
+      (load-file (let ((coding-system-for-read 'utf-8))
+                   (shell-command-to-string "agda-mode locate"))))))
 
 ;; If agda-mode is installed manually:
 (use-package agda2-mode

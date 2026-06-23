@@ -23,9 +23,7 @@
          ("\\.markdown\\'" . markdown-mode)
          ("\\.mkd\\'" . markdown-mode)
          ("\\.mdx\\'" . markdown-mode))
-  :hook ((markdown-mode . auto-fill-mode)
-         (markdown-mode . visual-line-mode)
-         (markdown-mode . flyspell-mode)
+  :hook ((markdown-mode . visual-line-mode)
          (markdown-mode . ian/markdown-setup))
   :bind (:map markdown-mode-map
               ("C-c C-e" . markdown-export)
@@ -126,10 +124,10 @@
 ;; 6. SPELL CHECKING
 ;; ============================================================================
 
+;; flyspell prog-mode hook kept; text-mode hook removed — spell-fu covers text-mode below.
 (use-package flyspell
   :straight (:type built-in)
-  :hook ((text-mode . flyspell-mode)
-         (prog-mode . flyspell-prog-mode))
+  :hook (prog-mode . flyspell-prog-mode)
   :custom
   (flyspell-issue-message-flag nil)
   (flyspell-issue-welcome-flag nil)
@@ -176,17 +174,16 @@
   :hook ((markdown-mode . writegood-mode)
          (org-mode . writegood-mode)
          (latex-mode . writegood-mode))
-  :bind ("C-c w" . writegood-mode))
+  :bind ("C-c W" . writegood-mode))
 
 ;; ============================================================================
 ;; 8. FOCUS & DISTRACTION-FREE WRITING
 ;; ============================================================================
 
 ;; Olivetti - centered text
+;; text-mode hook covers org and markdown (both derive from text-mode)
 (use-package olivetti
-  :hook ((text-mode . olivetti-mode)
-         (org-mode . olivetti-mode)
-         (markdown-mode . olivetti-mode))
+  :hook (text-mode . olivetti-mode)
   :custom
   (olivetti-body-width 80)
   (olivetti-minimum-body-width 72))
@@ -207,9 +204,7 @@
 ;; ============================================================================
 
 (use-package wc-mode
-  :hook ((markdown-mode . wc-mode)
-         (org-mode . wc-mode)
-         (latex-mode . wc-mode))
+  :hook (latex-mode . wc-mode)
   :custom
   (wc-modeline-format "[%tw words]"))
 
@@ -235,9 +230,8 @@
   :custom
   (typo-language "English"))
 
-;; Unicode input
-(use-package company-emoji
-  :after company)
+;; company-emoji removed: config uses corfu, not company.
+;; Use cape-emoji (already wired in tool-comm.el) for emoji completion.
 
 ;; ============================================================================
 ;; 11. PANDOC (Universal Document Converter)
@@ -246,9 +240,7 @@
 (use-package pandoc-mode
   :hook ((markdown-mode . pandoc-mode)
          (rst-mode . pandoc-mode)
-         (org-mode . pandoc-mode))
-  :bind (:map pandoc-mode-map
-              ("C-c p" . pandoc-main-hydra/body)))
+         (org-mode . pandoc-mode)))
 
 ;; ============================================================================
 ;; 12. NOVELS & CREATIVE WRITING
@@ -350,9 +342,9 @@
             (insert (capitalize word))))
         (forward-word)))))
 
-(global-set-key (kbd "C-c t w") #'ian/writing-mode)
-(global-set-key (kbd "C-c t p") #'ian/toggle-prose-mode)
-(global-set-key (kbd "C-c t d") #'ian/insert-date)
+(global-set-key (kbd "C-c e w") #'ian/writing-mode)
+(global-set-key (kbd "C-c e p") #'ian/toggle-prose-mode)
+(global-set-key (kbd "C-c e d") #'ian/insert-date)
 
 (provide 'lang-markdown)
 ;;; lang-markdown.el ends here

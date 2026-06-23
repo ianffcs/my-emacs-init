@@ -136,7 +136,7 @@
          (clojure-mode . cider-mode)
          (cider-mode . eldoc-mode)
          (cider-repl-mode . eldoc-mode)
-         (cider-repl-mode . parinfer-rust-mode))
+         (cider-repl-mode . paredit-mode))
   :bind (:map clojure-ts-mode-map
               ("C-c M-j" . cider-jack-in-clj)
               ("C-c M-J" . cider-jack-in-cljs)
@@ -423,7 +423,62 @@
 ;;            lisp-mode, scheme-mode, racket-mode
 
 ;; ============================================================================
-;; 20. HELPER FUNCTIONS
+;; 20. BASILISP TESTING (pytest-backed)
+;; ============================================================================
+
+(defun ian/basilisp--test-name-at-point ()
+  "Return the deftest name at or before point, nil if not found."
+  (save-excursion
+    (when (re-search-backward "(deftest[[:space:]\n]+\\([^[:space:]\n(]+\\)" nil t)
+      (match-string-no-properties 1))))
+
+(defun ian/basilisp--to-pytest-name (lpy-name)
+  "Convert Basilisp test name LPY-NAME to its pytest equivalent."
+  (concat "test_" (replace-regexp-in-string "-" "_" lpy-name)))
+
+(defun ian/basilisp-run-test-at-point ()
+  "Run the deftest at point via `basilisp test -k'."
+  (interactive)
+  (let* ((lpy-name (ian/basilisp--test-name-at-point))
+         (default-directory (or (and (fboundp 'projectile-project-root)
+                                     (projectile-project-root))
+                                default-directory))
+         (cmd (if lpy-name
+                  (format "basilisp test -k %s"
+                          (shell-quote-argument
+                           (ian/basilisp--to-pytest-name lpy-name)))
+                "basilisp test")))
+    (compile cmd)))
+
+(defun ian/basilisp-run-file-tests ()
+  "Run all tests in the current `.lpy' file."
+  (interactive)
+  (let* ((file (buffer-file-name))
+         (default-directory (or (and (fboundp 'projectile-project-root)
+                                     (projectile-project-root))
+                                default-directory)))
+    (compile (format "basilisp test %s" (shell-quote-argument file)))))
+
+(defun ian/basilisp-run-all-tests ()
+  "Run the full Basilisp test suite."
+  (interactive)
+  (let ((default-directory (or (and (fboundp 'projectile-project-root)
+                                    (projectile-project-root))
+                               default-directory)))
+    (compile "basilisp test")))
+
+(defun ian/basilisp-setup ()
+  "Activate Basilisp-specific keybindings in `.lpy' buffers."
+  (when (and (buffer-file-name)
+             (string= (file-name-extension (buffer-file-name)) "lpy"))
+    (local-set-key (kbd "C-c C-t C-t") #'ian/basilisp-run-test-at-point)
+    (local-set-key (kbd "C-c C-t C-f") #'ian/basilisp-run-file-tests)
+    (local-set-key (kbd "C-c C-t C-a") #'ian/basilisp-run-all-tests)))
+
+(add-hook 'clojure-ts-mode-hook #'ian/basilisp-setup)
+
+;; ============================================================================
+;; 21. HELPER FUNCTIONS (was 20)
 ;; ============================================================================
 
 (defun ian/cider-jack-in-basilisp ()
@@ -458,7 +513,7 @@
 ;;(global-set-key (kbd "C-c C-d C-d") #'ian/lisp-describe-symbol-at-point)
 
 ;; ============================================================================
-;; 21. TRANSIENT MENU
+;; 22. TRANSIENT MENU
 ;; ============================================================================
 
 (with-eval-after-load 'transient

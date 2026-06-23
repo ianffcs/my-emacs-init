@@ -118,8 +118,8 @@
   :config
   ;; Directory tracking
   (defun ian/vterm-directory-sync ()
-    "Sync vterm directory with default-directory."
-    (when vterm--process
+    "Sync vterm directory with default-directory (Linux only via /proc)."
+    (when (and (eq system-type 'gnu/linux) vterm--process)
       (let* ((pid (process-id vterm--process))
              (dir (file-truename (format "/proc/%d/cwd" pid))))
         (when (file-directory-p dir)
@@ -137,17 +137,6 @@
     "Open vterm with NAME."
     (interactive "sVterm name: ")
     (vterm (format "*vterm[%s]*" name))))
-
-;; Vterm toggle
-(use-package vterm-toggle
-  :after vterm
-  ;;  :bind (("C-c t t" . vterm-toggle)
-  ;;       ("C-c t T" . vterm-toggle-cd))
-  :custom
-  (vterm-toggle-scope 'project)
-  (vterm-toggle-fullscreen-p nil)
-  :config
-  (setq vterm-toggle-cd-auto-create-buffer nil))
 
 ;; Multi-vterm (multiple terminals)
 (use-package multi-vterm
@@ -245,7 +234,7 @@
                            ["Vterm"
                             ("v" "Vterm" vterm)
                             ("V" "Vterm other window" vterm-other-window)
-                            ("t" "Toggle" vterm-toggle)
+                            ("t" "New vterm" vterm)
                             ("n" "New vterm" multi-vterm)
                             ("p" "Project vterm" multi-vterm-project)]
                            ["Eshell"

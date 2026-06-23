@@ -95,9 +95,7 @@
 (use-package go-ts-mode
   :straight (:type built-in)
   :mode ("\\.go\\'" . go-ts-mode)
-  :hook ((go-ts-mode . subword-mode)
-         (go-ts-mode . (lambda ()
-                         (add-hook 'before-save-hook #'gofmt-before-save nil t))))
+  :hook (go-ts-mode . subword-mode)
   :custom
   (gofmt-command "goimports")
   (go-tag-args '("-transform" "camelcase")))

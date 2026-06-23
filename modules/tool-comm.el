@@ -20,16 +20,12 @@
   ;; Enable notifications
   (telega-notifications-mode 1)
 
-  ;; Company completion for telega
+  ;; Cape-backed completion in telega chat buffers (no company needed)
   (add-hook 'telega-chat-mode-hook
             (lambda ()
-              (set (make-local-variable 'company-backends)
-                   (append '(telega-company-emoji
-                             telega-company-username
-                             telega-company-hashtag)
-                           (when (telega-chat-bot-p telega-chatbuf--chat)
-                             '(telega-company-botcmd))))
-              (company-mode 1))))
+              (setq-local completion-at-point-functions
+                          (list #'telega-completion-at-point
+                                #'cape-emoji)))))
 
 ;; ============================================================================
 ;; 2. CIRCE (IRC Client)
@@ -104,12 +100,11 @@
 (use-package gnus
   :straight (:type built-in)
   :commands gnus
-  :custom
-  (gnus-select-method '(nnnil nil))
-  (gnus-asynchronous t)
-  (gnus-use-cache t)
-  (gnus-use-header-prefetch t)
   :config
+  (setq gnus-select-method '(nnnil nil)
+        gnus-asynchronous t
+        gnus-use-cache t
+        gnus-use-header-prefetch t)
   ;; Secondary select methods - configure with your email
   ;; Example for IMAP:
   ;; (setq gnus-secondary-select-methods

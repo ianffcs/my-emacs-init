@@ -49,8 +49,6 @@
   :custom
   (pyvenv-mode-line-indicator '(pyvenv-virtual-env-name ("[venv:" pyvenv-virtual-env-name "] ")))
   :config
-  (pyvenv-mode 1)
-
   ;; Auto-activate venv if .venv or venv directory exists
   (defun ian/pyvenv-autoload ()
     "Automatically activate virtualenv if present."
@@ -68,25 +66,21 @@
   (add-hook 'python-mode-hook #'ian/pyvenv-autoload)
   (add-hook 'python-ts-mode-hook #'ian/pyvenv-autoload))
 
-;; Virtualenvwrapper - for managing multiple virtualenvs
+;; virtualenvwrapper, pipenv, poetry — on-demand only; pyvenv covers the common case
 (use-package virtualenvwrapper
-  :after python
+  :commands (venv-workon venv-deactivate venv-initialize-interactive-shells)
   :config
   (venv-initialize-interactive-shells)
   (venv-initialize-eshell)
   (setq venv-location (expand-file-name "~/.virtualenvs")))
 
-;; Pipenv integration
 (use-package pipenv
-  :hook ((python-mode . pipenv-mode)
-         (python-ts-mode . pipenv-mode))
+  :commands (pipenv-activate pipenv-deactivate pipenv-shell pipenv-run)
   :custom
   (pipenv-projectile-after-switch-function #'pipenv-projectile-after-switch-extended))
 
-;; Poetry integration
 (use-package poetry
-  :hook ((python-mode . poetry-tracking-mode)
-         (python-ts-mode . poetry-tracking-mode)))
+  :commands (poetry-tracking-mode poetry-venv-workon poetry-venv-deactivate))
 
 ;; ============================================================================
 ;; 3. FORMATTING & LINTING

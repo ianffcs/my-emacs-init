@@ -94,7 +94,8 @@
 
 (use-package gradle-mode
   :hook ((java-mode . gradle-mode)
-         (kotlin-mode . gradle-mode))
+         (kotlin-mode . gradle-mode)
+         (kotlin-ts-mode . gradle-mode))
   :bind (:map gradle-mode-map
               ("C-c g b" . gradle-build)
               ("C-c g r" . gradle-run)

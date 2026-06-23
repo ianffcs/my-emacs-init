@@ -20,8 +20,8 @@
   (project-vc-extra-root-markers '(".project" "package.json" ".git" "deps.edn" "project.clj")))
 
 (use-package projectile
-  :demand t
   :diminish
+  :hook (after-init . projectile-mode)
   :bind-keymap ("C-c p" . projectile-command-map)
   :custom
   (projectile-completion-system 'default)
@@ -29,7 +29,6 @@
   (projectile-indexing-method 'alien)
   (projectile-sort-order 'recentf)
   :config
-  (projectile-mode +1)
   (setq projectile-project-search-path '("~/src/" "~/work/" ("~/github" . 1)))
 
   ;; Integrate with built-in project.el
@@ -150,14 +149,6 @@
          (haskell-mode . eglot-ensure)
          (terraform-mode . eglot-ensure)
          (eglot-managed-mode . eglot-inlay-hints-mode))
-  :custom
-  (eglot-autoshutdown t)
-  (eglot-connect-timeout 600)
-  (eglot-extend-to-xref t)
-  (eglot-report-progress nil)
-  (eglot-events-buffer-size 0)
-  (eglot-sync-connect 0)
-  (eldoc-echo-area-use-multiline-p nil)
   :bind (:map eglot-mode-map
               ("C-c l r" . eglot-rename)
               ("C-c l a" . eglot-code-actions)
@@ -172,6 +163,13 @@
               ("C-c l Q" . eglot-shutdown-all)
               ("C-c l R" . eglot-reconnect))
   :config
+  (setq eglot-autoshutdown t
+        eglot-connect-timeout 60
+        eglot-extend-to-xref t
+        eglot-report-progress nil
+        eglot-events-buffer-size 0
+        eglot-sync-connect 0
+        eldoc-echo-area-use-multiline-p nil)
   (fset #'jsonrpc--log-event #'ignore)
 
   ;; Clojure LSP
@@ -294,7 +292,7 @@
               ("M-s s" . consult-eglot-symbols)))
 
 (use-package eldoc-box
-  :hook (eglot-managed-mode . eldoc-box-hover-at-point-mode)
+  :commands eldoc-box-help-at-point
   :custom
   (eldoc-box-max-pixel-width 600)
   (eldoc-box-max-pixel-height 400))
@@ -328,10 +326,9 @@
 ;; ============================================================================
 
 (use-package dumb-jump
-  :config
-  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
-  (setq xref-show-definitions-function #'xref-show-definitions-completing-read
-        dumb-jump-force-searcher 'rg))
+  :hook (xref-backend-functions . dumb-jump-xref-activate)
+  :custom
+  (dumb-jump-force-searcher 'rg))
 
 ;; ============================================================================
 ;; 7. AUTO-FORMATTING (Apheleia)
@@ -341,26 +338,21 @@
   :hook (after-init . apheleia-global-mode))
 
 ;; ============================================================================
-;; 8. TREE-SITTER
+;; 8. TREE-SITTER (configured in core-packages.el)
 ;; ============================================================================
 
-(use-package treesit-auto
-  :custom
-  (treesit-auto-install 'prompt)
-  :config
-  (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode))
+;; treesit-auto is already demand-loaded and configured in core-packages.el.
+;; Only set the install preference here.
+(with-eval-after-load 'treesit-auto
+  (setq treesit-auto-install 'prompt))
 
 ;; ============================================================================
 ;; 9. DIRENV/ENVRC
 ;; ============================================================================
 
+;; envrc is the correct Emacs-native direnv integration; direnv.el is redundant.
 (use-package envrc
   :hook (after-init . envrc-global-mode))
-
-(use-package direnv
-  :config
-  (direnv-mode))
 
 ;; ============================================================================
 ;; 10. REST CLIENT
@@ -379,18 +371,29 @@
 (use-package plantuml-mode
   :mode "\\.plantuml\\'"
   :config
-  (let ((plantuml-directory (concat user-emacs-directory "private/"))
-        (plantuml-link "http://sourceforge.net/projects/plantuml/files/plantuml.jar/download"))
+  (let* ((plantuml-directory (concat user-emacs-directory "private/"))
+         (plantuml-target (concat plantuml-directory "plantuml.jar")))
     (unless (file-exists-p plantuml-directory)
       (make-directory plantuml-directory t))
-    (let ((plantuml-target (concat plantuml-directory "plantuml.jar")))
-      (unless (file-exists-p plantuml-target)
-        (message "Downloading plantuml.jar...")
-        (url-copy-file plantuml-link plantuml-target t))
-      (setq org-plantuml-jar-path plantuml-target
-            plantuml-jar-path plantuml-target
-            plantuml-default-exec-mode 'jar
-            plantuml-output-type "svg"))))
+    (setq org-plantuml-jar-path plantuml-target
+          plantuml-jar-path plantuml-target
+          plantuml-default-exec-mode 'jar
+          plantuml-output-type "svg")
+    (unless (file-exists-p plantuml-target)
+      (message "plantuml.jar missing — run M-x ian/plantuml-download to install"))))
+
+(defun ian/plantuml-download ()
+  "Async download of plantuml.jar."
+  (interactive)
+  (let* ((dir (concat user-emacs-directory "private/"))
+         (target (concat dir "plantuml.jar"))
+         (url "http://sourceforge.net/projects/plantuml/files/plantuml.jar/download"))
+    (message "Downloading plantuml.jar...")
+    (url-retrieve url
+                  (lambda (status)
+                    (unless (plist-get status :error)
+                      (write-region (point-min) (point-max) target)
+                      (message "plantuml.jar downloaded to %s" target))))))
 
 (use-package mermaid-mode
   :mode "\\.mmd\\'")

@@ -14,10 +14,10 @@
 ;; 1. RUBY
 ;; ============================================================================
 
+;; ruby-mode kept for :after/:interpreter refs; ruby-ts-mode takes .rb when grammar available
 (use-package ruby-mode
   :straight (:type built-in)
-  :mode (("\\.rb\\'" . ruby-mode)
-         ("\\.rake\\'" . ruby-mode)
+  :mode (("\\.rake\\'" . ruby-mode)
          ("Gemfile\\'" . ruby-mode)
          ("Rakefile\\'" . ruby-mode)
          ("Vagrantfile\\'" . ruby-mode)
@@ -89,9 +89,9 @@
   :mode "\\.sh\\'"
   :hook (bash-ts-mode . subword-mode))
 
+;; shfmt-on-save-mode removed: apheleia already runs shfmt on save (see section 10).
 (use-package shfmt
-  :hook ((sh-mode . shfmt-on-save-mode)
-         (bash-ts-mode . shfmt-on-save-mode))
+  :commands shfmt-buffer
   :custom
   (shfmt-arguments '("-i" "2" "-ci")))
 
