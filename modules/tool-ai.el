@@ -6,9 +6,8 @@
 
 ;;; Code:
 
-(require 'url)
-(require 'json)
 (require 'auth-source)
+(require 'cl-lib)
 (require 'subr-x)
 
 ;; ============================================================================
@@ -17,7 +16,7 @@
 
 (defconst ian/ai-host-env-map
   '(("api.openai.com" . "OPENAI_API_KEY")
-    ;;("generativelanguage.googleapis.com" . "GEMINI_API_KEY")
+    ("generativelanguage.googleapis.com" . "GEMINI_API_KEY")
     ("api.anthropic.com" . "ANTHROPIC_API_KEY"))
   "Mapping from API host to environment variable fallback for API keys.")
 
@@ -71,8 +70,11 @@ When NOERROR is non-nil, return nil instead of signaling an error."
 (defun ian/get-ollama-models (host-ip)
   "Fetch Ollama models using curl to bypass JSON parsing issues."
   (let* ((url (format "http://%s/api/tags" host-ip))
-         (cmd (format "curl --noproxy '*' -s '%s'" url))
-         (response (shell-command-to-string cmd))
+         (response (with-temp-buffer
+                     (when (zerop (call-process "curl" nil t nil
+                                                "--noproxy" "*"
+                                                "-s" url))
+                       (buffer-string))))
          (models '()))
     (if (string-empty-p response)
         '("mistral:latest")
@@ -161,35 +163,38 @@ If DEVICE-NAME is provided, use it instead of prompting."
   :config
   (setq gptel-default-mode 'org-mode)
 
-  ;; -- OpenAI Backend --
-  (setq gptel-openai-backend
-        (gptel-make-openai "OpenAI"
-          :key (ian/get-key "api.openai.com")
-          :stream t
-          :models '(gpt-4o gpt-4o-mini gpt-4-turbo gpt-3.5-turbo)))
+  ;; -- Hosted Backends --
+  (when-let ((openai-key (ian/get-key "api.openai.com" t)))
+    (setq gptel-openai-backend
+          (gptel-make-openai "OpenAI"
+            :key openai-key
+            :stream t
+            :models '(gpt-4o gpt-4o-mini gpt-4-turbo gpt-3.5-turbo))))
 
-  ;; -- Anthropic Backend --
-  (setq gptel-anthropic-backend
-        (gptel-make-anthropic "Anthropic"
-          :key (ian/get-key "api.anthropic.com")
-          :stream t
-          :models '(claude-sonnet-4-20250514
-                    claude-3-5-sonnet-20241022
-                    claude-3-opus-20240229
-                    claude-3-haiku-20240307)))
+  (when-let ((anthropic-key (ian/get-key "api.anthropic.com" t)))
+    (setq gptel-anthropic-backend
+          (gptel-make-anthropic "Anthropic"
+            :key anthropic-key
+            :stream t
+            :models '(claude-sonnet-4-20250514
+                      claude-3-5-sonnet-20241022
+                      claude-3-opus-20240229
+                      claude-3-haiku-20240307))))
 
-  ;; -- Gemini Backend --
-  (setq gptel-gemini-backend
-        (gptel-make-gemini "Gemini"
-          :key (ian/get-key "generativelanguage.googleapis.com")
-          :stream t))
+  (when-let ((gemini-key (ian/get-key "generativelanguage.googleapis.com" t)))
+    (setq gptel-gemini-backend
+          (gptel-make-gemini "Gemini"
+            :key gemini-key
+            :stream t)))
 
   ;; -- Ollama Backend (Local) --
   (setq gptel-ollama-backend
         (gptel-make-ollama "Ollama"
           :host "10.100.0.2:11434"
           :stream t
-          :models (ian/get-ollama-models "10.100.0.2:11434")))
+          :models (condition-case nil
+                      (ian/get-ollama-models "10.100.0.2:11434")
+                    (error '("mistral:latest")))))
 
   ;; -- Set Default Backend --
   (setq gptel-backend gptel-ollama-backend)
@@ -226,9 +231,8 @@ If DEVICE-NAME is provided, use it instead of prompting."
 
 (use-package ellama
   :commands (ellama-chat ellama-code-review ellama-summarize)
-  :init
-  (require 'llm-ollama)
   :config
+  (require 'llm-ollama)
   (setq ellama-provider
         (make-llm-ollama
          :chat-model "qwen3-next-80b-fixed:latest"
@@ -246,7 +250,6 @@ If DEVICE-NAME is provided, use it instead of prompting."
 (use-package org-ai
   :after org
   :commands (org-ai-mode org-ai-global-mode)
-  :hook (org-mode . org-ai-mode)
   :bind (:map org-mode-map
               ("C-c M-a" . org-ai-complete)
               ("C-c M-r" . org-ai-on-region)
@@ -257,7 +260,7 @@ If DEVICE-NAME is provided, use it instead of prompting."
               ("C-c M-$" . org-ai-open-account-usage-url))
   :custom
   ;; --- API Configuration ---
-  (org-ai-openai-api-token (ian/get-key "api.openai.com"))
+  (org-ai-openai-api-token (ian/get-key "api.openai.com" t))
   (org-ai-default-chat-model "gpt-4o")
   (org-ai-default-max-tokens 4096)
   (org-ai-default-chat-system-prompt
@@ -276,8 +279,9 @@ If DEVICE-NAME is provided, use it instead of prompting."
   (org-ai-image-default-style "vivid")
 
   :config
-  ;; Enable global mode for AI blocks
-  (org-ai-global-mode 1)
+  ;; Enable global mode for AI blocks only when requests can authenticate.
+  (when org-ai-openai-api-token
+    (org-ai-global-mode 1))
 
   ;; Install yasnippets for org-ai
   (org-ai-install-yasnippets)
@@ -413,11 +417,12 @@ If DEVICE-NAME is provided, use it instead of prompting."
   (org-ai-talk-say-voice "Samantha")  ; or "Karen", "Daniel", "Moira", etc.
 
   :config
-  ;; macOS-specific audio device setup
+  ;; macOS-specific audio device setup — deferred to avoid blocking ffmpeg call on org-mode open
   (when (eq system-type 'darwin)
-    ;; Select default microphone
-    (when (fboundp 'ian/select-default-audio-device)
-      (ian/select-default-audio-device "MacBook Pro Microphone")))
+    (run-with-idle-timer 3 nil
+      (lambda ()
+        (when (fboundp 'ian/select-default-audio-device)
+          (ian/select-default-audio-device "MacBook Pro Microphone")))))
 
   ;; List available macOS voices
   (defun ian/list-macos-voices ()
@@ -429,8 +434,9 @@ If DEVICE-NAME is provided, use it instead of prompting."
   (defun ian/org-ai-set-voice ()
     "Interactively set the org-ai-talk voice."
     (interactive)
-    (let* ((voices-output (shell-command-to-string "say -v '?' | cut -d' ' -f1"))
-           (voices (split-string voices-output "\n" t))
+    (let* ((voices (mapcar (lambda (line)
+                             (car (split-string line " " t)))
+                           (process-lines "say" "-v" "?")))
            (voice (completing-read "Select voice: " voices nil t)))
       (setq org-ai-talk-say-voice voice)
       (message "Voice set to: %s" voice)))
@@ -440,10 +446,11 @@ If DEVICE-NAME is provided, use it instead of prompting."
     "Test the current org-ai-talk voice."
     (interactive)
     (let ((test-text "Hello, I am your AI assistant. How can I help you today?"))
-      (shell-command (format "say -v '%s' -r %d '%s'"
-                             org-ai-talk-say-voice
-                             org-ai-talk-say-words-per-minute
-                             test-text)))))
+      (start-process "org-ai-test-voice" nil
+                     "say"
+                     "-v" org-ai-talk-say-voice
+                     "-r" (number-to-string org-ai-talk-say-words-per-minute)
+                     test-text))))
 
 ;; ============================================================================
 ;; 8. WHISPER (Speech-to-Text)
@@ -502,7 +509,7 @@ If DEVICE-NAME is provided, use it instead of prompting."
   :commands chatgpt-shell
   :bind ("C-c g c" . chatgpt-shell)
   :custom
-  (chatgpt-shell-openai-key (ian/get-key "api.openai.com"))
+  (chatgpt-shell-openai-key (ian/get-key "api.openai.com" t))
   (chatgpt-shell-model-version "gpt-4o-mini")
   (chatgpt-shell-system-prompt "You are a helpful assistant.")
   (chatgpt-shell-streaming t)
@@ -512,7 +519,7 @@ If DEVICE-NAME is provided, use it instead of prompting."
 (use-package dall-e-shell
   :commands dall-e-shell
   :custom
-  (dall-e-shell-openai-key (ian/get-key "api.openai.com"))
+  (dall-e-shell-openai-key (ian/get-key "api.openai.com" t))
   (dall-e-shell-image-size "1024x1024")
   (dall-e-shell-model-version "dall-e-3"))
 
@@ -649,7 +656,7 @@ If DEVICE-NAME is provided, use it instead of prompting."
 (use-package mcp
   :straight (:host github :repo "lizqwerscott/mcp.el" :nonrecursive t)
   :after gptel
-  :hook (after-init . mcp-hub-start-all-server)
+  :commands (mcp-hub mcp-hub-start-all-server)
   :config
   (require 'mcp-hub)
 

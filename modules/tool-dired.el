@@ -18,8 +18,10 @@
   ;; Use ls from coreutils on macOS
   (insert-directory-program (or (executable-find "gls")
                                 (executable-find "ls")))
-  ;; Listing options
-  (dired-listing-switches "-agho --group-directories-first")
+  ;; Listing options — --group-directories-first requires GNU ls (gls)
+  (dired-listing-switches (if (executable-find "gls")
+                              "-agho --group-directories-first"
+                            "-agho"))
   ;; DWIM: use other dired window as default target
   (dired-dwim-target t)
   ;; Recursive operations
@@ -51,18 +53,7 @@
      ("\\.tar\\.gz\\'" "tar xzf")
      ("\\.tar\\.bz2\\'" "tar xjf")))
   :config
-  ;; macOS: use gls if available
-  ;; Sort directories first
-  (defun ian/dired-directories-first ()
-    "Sort dired listings with directories first."
-    (save-excursion
-      (let ((inhibit-read-only t))
-        (forward-line 2)
-        (sort-regexp-fields t "^.*$" "[ ]*." (point) (point-max)))
-      (set-buffer-modified-p nil)))
-
-  (advice-add 'dired-readin :after #'ian/dired-directories-first)
-
+  ;; macOS: use gls if available (--group-directories-first already sorts listings)
   (when (eq system-type 'darwin)
     (when-let ((gls (executable-find "gls")))
       (setq insert-directory-program gls)))
@@ -72,11 +63,10 @@
     "Open file at point with external application."
     (interactive)
     (let ((file (dired-get-file-for-visit)))
-      (call-process (pcase system-type
-                      ('darwin "open")
-                      ('gnu/linux "xdg-open")
-                      ('windows-nt "start"))
-                    nil 0 nil file))))
+      (pcase system-type
+        ('darwin (start-process "dired-open-external" nil "open" file))
+        ('gnu/linux (start-process "dired-open-external" nil "xdg-open" file))
+        ('windows-nt (w32-shell-execute "open" file))))))
 
 ;; Dired-x (extra features)
 (use-package dired-x
@@ -240,10 +230,11 @@
 
 (defun ian/dired-tree--schedule-follow ()
   "Schedule a sidebar update (debounced)."
-  (when ian/dired-tree--follow-timer
-    (cancel-timer ian/dired-tree--follow-timer))
-  (setq ian/dired-tree--follow-timer
-        (run-with-idle-timer 0.3 nil #'ian/dired-tree--maybe-follow)))
+  (when (get-buffer-window ian/dired-tree-buffer-name)
+    (when ian/dired-tree--follow-timer
+      (cancel-timer ian/dired-tree--follow-timer))
+    (setq ian/dired-tree--follow-timer
+          (run-with-idle-timer 0.3 nil #'ian/dired-tree--maybe-follow))))
 
 (add-hook 'window-buffer-change-functions
           (lambda (_) (ian/dired-tree--schedule-follow)))
@@ -251,7 +242,7 @@
 ;; Dired-mode keybindings
 (with-eval-after-load 'dired
   (define-key dired-mode-map (kbd "C-c t") #'ian/dired-tree-toggle)
-  (define-key dired-mode-map (kbd "C-c f") #'ian/dired-tree-follow-current))
+  (define-key dired-mode-map (kbd "C-c F") #'ian/dired-tree-follow-current))
 
 ;; Sidebar-specific keybindings (applied when buffer is created)
 (defun ian/dired-tree--setup-keys ()
@@ -295,7 +286,7 @@
   :after dired
   :hook (dired-mode . dired-filter-mode)
   :bind (:map dired-mode-map
-              ("C-c f" . dired-filter-mode)))
+              ("C-c /" . dired-filter-mode)))
 
 ;; Dired ranger (dual-pane)
 (use-package dired-ranger
@@ -315,13 +306,7 @@
 ;; 3. ICONS IN DIRED
 ;; ============================================================================
 
-(use-package all-the-icons-dired
-  :hook (dired-mode . all-the-icons-dired-mode)
-  :custom
-  (all-the-icons-dired-monochrome nil))
-
 (use-package nerd-icons-dired
-  :disabled  ; Using all-the-icons-dired
   :hook (dired-mode . nerd-icons-dired-mode))
 
 ;; ============================================================================
@@ -401,24 +386,8 @@
 
   (global-set-key (kbd "C-c d") #'ian/dired-menu))
 
-;; ============================================================================
-;; 6. DIRED-SIDEBAR (Tree-style file browser)
-;; ============================================================================
-
-(use-package dired-sidebar
-  :bind (("C-x C-n" . dired-sidebar-toggle-sidebar)
-         ("C-c d s" . dired-sidebar-toggle-sidebar))
-  :commands (dired-sidebar-toggle-sidebar)
-  :init
-  (add-hook 'dired-sidebar-mode-hook
-            (lambda ()
-              (unless (file-remote-p default-directory)
-                (auto-revert-mode 1))))
-  :custom
-  (dired-sidebar-width 36)
-  (dired-sidebar-theme 'icons)
-  (dired-sidebar-use-term-integration t)
-  (dired-sidebar-use-custom-font t))
+;; dired-sidebar removed: ian/dired-tree (section 2) provides the same sidebar
+;; with better project-tracking integration.
 
 (provide 'tool-dired)
 ;;; tool-dired.el ends here

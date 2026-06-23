@@ -29,7 +29,7 @@
   :config
   (require 'emms-setup)
   (require 'emms-player-mpd)
-  (emms-all))
+  (emms-standard))
 
 ;; ============================================================================
 ;; 2. MPC (MPD Client)
@@ -48,7 +48,7 @@
 (defun ian/mpd-start-music-daemon ()
   "Start MPD, connect to it and sync the metadata cache."
   (interactive)
-  (shell-command "mpd")
+  (start-process "mpd" nil "mpd")
   (ian/mpd-update-database)
   (emms-player-mpd-connect)
   (emms-cache-set-from-mpd-all)
@@ -58,13 +58,13 @@
   "Stop playback and kill the music daemon."
   (interactive)
   (emms-stop)
-  (call-process "killall" nil nil nil "mpd")
+  (start-process "mpd-kill" nil "killall" "mpd")
   (message "MPD Killed!"))
 
 (defun ian/mpd-update-database ()
-  "Update the MPD database synchronously."
+  "Update the MPD database."
   (interactive)
-  (call-process "mpc" nil nil nil "update")
+  (start-process "mpd-update" nil "mpc" "update")
   (message "MPD Database Updated!"))
 
 ;; Keybindings for MPD control
@@ -81,9 +81,10 @@
   (interactive)
   (cond
    ((eq system-type 'darwin)
-    (shell-command "osascript -e 'set volume output volume ((output volume of (get volume settings)) + 5)'"))
+    (start-process "volume-up" nil "osascript" "-e"
+                   "set volume output volume ((output volume of (get volume settings)) + 5)"))
    ((eq system-type 'gnu/linux)
-    (shell-command "amixer set Master 2%+")))
+    (start-process "volume-up" nil "amixer" "set" "Master" "2%+")))
   (message "Volume Up"))
 
 (defun ian/volume-down ()
@@ -91,9 +92,10 @@
   (interactive)
   (cond
    ((eq system-type 'darwin)
-    (shell-command "osascript -e 'set volume output volume ((output volume of (get volume settings)) - 5)'"))
+    (start-process "volume-down" nil "osascript" "-e"
+                   "set volume output volume ((output volume of (get volume settings)) - 5)"))
    ((eq system-type 'gnu/linux)
-    (shell-command "amixer set Master 2%-")))
+    (start-process "volume-down" nil "amixer" "set" "Master" "2%-")))
   (message "Volume Down"))
 
 (defun ian/volume-toggle-mute ()
@@ -101,9 +103,10 @@
   (interactive)
   (cond
    ((eq system-type 'darwin)
-    (shell-command "osascript -e 'set volume output muted not (output muted of (get volume settings))'"))
+    (start-process "volume-mute" nil "osascript" "-e"
+                   "set volume output muted not (output muted of (get volume settings))"))
    ((eq system-type 'gnu/linux)
-    (shell-command "amixer set Master toggle")))
+    (start-process "volume-mute" nil "amixer" "set" "Master" "toggle")))
   (message "Volume Toggled"))
 
 ;; Volume keybindings

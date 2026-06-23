@@ -48,6 +48,7 @@
 ;; ============================================================================
 
 (use-package alert
+  :commands alert
   :custom
   (alert-default-style (if (eq system-type 'darwin)
                            'osx-notifier
@@ -105,6 +106,7 @@
   (recentf-save-file (expand-file-name "recentf" user-emacs-directory))
   (recentf-max-saved-items 500)
   (recentf-max-menu-items 15)
+  ;; Avoid blocking startup by probing stale TRAMP/network paths.
   (recentf-auto-cleanup 'never)
   :config
   (recentf-mode 1)

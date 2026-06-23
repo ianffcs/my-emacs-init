@@ -22,9 +22,14 @@
 (message "Let the coding begin! Be patient, %s!" current-user)
 
 ;; 4. PERFORMANCE ADJUSTMENTS (from Performance adjustments section)
-(setq load-prefer-newer t)  ; Always load newest byte code
-(setq read-process-output-max (* 1024 1024 2))  ; 2MB for LSP performance
-(setq inhibit-compacting-font-caches t)  ; Don't compact fonts during GC
+(setq load-prefer-newer t)
+(setq read-process-output-max (* 1024 1024 4))  ; 4MB for LSP performance
+(setq inhibit-compacting-font-caches t)
+
+;; Defer font-lock while typing, apply on idle — eliminates lag in large files
+(setq jit-lock-stealth-time 1.0
+      jit-lock-defer-time 0.1
+      jit-lock-stealth-nice 0.1)
 
 ;; 5. NATIVE COMPILATION TWEAKS
 (when (and (eq system-type 'darwin) (featurep 'native-compile))
@@ -41,7 +46,7 @@
   (setq native-comp-async-report-warnings-errors 'silent))
 
 ;; 6. STRAIGHT.EL PERFORMANCE SETTINGS
-(setq straight-check-for-modifications '(check-on-save find-when-checking))
+(setq straight-check-for-modifications '(find-when-checking))
 (setq straight-vc-git-default-clone-depth 1)
 
 ;; 7. BOOTSTRAP STRAIGHT.EL
@@ -63,15 +68,35 @@
 (straight-use-package 'transient)
 (setq straight-use-package-by-default t)
 (setq use-package-always-defer t)
+(setq use-package-compute-statistics nil)
+
+;; no-littering: redirect auto-save/backup before any other package runs
+(use-package no-littering
+  :demand t
+  :config
+  (setq auto-save-file-name-transforms
+        `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+  (setq backup-directory-alist
+        `((".*" . ,(no-littering-expand-var-file-name "backup/")))))
+
+;; Startup profiler
+(use-package esup
+  :commands esup)
+
+;; Auto-install and remap tree-sitter grammars
+(use-package treesit-auto
+  :hook (after-init . global-treesit-auto-mode)
+  :init
+  (setq treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all))
 
 ;; Async operations (from Async section)
 (use-package async
-  :demand t
-  :config
-  (dired-async-mode 1)
-  (async-bytecomp-package-mode 1)
-  :custom
-  (async-bytecomp-allowed-packages '(all)))
+  :hook (after-init . (lambda ()
+                        (setq async-bytecomp-allowed-packages '(all))
+                        (dired-async-mode 1)
+                        (async-bytecomp-package-mode 1))))
 
 ;; 9. FORCE BUILT-IN PACKAGES
 (straight-use-package '(project :type built-in))

@@ -17,10 +17,10 @@
 
 (use-package exec-path-from-shell
   :if (memq window-system '(mac ns x))
-  :demand t
+  :defer 1
   :custom
   (exec-path-from-shell-arguments '("-l"))
-  (exec-path-from-shell-warn-duration-millis 1000)
+  (exec-path-from-shell-warn-duration-millis 500)
   :config
   (dolist (var '("PATH" "MANPATH" "SSH_AUTH_SOCK" "GPG_AGENT_INFO"
                  "LANG" "LC_ALL" "LC_CTYPE"
@@ -78,8 +78,8 @@
     "Reveal the current file in Finder."
     (interactive)
     (if buffer-file-name
-        (shell-command (format "open -R \"%s\"" buffer-file-name))
-      (shell-command "open .")))
+        (start-process "reveal-in-finder" nil "open" "-R" buffer-file-name)
+      (start-process "open-default-directory" nil "open" default-directory)))
 
   (global-set-key (kbd "s-r") #'ian/reveal-in-finder)
 
@@ -88,7 +88,7 @@
     "Open current file with default application."
     (interactive)
     (when buffer-file-name
-      (shell-command (format "open \"%s\"" buffer-file-name))))
+      (start-process "open-with-default-app" nil "open" buffer-file-name)))
 
   (global-set-key (kbd "s-o") #'ian/open-with-default-app)
 
@@ -98,22 +98,19 @@
     (interactive)
     (let ((word (thing-at-point 'word t)))
       (when word
-        (shell-command (format "open dict://%s" word)))))
+        (start-process "macos-dictionary" nil "open" (format "dict://%s" word)))))
 
   (global-set-key (kbd "C-c d d") #'ian/macos-dictionary)
 
   ;; --- macOS Notifications ---
   (defun ian/macos-notify (title message)
     "Send macOS notification with TITLE and MESSAGE."
-    (shell-command
-     (format "osascript -e 'display notification \"%s\" with title \"%s\"'"
-             message title)))
+    (start-process
+     "macos-notify" nil "osascript" "-e"
+     (format "display notification %S with title %S" message title)))
 
-  ;; --- Homebrew paths ---
-  (when (file-directory-p "/opt/homebrew")
-    (add-to-list 'exec-path "/opt/homebrew/bin")
-    (add-to-list 'exec-path "/opt/homebrew/sbin")
-    (setenv "PATH" (concat "/opt/homebrew/bin:/opt/homebrew/sbin:" (getenv "PATH")))))
+  ;; Homebrew paths already seeded in early-init.el
+  )
 
 ;; ============================================================================
 ;; 3. LINUX SPECIFIC
@@ -180,8 +177,16 @@
 ;; 5. WSL (Windows Subsystem for Linux)
 ;; ============================================================================
 
-(when (and (eq system-type 'gnu/linux)
-           (string-match-p "microsoft" (shell-command-to-string "uname -r")))
+(defun ian/wsl-p ()
+  "Return non-nil when running inside WSL."
+  (and (eq system-type 'gnu/linux)
+       (file-readable-p "/proc/version")
+       (with-temp-buffer
+         (insert-file-contents "/proc/version")
+         (goto-char (point-min))
+         (re-search-forward "microsoft\\|WSL" nil t))))
+
+(when (ian/wsl-p)
   ;; --- Browser (use Windows browser) ---
   (setq browse-url-browser-function 'browse-url-generic
         browse-url-generic-program "wslview")
@@ -196,8 +201,9 @@
 
   (defun ian/wsl-paste ()
     "Paste from Windows clipboard via powershell.exe."
-    (shell-command-to-string
-     "powershell.exe -command 'Get-Clipboard' 2>/dev/null | sed 's/\r$//'"))
+    (with-temp-buffer
+      (call-process "powershell.exe" nil t nil "-NoProfile" "-Command" "Get-Clipboard")
+      (replace-regexp-in-string "\r" "" (buffer-string))))
 
   (setq interprogram-cut-function #'ian/wsl-copy)
   (setq interprogram-paste-function #'ian/wsl-paste))
@@ -227,6 +233,7 @@
 (use-package keychain-environment
   :if (or (eq system-type 'gnu/linux)
           (eq system-type 'darwin))
+  :defer 2
   :config
   (keychain-refresh-environment))
 

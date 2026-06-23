@@ -17,6 +17,7 @@
 ;; ============================================================================
 
 (use-package dashboard
+  :demand t
   :init
   ;; --- Critical settings (must be in :init) ---
   (setq dashboard-icon-type 'nerd-icons)
@@ -72,7 +73,9 @@
         (format "Welcome back, %s! Emacs loaded in %.2f seconds with %d packages."
                 user-login-name
                 (float-time (time-subtract after-init-time before-init-time))
-                (length package-activated-list)))
+                (if (boundp 'straight--build-cache)
+                    (hash-table-count straight--build-cache)
+                  0)))
 
   ;; --- Footer Configuration ---
   (setq dashboard-set-footer t
@@ -205,9 +208,12 @@
 
 ;; Register all project directories on startup
 (with-eval-after-load 'projectile
-  (ian/register-src-projects)
-  (ian/register-work-projects)
-  (ian/register-github-projects))
+  (run-with-idle-timer
+   5 nil
+   (lambda ()
+     (ian/register-src-projects)
+     (ian/register-work-projects)
+     (ian/register-github-projects))))
 
 ;; ============================================================================
 ;; 3. DESKTOP INTEGRATION
