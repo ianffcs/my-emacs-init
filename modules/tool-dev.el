@@ -121,12 +121,16 @@
                 (plist-put (default-value 'eglot-workspace-configuration)
                            key value)))
 
+(defun ian/eglot-ensure-clojure ()
+  (when (executable-find "clojure-lsp")
+    (eglot-ensure)))
+
 (use-package eglot
   :defer t
-  :hook ((clojure-mode . eglot-ensure)
-         (clojure-ts-mode . eglot-ensure)
-         (clojurec-mode . eglot-ensure)
-         (clojurescript-mode . eglot-ensure)
+  :hook ((clojure-mode . ian/eglot-ensure-clojure)
+         (clojure-ts-mode . ian/eglot-ensure-clojure)
+         (clojurec-mode . ian/eglot-ensure-clojure)
+         (clojurescript-mode . ian/eglot-ensure-clojure)
          (python-mode . eglot-ensure)
          (python-ts-mode . eglot-ensure)
          (js-mode . eglot-ensure)

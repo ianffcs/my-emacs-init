@@ -19,7 +19,7 @@
 ;; ============================================================================
 
 (use-package idris2-mode
-  :straight t
+  :straight (:host github :repo "idris-community/idris2-mode")
   :mode ("\\.idr\\'" "\\.lidr\\'")
   :hook ((idris2-mode . subword-mode)
          (idris2-mode . eglot-ensure))
