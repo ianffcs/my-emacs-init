@@ -174,7 +174,7 @@
   :hook ((markdown-mode . writegood-mode)
          (org-mode . writegood-mode)
          (latex-mode . writegood-mode))
-  :bind ("C-c W" . writegood-mode))
+  :bind ("C-c e W" . writegood-mode))
 
 ;; ============================================================================
 ;; 8. FOCUS & DISTRACTION-FREE WRITING
@@ -344,7 +344,7 @@
 
 (global-set-key (kbd "C-c e w") #'ian/writing-mode)
 (global-set-key (kbd "C-c e p") #'ian/toggle-prose-mode)
-(global-set-key (kbd "C-c e d") #'ian/insert-date)
+(global-set-key (kbd "C-c e D") #'ian/insert-date)
 
 (provide 'lang-markdown)
 ;;; lang-markdown.el ends here

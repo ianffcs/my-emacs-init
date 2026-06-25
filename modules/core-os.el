@@ -106,7 +106,7 @@
       (when word
         (start-process "macos-dictionary" nil "open" (format "dict://%s" word)))))
 
-  (global-set-key (kbd "C-c d d") #'ian/macos-dictionary)
+  (global-set-key (kbd "C-c q d") #'ian/macos-dictionary)
 
   ;; --- macOS Notifications ---
   (defun ian/macos-notify (title message)
@@ -143,7 +143,8 @@
   (defun ian/open-file-manager ()
     "Open current directory in file manager."
     (interactive)
-    (let ((dir (or (file-name-directory buffer-file-name)
+    (let ((dir (or (when buffer-file-name
+                     (file-name-directory buffer-file-name))
                    default-directory)))
       (cond
        ((executable-find "nautilus")
@@ -281,7 +282,7 @@
 (defun ian/copy-directory-path ()
   "Copy the directory path of the current file."
   (interactive)
-  (let ((dir (or (file-name-directory buffer-file-name)
+  (let ((dir (or (when buffer-file-name (file-name-directory buffer-file-name))
                  default-directory)))
     (kill-new dir)
     (message "Copied: %s" dir)))

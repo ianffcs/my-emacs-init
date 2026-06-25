@@ -87,9 +87,9 @@
 (use-package savehist
   :straight (:type built-in)
   :custom
-  (savehist-file (expand-file-name "savehist" user-emacs-directory))
+  (savehist-file (no-littering-expand-var-file-name "savehist"))
   (savehist-additional-variables
-   '(search-ring regexp-search-ring kill-ring))
+   '(search-ring regexp-search-ring))
   (savehist-autosave-interval 60)
   (history-length 1000)
   (history-delete-duplicates t)
@@ -103,7 +103,7 @@
 (use-package recentf
   :straight (:type built-in)
   :custom
-  (recentf-save-file (expand-file-name "recentf" user-emacs-directory))
+  (recentf-save-file (no-littering-expand-var-file-name "recentf"))
   (recentf-max-saved-items 500)
   (recentf-max-menu-items 15)
   ;; Avoid blocking startup by probing stale TRAMP/network paths.
@@ -124,7 +124,7 @@
 (use-package saveplace
   :straight (:type built-in)
   :custom
-  (save-place-file (expand-file-name "saveplace" user-emacs-directory))
+  (save-place-file (no-littering-expand-var-file-name "saveplace"))
   :config
   (save-place-mode 1))
 

@@ -85,11 +85,11 @@
 
 ;; Step through file history
 (use-package git-timemachine
-  :bind ("C-c g t" . git-timemachine))
+  :commands git-timemachine)
 
 ;; Open file/region on GitHub/GitLab
 (use-package browse-at-remote
-  :bind ("C-c g b" . browse-at-remote))
+  :commands browse-at-remote)
 
 ;; Generate .gitignore files
 (use-package gitignore-templates
@@ -180,7 +180,6 @@
         eglot-events-buffer-size 0
         eglot-sync-connect 0
         eldoc-echo-area-use-multiline-p nil)
-  (fset #'jsonrpc--log-event #'ignore)
 
   ;; Clojure LSP
   (add-to-list 'eglot-server-programs
@@ -440,7 +439,7 @@
   (tramp-backup-directory-alist backup-directory-alist)
   (tramp-auto-save-directory (expand-file-name "tramp-autosave" user-emacs-directory))
   :config
-  (setq tramp-use-ssh-controlmaster-options nil)
+  (customize-set-variable 'tramp-use-ssh-controlmaster-options t)
   (customize-set-variable 'tramp-ssh-controlmaster-options
                           (concat
                            "-o ControlMaster=auto "
@@ -462,14 +461,16 @@
                     (error "Buffer is not visiting a file")))))
     (find-file
      (if (file-remote-p file)
-         (let ((vec (tramp-dissect-file-name file)))
-           (tramp-make-tramp-file-name
-            "sudo"
-            (tramp-file-name-user vec)
-            (tramp-file-name-domain vec)
-            (tramp-file-name-host vec)
-            (tramp-file-name-port vec)
-            (tramp-file-name-localname vec)))
+         (let* ((vec (tramp-dissect-file-name file))
+                (sudo-vec (make-tramp-file-name
+                           :method "sudo"
+                           :user (tramp-file-name-user vec)
+                           :domain (tramp-file-name-domain vec)
+                           :host (tramp-file-name-host vec)
+                           :port (tramp-file-name-port vec)
+                           :localname (tramp-file-name-localname vec)
+                           :hop (tramp-file-name-hop vec))))
+           (tramp-make-tramp-file-name sudo-vec))
        (concat "/sudo:root@localhost:" file)))))
 
 (defun ian/ssh-connect (host)

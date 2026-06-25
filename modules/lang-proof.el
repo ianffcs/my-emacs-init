@@ -40,7 +40,8 @@
 ;; ============================================================================
 
 (use-package lean4-mode
-  :straight (:type git :host github :repo "leanprover/lean4-mode")
+  :straight (:type git :host github :repo "leanprover/lean4-mode"
+                   :files ("*.el" "data"))
   :mode "\\.lean\\'"
   :hook (lean4-mode . subword-mode))
 

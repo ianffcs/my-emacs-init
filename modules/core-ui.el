@@ -25,10 +25,13 @@
 (add-to-list 'default-frame-alist '(width . 120))
 (add-to-list 'default-frame-alist '(height . 40))
 
-;; macOS title bar styling
+;; macOS title bar styling — appearance tracks the active theme, not hardcoded dark
 (when (eq system-type 'darwin)
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-  (add-to-list 'default-frame-alist '(ns-appearance . dark)))
+  (let ((hour (string-to-number (format-time-string "%H"))))
+    (add-to-list 'default-frame-alist
+                 (cons 'ns-appearance
+                       (if (and (>= hour 7) (< hour 19)) nil 'dark)))))
 
 ;; Fringe
 (set-fringe-mode '(8 . 8))
@@ -171,23 +174,32 @@
 (defvar ian/light-theme 'modus-operandi)
 (defvar ian/dark-theme 'modus-vivendi)
 
+(defun ian/theme-sync-appearance (theme)
+  "Sync macOS title bar appearance to THEME on darwin."
+  (when (eq system-type 'darwin)
+    (set-frame-parameter nil 'ns-appearance
+                         (if (eq theme ian/light-theme) nil 'dark))))
+
 (defun ian/toggle-theme ()
   "Toggle between light and dark themes."
   (interactive)
   (if (eq (car custom-enabled-themes) ian/dark-theme)
       (progn
         (disable-theme ian/dark-theme)
-        (load-theme ian/light-theme t))
+        (load-theme ian/light-theme t)
+        (ian/theme-sync-appearance ian/light-theme))
     (disable-theme ian/light-theme)
-    (load-theme ian/dark-theme t)))
+    (load-theme ian/dark-theme t)
+    (ian/theme-sync-appearance ian/dark-theme)))
 
-;; Auto-switch based on time
+;; Auto-switch based on time — skips load-theme when already on the right theme
 (defun ian/auto-theme ()
   "Automatically switch theme based on time of day."
-  (let ((hour (string-to-number (format-time-string "%H"))))
-    (if (and (>= hour 7) (< hour 19))
-        (load-theme ian/light-theme t)
-      (load-theme ian/dark-theme t))))
+  (let* ((hour (string-to-number (format-time-string "%H")))
+         (want (if (and (>= hour 7) (< hour 19)) ian/light-theme ian/dark-theme)))
+    (unless (eq (car custom-enabled-themes) want)
+      (load-theme want t)
+      (ian/theme-sync-appearance want))))
 
 (add-hook 'after-init-hook #'ian/auto-theme)
 (run-at-time "1 hour" 3600 #'ian/auto-theme)

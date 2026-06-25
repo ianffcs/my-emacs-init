@@ -158,9 +158,7 @@
   (eat-shell (or (executable-find "zsh")
                  (executable-find "bash")
                  "/bin/sh"))
-  (eat-kill-buffer-on-exit t)
-  :config
-  (eat-eshell-visual-command-mode +1))
+  (eat-kill-buffer-on-exit t))
 
 ;; ============================================================================
 ;; 4. COMINT (Common Shell Interface)

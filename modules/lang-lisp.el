@@ -540,7 +540,7 @@
                            ["Eval"
                             ("e" "Eval last sexp" eval-last-sexp)
                             ("d" "Eval defun" eval-defun)
-                            ("b" "Eval buffer" eval-buffer)])
+                            ("B" "Eval buffer" eval-buffer)])
 
   (dolist (map '(clojure-ts-mode-map
                  emacs-lisp-mode-map

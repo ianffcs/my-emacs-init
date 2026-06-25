@@ -41,6 +41,8 @@
     "C-c h" "Help/Dashboard"
     "C-c r" "Reveal"
     "C-c T" "TRAMP"
+    "C-c W" "Perspectives"
+    "C-c q d" "Dictionary (macOS)"
     "C-c M-" "Org-AI"
     "C-x r" "Registers/Bookmarks"
     "C-x n" "Narrow"))
@@ -124,7 +126,7 @@
   :diminish
   :custom
   (gcmh-idle-delay 5)
-  (gcmh-high-cons-threshold (* 32 1024 1024))
+  (gcmh-high-cons-threshold (* 128 1024 1024))
   :config
   (gcmh-mode 1))
 

@@ -18,7 +18,7 @@
 
 ;; 4. PERFORMANCE ADJUSTMENTS (from Performance adjustments section)
 (setq load-prefer-newer t)
-(setq read-process-output-max (* 1024 1024 4))  ; 4MB for LSP performance
+(setq read-process-output-max (* 1024 1024 8))  ; 8MB for LSP performance
 (setq inhibit-compacting-font-caches t)
 
 ;; Defer font-lock while typing, apply on idle — eliminates lag in large files

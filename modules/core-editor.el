@@ -337,7 +337,7 @@
   :straight (:type built-in)
   :custom
   (bookmark-save-flag 1)
-  (bookmark-default-file (expand-file-name "bookmarks" user-emacs-directory)))
+  (bookmark-default-file (no-littering-expand-var-file-name "bookmarks")))
 
 (use-package popup-kill-ring
   :bind ("M-y" . popup-kill-ring))

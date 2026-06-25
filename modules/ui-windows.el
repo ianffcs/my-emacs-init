@@ -92,7 +92,37 @@
   (tab-bar-history-mode 1))
 
 ;; ============================================================================
-;; 5. TRANSPOSE-FRAME
+;; 5. PERSPECTIVE (Buffer Isolation Per Workspace)
+;; ============================================================================
+
+(use-package perspective
+  :straight t
+  :custom
+  (persp-initial-frame-name "main")
+  (persp-sort 'created)
+  (persp-suppress-no-prefix-key-warning t)
+  :bind-keymap ("C-c W" . perspective-map)
+  :hook (after-init . persp-mode)
+  :config
+  ;; Integrate with tab-bar: each perspective appears as a tab
+  (persp-tab-bar-mode 1)
+
+  ;; ibuffer: show only current perspective's buffers
+  (add-hook 'ibuffer-hook
+            (lambda ()
+              (persp-ibuffer-set-filter-groups)
+              (unless (eq ibuffer-sorting-mode 'alphabetic)
+                (ibuffer-do-sort-by-alphabetic)))))
+
+;; Projectile integration: switching projects opens a dedicated perspective
+(use-package persp-projectile
+  :straight t
+  :after (perspective projectile)
+  :config
+  (define-key projectile-command-map (kbd "P") #'projectile-persp-switch-project))
+
+;; ============================================================================
+;; 6. TRANSPOSE-FRAME
 ;; ============================================================================
 
 (use-package transpose-frame
@@ -248,6 +278,12 @@
      ("W" "Close tab" tab-bar-close-tab)
      ("[" "Prev tab" tab-bar-switch-to-prev-tab)
      ("]" "Next tab" tab-bar-switch-to-next-tab)]
+    ["Workspaces"
+     ("wp" "Switch perspective" persp-switch)
+     ("wn" "New perspective" persp-new)
+     ("wk" "Kill perspective" persp-kill)
+     ("wr" "Rename perspective" persp-rename)
+     ("wP" "Switch project" projectile-persp-switch-project)]
     ["Undo"
      ("u" "Winner undo" winner-undo)
      ("r" "Winner redo" winner-redo)])

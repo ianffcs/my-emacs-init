@@ -657,7 +657,7 @@ If DEVICE-NAME is provided, use it instead of prompting."
 (use-package mcp
   :straight (:host github :repo "lizqwerscott/mcp.el" :nonrecursive t)
   :after gptel
-  :commands (mcp-hub mcp-hub-start-all-server)
+  :commands (mcp-hub mcp-hub-start-all-server gptel-mcp-connect gptel-mcp-disconnect)
   :config
   (require 'mcp-hub)
 
@@ -747,6 +747,9 @@ If DEVICE-NAME is provided, use it instead of prompting."
                             ("O" "Stop org-mcp" ian/org-mcp-stop)
                             ("L" "MCP setup info" mcp-server-lib-describe-setup)
                             ("F" "Allow Org file" ian/org-mcp-allow-current-file)]
+                           ["Git"
+                            ("t" "Timemachine" git-timemachine)
+                            ("b" "Browse at remote" browse-at-remote)]
                            ["Settings"
                             ("v" "Set voice" ian/org-ai-set-voice)
                             ("V" "Test voice" ian/org-ai-test-voice)

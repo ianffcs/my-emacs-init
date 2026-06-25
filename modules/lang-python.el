@@ -262,14 +262,20 @@
       (call-interactively #'pyvenv-workon)
     (call-interactively #'venv-workon)))
 
+(defun ian/python-setup-keys (map)
+  "Bind Python utility keys in MAP."
+  (define-key map (kbd "C-c b b") #'ian/python-insert-breakpoint)
+  (define-key map (kbd "C-c b i") #'ian/python-insert-ipdb)
+  (define-key map (kbd "C-c b r") #'ian/python-remove-breakpoints)
+  (define-key map (kbd "C-c C-c") #'ian/python-send-buffer-or-region)
+  (define-key map (kbd "C-c v w") #'ian/python-venv-workon)
+  (define-key map (kbd "C-c v a") #'pyvenv-activate)
+  (define-key map (kbd "C-c v d") #'pyvenv-deactivate))
+
 (with-eval-after-load 'python
-  (define-key python-mode-map (kbd "C-c b b") #'ian/python-insert-breakpoint)
-  (define-key python-mode-map (kbd "C-c b i") #'ian/python-insert-ipdb)
-  (define-key python-mode-map (kbd "C-c b r") #'ian/python-remove-breakpoints)
-  (define-key python-mode-map (kbd "C-c C-c") #'ian/python-send-buffer-or-region)
-  (define-key python-mode-map (kbd "C-c v w") #'ian/python-venv-workon)
-  (define-key python-mode-map (kbd "C-c v a") #'pyvenv-activate)
-  (define-key python-mode-map (kbd "C-c v d") #'pyvenv-deactivate))
+  (ian/python-setup-keys python-mode-map)
+  (when (boundp 'python-ts-mode-map)
+    (ian/python-setup-keys python-ts-mode-map)))
 
 ;; ============================================================================
 ;; 12. CYTHON

@@ -147,7 +147,8 @@
   ;; Zig
   (setf (alist-get 'zig-format apheleia-formatters)
         '("zig" "fmt" "--stdin"))
-  (setf (alist-get 'zig-mode apheleia-mode-alist) '(zig-format)))
+  (setf (alist-get 'zig-mode apheleia-mode-alist) '(zig-format))
+  (setf (alist-get 'zig-ts-mode apheleia-mode-alist) '(zig-format)))
 
 ;; ============================================================================
 ;; 7. TRANSIENT MENU
