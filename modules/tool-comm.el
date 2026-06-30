@@ -10,9 +10,23 @@
 ;; 1. TELEGA (Telegram Client)
 ;; ============================================================================
 
+(defvar ian/telega-tdlib-prefix
+  (when (eq system-type 'darwin)
+    (cond
+     ((file-directory-p "~/.local/opt/tdlib-head")
+      (expand-file-name "~/.local/opt/tdlib-head"))
+     ((file-directory-p "/opt/homebrew/opt/tdlib")
+      "/opt/homebrew/opt/tdlib")
+     ((file-directory-p "/usr/local/opt/tdlib")
+      "/usr/local/opt/tdlib")))
+  "TDLib prefix for telega on macOS.")
+
 (use-package telega
   :commands telega
   :bind ("C-c T t" . telega)
+  :init
+  (when ian/telega-tdlib-prefix
+    (setq telega-server-libs-prefix ian/telega-tdlib-prefix))
   :custom
   (telega-use-images t)
   (telega-emoji-use-images nil)
