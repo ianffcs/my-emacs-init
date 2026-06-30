@@ -293,6 +293,7 @@
 (use-package kind-icon
   :after corfu
   :custom
+  (kind-icon-use-icons (ian/icons-displayable-p))
   (kind-icon-default-face 'corfu-default)
   (kind-icon-blend-background nil)
   (kind-icon-blend-frac 0.08)

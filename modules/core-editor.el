@@ -156,6 +156,8 @@
   :bind (("C-=" . er/expand-region)
          ("C-+" . er/contract-region)))
 
+(global-set-key (kbd "C-x C-g") #'keyboard-quit)
+
 ;; Multiple cursors
 (use-package multiple-cursors
   :bind (("C-S-c C-S-c" . mc/edit-lines)

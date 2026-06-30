@@ -12,6 +12,10 @@
 
 ;;; Code:
 
+(defun ian/dashboard-icon (icon fallback)
+  "Return ICON when icons are displayable, otherwise FALLBACK."
+  (if (ian/icons-displayable-p) icon fallback))
+
 ;; ============================================================================
 ;; 1. DASHBOARD CONFIGURATION
 ;; ============================================================================
@@ -21,7 +25,7 @@
   :init
   ;; --- Critical settings (must be in :init) ---
   (setq dashboard-icon-type 'nerd-icons)
-  (setq dashboard-display-icons-p t)
+  (setq dashboard-display-icons-p #'ian/icons-displayable-p)
   ;; (setq dashboard-footer-messages
   ;;       (list (format "Happy Hacking! You have %d TODOs across your projects."
   ;;                     (length (cl-loop for f in (project-files)
@@ -79,7 +83,9 @@
 
   ;; --- Footer Configuration ---
   (setq dashboard-set-footer t
-        dashboard-footer-icon (nerd-icons-octicon "nf-oct-heart" :height 1.1 :v-adjust -0.05 :face 'error)
+        dashboard-footer-icon (ian/dashboard-icon
+                               (nerd-icons-octicon "nf-oct-heart" :height 1.1 :v-adjust -0.05 :face 'error)
+                               "")
         dashboard-footer-messages
         '("Happy Hacking, Ian!"
           "One editor to rule them all."
@@ -106,43 +112,59 @@
   (setq dashboard-set-navigator t
         dashboard-navigator-buttons
         `(;; Row 1
-          ((,(nerd-icons-octicon "nf-oct-gear" :height 1.1 :v-adjust 0.0)
+          ((,(ian/dashboard-icon
+              (nerd-icons-octicon "nf-oct-gear" :height 1.1 :v-adjust 0.0)
+              "*")
             "Config"
             "Open Emacs configuration"
             (lambda (&rest _) (find-file (expand-file-name "init.el" user-emacs-directory))))
 
-           (,(nerd-icons-octicon "nf-oct-package" :height 1.1 :v-adjust 0.0)
+           (,(ian/dashboard-icon
+              (nerd-icons-octicon "nf-oct-package" :height 1.1 :v-adjust 0.0)
+              "*")
             "Update"
             "Update packages"
             (lambda (&rest _) (straight-pull-all)))
 
-           (,(nerd-icons-faicon "nf-fa-calendar" :height 1.1 :v-adjust 0.0)
+           (,(ian/dashboard-icon
+              (nerd-icons-faicon "nf-fa-calendar" :height 1.1 :v-adjust 0.0)
+              "*")
             "Agenda"
             "Open org agenda"
             (lambda (&rest _) (org-agenda nil "d")))
 
-           (,(nerd-icons-octicon "nf-oct-file_code" :height 1.1 :v-adjust 0.0)
+           (,(ian/dashboard-icon
+              (nerd-icons-octicon "nf-oct-file_code" :height 1.1 :v-adjust 0.0)
+              "*")
             "Scratch"
             "Open scratch buffer"
             (lambda (&rest _) (switch-to-buffer "*scratch*"))))
 
           ;; Row 2
-          ((,(nerd-icons-faicon "nf-fa-folder_open" :height 1.1 :v-adjust 0.0)
+          ((,(ian/dashboard-icon
+              (nerd-icons-faicon "nf-fa-folder_open" :height 1.1 :v-adjust 0.0)
+              "*")
             "Projects"
             "Browse projects"
             (lambda (&rest _) (projectile-switch-project)))
 
-           (,(nerd-icons-octicon "nf-oct-book" :height 1.1 :v-adjust 0.0)
+           (,(ian/dashboard-icon
+              (nerd-icons-octicon "nf-oct-book" :height 1.1 :v-adjust 0.0)
+              "*")
             "Notes"
             "Open org-roam"
             (lambda (&rest _) (org-roam-node-find)))
 
-           (,(nerd-icons-faicon "nf-fa-search" :height 1.1 :v-adjust 0.0)
+           (,(ian/dashboard-icon
+              (nerd-icons-faicon "nf-fa-search" :height 1.1 :v-adjust 0.0)
+              "*")
             "Grep"
             "Search with ripgrep"
             (lambda (&rest _) (consult-ripgrep)))
 
-           (,(nerd-icons-octicon "nf-oct-mark_github" :height 1.1 :v-adjust 0.0)
+           (,(ian/dashboard-icon
+              (nerd-icons-octicon "nf-oct-mark_github" :height 1.1 :v-adjust 0.0)
+              "*")
             "GitHub"
             "Open GitHub"
             (lambda (&rest _) (browse-url "https://github.com"))))))

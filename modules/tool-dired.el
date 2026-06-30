@@ -182,7 +182,9 @@
 ;; ============================================================================
 
 (use-package nerd-icons-dired
-  :hook (dired-mode . nerd-icons-dired-mode))
+  :hook (dired-mode . (lambda ()
+                        (when (ian/icons-displayable-p)
+                          (nerd-icons-dired-mode)))))
 
 ;; ============================================================================
 ;; 4. DIRED HELPER FUNCTIONS

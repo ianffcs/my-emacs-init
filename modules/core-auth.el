@@ -69,7 +69,7 @@
 
 (use-package auth-source-pass
   :straight (:type built-in)
-  :defer 2
+  :after auth-source
   :config
   (auth-source-pass-enable))
 
@@ -80,7 +80,7 @@
 (use-package pinentry
   :if (or (eq system-type 'gnu/linux)
           (eq system-type 'darwin))
-  :defer 2
+  :after epa
   :custom
   (epa-pinentry-mode 'loopback)
   :config

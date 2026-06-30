@@ -22,8 +22,16 @@
       frame-title-format '("%b - Emacs"))
 
 ;; Default frame size
-(add-to-list 'default-frame-alist '(width . 120))
-(add-to-list 'default-frame-alist '(height . 40))
+(add-to-list 'default-frame-alist '(width . 100))
+(add-to-list 'default-frame-alist '(height . 35))
+
+;; Linux: center frame after fonts/init settle the pixel dimensions
+(when (eq system-type 'gnu/linux)
+  (add-hook 'window-setup-hook
+            (lambda ()
+              (set-frame-position nil
+                                  (/ (- (display-pixel-width)  (frame-pixel-width))  2)
+                                  (/ (- (display-pixel-height) (frame-pixel-height)) 2)))))
 
 ;; macOS title bar styling — appearance tracks the active theme, not hardcoded dark
 (when (eq system-type 'darwin)
@@ -132,15 +140,25 @@
 ;; 3. ICONS
 ;; ============================================================================
 
+(defun ian/icons-displayable-p ()
+  "Return non-nil when icon fonts/images should be displayed.
+TTY Emacs cannot choose fallback fonts itself; set IAN_EMACS_TTY_ICONS=1
+when the surrounding terminal already uses a Nerd Font."
+  (or (display-graphic-p)
+      (getenv "IAN_EMACS_TTY_ICONS")))
+
 (use-package nerd-icons
   :custom
   (nerd-icons-font-family "Symbols Nerd Font Mono"))
 
 (use-package nerd-icons-completion
   :after (marginalia nerd-icons)
-  :hook (marginalia-mode . nerd-icons-completion-marginalia-setup)
+  :hook (marginalia-mode . (lambda ()
+                              (when (ian/icons-displayable-p)
+                                (nerd-icons-completion-marginalia-setup))))
   :config
-  (nerd-icons-completion-mode))
+  (when (ian/icons-displayable-p)
+    (nerd-icons-completion-mode)))
 
 ;; ============================================================================
 ;; 3.5 EMOJI
@@ -157,7 +175,7 @@
 ;; 4. THEMES
 ;; ============================================================================
 
-;; Modus themes (built-in in Emacs 28+)
+;; Modus themes — dark theme (modus-vivendi) still used at night
 (use-package modus-themes
   :demand t
   :custom
@@ -170,8 +188,15 @@
                            (3 . (rainbow bold 1.2))
                            (t . (semilight 1.1)))))
 
+;; Catppuccin — light theme (Latte flavour)
+(use-package catppuccin-theme
+  :straight t
+  :demand t
+  :custom
+  (catppuccin-flavor 'latte))
+
 ;; Theme switcher
-(defvar ian/light-theme 'modus-operandi)
+(defvar ian/light-theme 'catppuccin)
 (defvar ian/dark-theme 'modus-vivendi)
 
 (defun ian/theme-sync-appearance (theme)
@@ -194,9 +219,11 @@
 
 ;; Auto-switch based on time — skips load-theme when already on the right theme
 (defun ian/auto-theme ()
-  "Automatically switch theme based on time of day."
+  "Automatically switch theme based on time of day. Terminal always uses dark."
   (let* ((hour (string-to-number (format-time-string "%H")))
-         (want (if (and (>= hour 7) (< hour 19)) ian/light-theme ian/dark-theme)))
+         (want (if (display-graphic-p)
+                   (if (and (>= hour 7) (< hour 19)) ian/light-theme ian/dark-theme)
+                 ian/dark-theme)))
     (unless (eq (car custom-enabled-themes) want)
       (load-theme want t)
       (ian/theme-sync-appearance want))))
@@ -230,11 +257,11 @@
   (doom-modeline-window-width-limit 85)
   (doom-modeline-project-detection 'projectile)
   (doom-modeline-buffer-file-name-style 'relative-from-project)
-  (doom-modeline-icon t)
-  (doom-modeline-major-mode-icon t)
+  (doom-modeline-icon (ian/icons-displayable-p))
+  (doom-modeline-major-mode-icon (ian/icons-displayable-p))
   (doom-modeline-major-mode-color-icon t)
-  (doom-modeline-buffer-state-icon t)
-  (doom-modeline-buffer-modification-icon t)
+  (doom-modeline-buffer-state-icon (ian/icons-displayable-p))
+  (doom-modeline-buffer-modification-icon (ian/icons-displayable-p))
   (doom-modeline-lsp t)
   (doom-modeline-github nil)
   (doom-modeline-minor-modes nil)

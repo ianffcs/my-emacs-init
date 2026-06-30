@@ -57,6 +57,7 @@
 
 ;; Lisp family
 (require 'lang-lisp)        ; Clojure, Common Lisp, Scheme, Racket, Elisp
+(require 'lang-carp)        ; Carp
 
 ;; Systems languages
 (require 'lang-systems)     ; C, C++, Rust, Go, Zig

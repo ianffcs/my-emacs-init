@@ -28,6 +28,7 @@
   (projectile-enable-caching t)
   (projectile-indexing-method 'alien)
   (projectile-sort-order 'recentf)
+  (projectile-auto-discover nil)
   :config
   (setq projectile-project-search-path '("~/src/" "~/work/" ("~/github" . 1)))
 
@@ -35,7 +36,7 @@
   (add-hook 'project-find-functions #'project-projectile)
 
   ;; Ignored directories
-  (dolist (dir '("node_modules" ".git" "target" "dist" ".clj-kondo" ".cpcache" ".lsp" "__pycache__"))
+  (dolist (dir '("node_modules" ".git" "target" "dist" ".clj-kondo" ".cpcache" ".lsp" "__pycache__" ".lake" "build"))
     (add-to-list 'projectile-globally-ignored-directories dir))
 
   ;; Ignored files

@@ -32,7 +32,7 @@
 ;; ============================================================================
 
 (use-package ace-window
-  :bind ("M-o" . ace-window)
+  :bind (("M-o" . ace-window))
   :custom
   (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
   (aw-scope 'frame)
@@ -95,8 +95,21 @@
 ;; 5. PERSPECTIVE (Buffer Isolation Per Workspace)
 ;; ============================================================================
 
+(defun ian/perspective-reset-bad-frame-hash (&optional frame)
+  "Clear invalid perspective frame state restored from older sessions."
+  (let ((frame (or frame (selected-frame))))
+    (unless (or (null (frame-parameter frame 'persp--hash))
+                (hash-table-p (frame-parameter frame 'persp--hash)))
+      (set-frame-parameter frame 'persp--hash nil))))
+
+(defun ian/perspective-reset-bad-frame-hashes ()
+  "Clear invalid perspective state from all frames."
+  (mapc #'ian/perspective-reset-bad-frame-hash (frame-list)))
+
 (use-package perspective
   :straight t
+  :init
+  (add-hook 'after-init-hook #'ian/perspective-reset-bad-frame-hashes -90)
   :custom
   (persp-initial-frame-name "main")
   (persp-sort 'created)
@@ -104,8 +117,8 @@
   :bind-keymap ("C-c W" . perspective-map)
   :hook (after-init . persp-mode)
   :config
-  ;; Integrate with tab-bar: each perspective appears as a tab
-  (persp-tab-bar-mode 1)
+  (advice-add 'persp-maybe-kill-buffer
+              :before #'ian/perspective-reset-bad-frame-hash)
 
   ;; ibuffer: show only current perspective's buffers
   (add-hook 'ibuffer-hook

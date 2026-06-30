@@ -103,8 +103,8 @@
 (use-package vterm
   :commands vterm
   :bind (:map vterm-mode-map
-         ("C-c C-c" . vterm-send-C-c)
-         ("C-c C-d" . vterm-send-C-d)
+         ("C-c C-c" . vterm--self-insert)
+         ("C-c C-d" . ian/vterm-send-C-d)
          ("C-q" . vterm-send-next-key))
   :custom
   (vterm-shell (or (executable-find "zsh")
@@ -114,6 +114,11 @@
   (vterm-kill-buffer-on-exit t)
   (vterm-always-compile-module t)
   :config
+  (defun ian/vterm-send-C-d ()
+    "Send C-d to vterm without using vterm's obsolete alias."
+    (interactive)
+    (vterm-send-key "d" nil nil t))
+
   ;; Directory tracking
   (defun ian/vterm-directory-sync ()
     "Sync vterm directory with default-directory (Linux only via /proc)."

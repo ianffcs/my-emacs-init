@@ -5,6 +5,17 @@
 
 ;;; Code:
 
+(defvar eglot-server-programs)
+(defvar lean4-rootdir)
+(defvar lsp-clients)
+(defvar lsp-enable-snippet)
+(defvar lsp-headerline-breadcrumb-enable)
+(defvar lsp-lens-enable)
+(defvar lsp-modeline-code-actions-enable)
+(defvar lsp-modeline-diagnostics-enable)
+(defvar lsp-signature-auto-activate)
+(declare-function lsp--client-request-handlers "lsp-mode")
+
 ;; ============================================================================
 ;; 1. AGDA (Dependently Typed)
 ;; ============================================================================
@@ -39,11 +50,44 @@
 ;; 3. LEAN 4
 ;; ============================================================================
 
-(use-package lean4-mode
-  :straight (:type git :host github :repo "leanprover/lean4-mode"
-                   :files ("*.el" "data"))
-  :mode "\\.lean\\'"
-  :hook (lean4-mode . subword-mode))
+(straight-use-package
+ '(lean4-mode :type git :host github :repo "leanprover/lean4-mode"
+              :files ("*.el" "data")))
+
+;; lean4-mode's goal/info UI calls Lean-specific lsp-mode extensions such as
+;; $/lean/plainGoal, so Lean intentionally uses lsp-mode instead of Eglot.
+(with-eval-after-load 'lsp-mode
+  (setq lsp-enable-snippet nil
+        lsp-headerline-breadcrumb-enable nil
+        lsp-modeline-code-actions-enable nil
+        lsp-modeline-diagnostics-enable nil
+        lsp-signature-auto-activate nil
+        lsp-lens-enable nil))
+
+(when (file-executable-p (expand-file-name "~/.elan/bin/lean"))
+  (setq lean4-rootdir (expand-file-name "~/.elan")))
+
+(defun ian/lean4-ignore-inlay-hint-refresh (&rest _)
+  "Acknowledge Lean's inlay hint refresh request without warning."
+  nil)
+
+(defun ian/lean4-register-lsp-request-handlers ()
+  "Install Lean-specific lsp-mode request handlers."
+  (when-let ((client (and (boundp 'lsp-clients)
+                          (gethash 'lean4-lsp lsp-clients))))
+    (puthash "workspace/inlayHint/refresh"
+             #'ian/lean4-ignore-inlay-hint-refresh
+             (lsp--client-request-handlers client))))
+
+(with-eval-after-load 'lean4-mode
+  (ian/lean4-register-lsp-request-handlers))
+
+(add-to-list 'load-path
+             (expand-file-name "straight/build/lean4-mode" user-emacs-directory))
+(autoload 'lean4-mode "lean4-mode" "Major mode for Lean 4." t)
+(add-to-list 'auto-mode-alist '("\\.lean\\'" . lean4-mode))
+(add-hook 'lean4-mode-hook #'subword-mode)
+(add-hook 'lean4-mode-hook #'lsp)
 
 ;; ============================================================================
 ;; 4. TLA+

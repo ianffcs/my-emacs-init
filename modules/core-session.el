@@ -41,7 +41,13 @@
     (desktop-save-mode t)
     (if (ian/saved-desktop-p)
         (desktop-read)
-      (message "No desktop found."))))
+      (message "No desktop found.")))
+
+  (setq desktop-buffers-not-to-save
+        (concat (or (and (boundp 'desktop-buffers-not-to-save)
+                         desktop-buffers-not-to-save)
+                    "")
+                "\\|^\\*lsp session\\*$")))
 
 ;; ============================================================================
 ;; 2. ALERT (Notification System)

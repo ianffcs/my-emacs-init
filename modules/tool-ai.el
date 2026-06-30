@@ -24,6 +24,15 @@
   '(("api.anthropic.com" . ("api.claude.ai")))
   "Host aliases accepted when resolving API keys from auth-source.")
 
+(defcustom ian/ollama-host
+  (or (getenv "IAN_OLLAMA_HOST") "10.100.0.3:11434")
+  "Host and port of the Ollama server used by local AI integrations.
+
+Set `IAN_OLLAMA_HOST' for machine-specific or remote Ollama instances, for
+example \"spark.local:11434\".  The value must not include a URL scheme."
+  :type 'string
+  :group 'ian)
+
 (defun ian/authinfo-secret (host &optional user)
   "Return secret for HOST from auth-source. Default USER is \"apikey\"."
   (let* ((user (or user "apikey"))
@@ -67,17 +76,21 @@ When NOERROR is non-nil, return nil instead of signaling an error."
              (if openai-ok "ok" "missing")
              (if claude-ok "ok" "missing"))))
 
-(defun ian/get-ollama-models (host-ip)
-  "Fetch Ollama models using curl to bypass JSON parsing issues."
-  (let* ((url (format "http://%s/api/tags" host-ip))
+(defun ian/get-ollama-models (&optional host)
+  "Return models advertised by Ollama at HOST.
+HOST defaults to `ian/ollama-host'.  Return a conservative fallback when the
+server is unavailable, so configuring gptel never makes Emacs unusable."
+  (let* ((host (or host ian/ollama-host))
+         (url (format "http://%s/api/tags" host))
          (response (with-temp-buffer
                      (when (zerop (call-process "curl" nil t nil
                                                 "--noproxy" "*"
                                                 "--connect-timeout" "3"
+                                                "--max-time" "3"
                                                 "-s" url))
                        (buffer-string))))
          (models '()))
-    (if (string-empty-p response)
+    (if (not (stringp response))
         '("mistral:latest")
       (with-temp-buffer
         (insert response)
@@ -165,41 +178,45 @@ If DEVICE-NAME is provided, use it instead of prompting."
   (setq gptel-default-mode 'org-mode)
 
   ;; -- Hosted Backends --
-  (when-let ((openai-key (ian/get-key "api.openai.com" t)))
-    (setq gptel-openai-backend
-          (gptel-make-openai "OpenAI"
-            :key openai-key
+  (let ((openai-key (ian/get-key "api.openai.com" t))
+        (anthropic-key (ian/get-key "api.anthropic.com" t))
+        (gemini-key (ian/get-key "generativelanguage.googleapis.com" t)))
+    (when openai-key
+      (setq gptel-openai-backend
+            (gptel-make-openai "OpenAI"
+              :key openai-key
+              :stream t)))
+
+    (when anthropic-key
+      (setq gptel-anthropic-backend
+            (gptel-make-anthropic "Anthropic"
+              :key anthropic-key
+              :stream t
+              :models '(claude-sonnet-4-20250514
+                        claude-3-5-sonnet-20241022
+                        claude-3-opus-20240229
+                        claude-3-haiku-20240307))))
+
+    (when gemini-key
+      (setq gptel-gemini-backend
+            (gptel-make-gemini "Gemini"
+              :key gemini-key
+              :stream t)))
+
+    ;; -- Ollama Backend (Local or Machine-Specific) --
+    (setq gptel-ollama-backend
+          (gptel-make-ollama "Ollama"
+            :host ian/ollama-host
             :stream t
-            :models '(gpt-4o gpt-4o-mini gpt-4-turbo gpt-3.5-turbo))))
+            :models (ian/get-ollama-models)))
 
-  (when-let ((anthropic-key (ian/get-key "api.anthropic.com" t)))
-    (setq gptel-anthropic-backend
-          (gptel-make-anthropic "Anthropic"
-            :key anthropic-key
-            :stream t
-            :models '(claude-sonnet-4-20250514
-                      claude-3-5-sonnet-20241022
-                      claude-3-opus-20240229
-                      claude-3-haiku-20240307))))
-
-  (when-let ((gemini-key (ian/get-key "generativelanguage.googleapis.com" t)))
-    (setq gptel-gemini-backend
-          (gptel-make-gemini "Gemini"
-            :key gemini-key
-            :stream t)))
-
-  ;; -- Ollama Backend (Local) --
-  (setq gptel-ollama-backend
-        (gptel-make-ollama "Ollama"
-          :host "10.100.0.2:11434"
-          :stream t
-          :models (condition-case nil
-                      (ian/get-ollama-models "10.100.0.2:11434")
-                    (error '("mistral:latest")))))
-
-  ;; -- Set Default Backend --
-  (setq gptel-backend gptel-ollama-backend)
-  (setq gptel-model 'qwen3-next-80b-fixed:latest)
+    ;; Prefer a configured hosted provider.  Local Ollama remains available
+    ;; from `gptel-menu' and is the fallback when no API key is configured.
+    (cond
+     (openai-key (setq gptel-backend gptel-openai-backend))
+     (anthropic-key (setq gptel-backend gptel-anthropic-backend))
+     (gemini-key (setq gptel-backend gptel-gemini-backend))
+     (t (setq gptel-backend gptel-ollama-backend))))
 
   ;; Custom directives
   (setq gptel-directives
