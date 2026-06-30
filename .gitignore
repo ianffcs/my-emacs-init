@@ -35,6 +35,8 @@ var/org/clock-persist.el
 var/org/persist/
 var/projectile/known-projects.el
 var/spell-fu/
+var/transient/
+var/recentf-save.el
 
 # Local-only/private configuration
 private/
