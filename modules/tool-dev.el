@@ -139,9 +139,7 @@
   (when-let* ((_ (executable-find "clojure-lsp"))
               (root (ian/clojure-project-root)))
     (unless (file-equal-p root (expand-file-name "~"))
-      (let ((eglot-connect-timeout nil)
-            (eglot-sync-connect nil))
-        (eglot-ensure)))))
+      (eglot-ensure))))
 
 (use-package eglot
   :defer t
