@@ -28,7 +28,7 @@
   :custom
   (projectile-completion-system 'default)
   (projectile-enable-caching t)
-  (projectile-indexing-method 'alien)
+  (projectile-indexing-method 'hybrid)
   (projectile-sort-order 'recentf)
   (projectile-auto-discover nil)
   :config
