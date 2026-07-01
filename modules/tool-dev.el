@@ -9,6 +9,8 @@
 
 ;;; Code:
 
+(require 'seq)
+
 ;; ============================================================================
 ;; 1. PROJECT MANAGEMENT
 ;; ============================================================================
@@ -122,9 +124,24 @@
                 (plist-put (default-value 'eglot-workspace-configuration)
                            key value)))
 
+(defvar ian/clojure-project-root-files
+  '("deps.edn" "project.clj" "build.boot" "bb.edn" "shadow-cljs.edn")
+  "Files that identify a directory as a Clojure project root.")
+
+(defun ian/clojure-project-root ()
+  "Return a Clojure project root for `default-directory', or nil."
+  (seq-some (lambda (file)
+              (locate-dominating-file default-directory file))
+            ian/clojure-project-root-files))
+
 (defun ian/eglot-ensure-clojure ()
-  (when (executable-find "clojure-lsp")
-    (eglot-ensure)))
+  "Start Clojure Eglot only inside a concrete Clojure project."
+  (when-let* ((_ (executable-find "clojure-lsp"))
+              (root (ian/clojure-project-root)))
+    (unless (file-equal-p root (expand-file-name "~"))
+      (let ((eglot-connect-timeout nil)
+            (eglot-sync-connect nil))
+        (eglot-ensure)))))
 
 (use-package eglot
   :defer t
@@ -179,7 +196,7 @@
         eglot-extend-to-xref t
         eglot-report-progress nil
         eglot-events-buffer-size 0
-        eglot-sync-connect 0
+        eglot-sync-connect nil
         eldoc-echo-area-use-multiline-p nil)
 
   ;; Clojure LSP

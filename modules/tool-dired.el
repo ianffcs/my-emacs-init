@@ -103,31 +103,87 @@
 (defvar ian/sidebar-buffer-name " *dired-sidebar*")
 (defvar ian/sidebar-width 36)
 
-(defun ian/sidebar--project-dir ()
-  (if-let* ((proj (project-current nil)))
+(defun ian/dired-tree--current-path ()
+  "Return the file or directory that the Dired tree should reveal."
+  (cond
+   ((derived-mode-p 'dired-mode)
+    (or (ignore-errors (dired-get-filename nil t))
+        default-directory))
+   (buffer-file-name)
+   (default-directory)))
+
+(defun ian/dired-tree--path-directory (path)
+  "Return the containing directory for PATH."
+  (file-name-as-directory
+   (if (and path (file-directory-p path))
+       path
+     (or (and path (file-name-directory path))
+         default-directory))))
+
+(defun ian/sidebar--project-dir (&optional path)
+  "Return the project root for PATH, or `default-directory'."
+  (let ((default-directory (ian/dired-tree--path-directory
+                            (or path default-directory))))
+    (if-let* ((proj (project-current nil)))
       (project-root proj)
-    default-directory))
+      default-directory)))
+
+(defun ian/dired-tree--display (dir)
+  "Display a Dired sidebar rooted at DIR and return its window."
+  (let* ((buf (dired-noselect (file-name-as-directory dir)))
+         (old (get-buffer ian/sidebar-buffer-name)))
+    (when (and old (not (eq old buf)))
+      (kill-buffer old))
+    (with-current-buffer buf
+      (unless (string= (buffer-name) ian/sidebar-buffer-name)
+        (rename-buffer ian/sidebar-buffer-name))
+      (setq-local truncate-lines t
+                  window-size-fixed 'width
+                  cursor-type nil))
+    (let ((win (display-buffer-in-side-window
+                buf `((side . left)
+                      (window-width . ,ian/sidebar-width)
+                      (slot . 0)))))
+      (set-window-dedicated-p win t)
+      win)))
+
+(defun ian/dired-tree--expand-to (root target)
+  "Expand Dired subtree entries from ROOT down to TARGET."
+  (require 'dired-subtree nil t)
+  (let* ((root (file-name-as-directory (expand-file-name root)))
+         (target (expand-file-name target))
+         (target-dir (ian/dired-tree--path-directory target)))
+    (when (file-in-directory-p target root)
+      (let ((dir root))
+        (dolist (part (split-string (file-relative-name target-dir root) "/" t))
+          (setq dir (expand-file-name part (file-name-as-directory dir)))
+          (when (dired-goto-file dir)
+            (dired-subtree-insert))))
+      (dired-goto-file target))))
+
+(defun ian/dired-tree-follow-current ()
+  "Show the current file or directory in the project Dired tree."
+  (interactive)
+  (let* ((target (ian/dired-tree--current-path))
+         (dir (ian/sidebar--project-dir target))
+         (win (ian/dired-tree--display dir)))
+    (with-selected-window win
+      (ian/dired-tree--expand-to dir target))))
 
 (defun ian/sidebar-toggle ()
   "Toggle a dired sidebar on the left for the current project root."
   (interactive)
   (if-let ((win (get-buffer-window ian/sidebar-buffer-name)))
       (delete-window win)
-    (let* ((dir (ian/sidebar--project-dir))
-           (buf (dired-noselect (file-name-as-directory dir))))
-      (with-current-buffer buf
-        (rename-buffer ian/sidebar-buffer-name))
-      (let ((win (display-buffer-in-side-window
-                  buf `((side . left)
-                        (window-width . ,ian/sidebar-width)
-                        (slot . 0)))))
-        (with-current-buffer buf
-          (setq-local truncate-lines t
-                      window-size-fixed 'width
-                      cursor-type nil))
-        (set-window-dedicated-p win t)))))
+    (ian/dired-tree-follow-current)))
+
+(defalias 'ian/dired-tree-toggle #'ian/sidebar-toggle)
 
 (global-set-key (kbd "C-x C-n") #'ian/sidebar-toggle)
+
+(with-eval-after-load 'dired
+  (define-key dired-mode-map (kbd "C-c t") #'ian/dired-tree-toggle)
+  (define-key dired-mode-map (kbd "C-c F") #'ian/dired-tree-follow-current))
 
 ;; Narrow - filter files
 (use-package dired-narrow

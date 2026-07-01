@@ -205,7 +205,7 @@ suffix directly for the shortcut.
 | =C-c d=         | =ian/dired-menu=         | Dired transient menu      |
 | =TAB=           | =dired-subtree-toggle=   | Expand/collapse dir       |
 | =<backtab>=     | =dired-subtree-cycle=    | Cycle subtree             |
-| =C-x C-n=       | =dired-subtree-toggle=   | Also works globally       |
+| =C-x C-n=       | =ian/dired-tree-toggle=  | Project tree sidebar      |
 | =/=             | =dired-narrow=           | Filter listing            |
 | =)=             | =dired-git-info-mode=    | Show git status           |
 | =P=             | =peep-dired=             | Preview files             |
