@@ -2,7 +2,7 @@
 
 ;;; Commentary:
 ;; Configuration for Markdown and prose writing:
-;; - Markdown mode and GFM
+;; - md-mode, Markdown mode, and GFM
 ;; - ReStructuredText and AsciiDoc
 ;; - Spell and grammar checking
 ;; - Focus/distraction-free writing
@@ -17,10 +17,26 @@
 ;; 1. MARKDOWN
 ;; ============================================================================
 
+(defun ian/markdown-setup ()
+  "Set shared defaults for Markdown buffers."
+  (setq-local fill-column 80)
+  (setq-local truncate-lines nil)
+  (setq-local word-wrap t))
+
+;; Styled, Org-like Markdown editing for ordinary .md files.
+(use-package md-mode
+  :straight (:type git :host github :repo "yibie/md-mode")
+  :mode ("\\.md\\'" . md-mode)
+  :hook ((md-mode . visual-line-mode)
+         (md-mode . ian/markdown-setup))
+  :custom
+  (md-mode-fold-front-matter-on-open t)
+  (md-mode-toc-side 'left)
+  (md-mode-toc-width 30))
+
+;; Keep the mature markdown-mode toolchain for other Markdown extensions.
 (use-package markdown-mode
-  :mode (("README\\.md\\'" . gfm-mode)
-         ("\\.md\\'" . markdown-mode)
-         ("\\.markdown\\'" . markdown-mode)
+  :mode (("\\.markdown\\'" . markdown-mode)
          ("\\.mkd\\'" . markdown-mode)
          ("\\.mdx\\'" . markdown-mode))
   :hook ((markdown-mode . visual-line-mode)
@@ -45,12 +61,6 @@
   (markdown-hide-urls nil)
   (markdown-hr-display-char ?─)
   :config
-  (defun ian/markdown-setup ()
-    "Custom markdown mode setup."
-    (setq-local fill-column 80)
-    (setq-local truncate-lines nil)
-    (setq-local word-wrap t))
-
   (defun ian/markdown-set-faces ()
     "Set markdown faces for better readability."
     (variable-pitch-mode 1)
@@ -171,7 +181,8 @@
 
 ;; Writegood mode - highlight weak writing
 (use-package writegood-mode
-  :hook ((markdown-mode . writegood-mode)
+  :hook ((md-mode . writegood-mode)
+         (markdown-mode . writegood-mode)
          (org-mode . writegood-mode)
          (latex-mode . writegood-mode))
   :bind ("C-c e W" . writegood-mode))
@@ -225,7 +236,8 @@
 
 ;; Smart quotes and dashes
 (use-package typo
-  :hook ((markdown-mode . typo-mode)
+  :hook ((md-mode . typo-mode)
+         (markdown-mode . typo-mode)
          (org-mode . typo-mode))
   :custom
   (typo-language "English"))
@@ -238,7 +250,8 @@
 ;; ============================================================================
 
 (use-package pandoc-mode
-  :hook ((markdown-mode . pandoc-mode)
+  :hook ((md-mode . pandoc-mode)
+         (markdown-mode . pandoc-mode)
          (rst-mode . pandoc-mode)
          (org-mode . pandoc-mode)))
 
@@ -289,6 +302,7 @@
 
 (with-eval-after-load 'apheleia
   ;; Markdown (prettier)
+  (setf (alist-get 'md-mode apheleia-mode-alist) '(prettier))
   (setf (alist-get 'markdown-mode apheleia-mode-alist) '(prettier))
   (setf (alist-get 'gfm-mode apheleia-mode-alist) '(prettier)))
 
