@@ -6,6 +6,8 @@
 
 ;;; Code:
 
+(require 'seq)
+
 ;; ============================================================================
 ;; 1. FRAME SETTINGS
 ;; ============================================================================
@@ -205,30 +207,41 @@ when the surrounding terminal already uses a Nerd Font."
     (set-frame-parameter nil 'ns-appearance
                          (if (eq theme ian/light-theme) nil 'dark))))
 
+(defun ian/activate-theme (theme)
+  "Enable only THEME and synchronize frame appearance."
+  (unless (equal custom-enabled-themes (list theme))
+    (mapc #'disable-theme custom-enabled-themes)
+    (load-theme theme t))
+  (ian/theme-sync-appearance theme))
+
 (defun ian/toggle-theme ()
   "Toggle between light and dark themes."
   (interactive)
-  (if (eq (car custom-enabled-themes) ian/dark-theme)
-      (progn
-        (disable-theme ian/dark-theme)
-        (load-theme ian/light-theme t)
-        (ian/theme-sync-appearance ian/light-theme))
-    (disable-theme ian/light-theme)
-    (load-theme ian/dark-theme t)
-    (ian/theme-sync-appearance ian/dark-theme)))
+  (ian/activate-theme
+   (if (eq (car custom-enabled-themes) ian/dark-theme)
+       ian/light-theme
+     ian/dark-theme)))
 
-;; Auto-switch based on time — skips load-theme when already on the right theme
-(defun ian/auto-theme ()
-  "Automatically switch theme based on time of day. Terminal always uses dark."
-  (let* ((hour (string-to-number (format-time-string "%H")))
-         (want (if (display-graphic-p)
+;; Auto-switch based on time.  Prefer a graphical frame when a daemon has one.
+(defun ian/auto-theme (&optional frame)
+  "Switch theme based on time for FRAME.
+Use an existing graphical frame when FRAME is nil; terminal-only Emacs is dark."
+  (let* ((frame (or frame
+                    (seq-find #'display-graphic-p (frame-list))
+                    (selected-frame)))
+         (hour (string-to-number (format-time-string "%H")))
+         (want (if (display-graphic-p frame)
                    (if (and (>= hour 7) (< hour 19)) ian/light-theme ian/dark-theme)
                  ian/dark-theme)))
-    (unless (eq (car custom-enabled-themes) want)
-      (load-theme want t)
-      (ian/theme-sync-appearance want))))
+    (ian/activate-theme want)))
+
+(defun ian/auto-theme-after-make-frame (frame)
+  "Synchronize the theme when a graphical FRAME is created."
+  (when (display-graphic-p frame)
+    (ian/auto-theme frame)))
 
 (add-hook 'after-init-hook #'ian/auto-theme)
+(add-hook 'after-make-frame-functions #'ian/auto-theme-after-make-frame)
 (run-at-time "1 hour" 3600 #'ian/auto-theme)
 ;; ============================================================================
 ;; 5. MODELINE
