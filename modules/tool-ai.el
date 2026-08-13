@@ -33,6 +33,22 @@ example \"spark.local:11434\".  The value must not include a URL scheme."
   :type 'string
   :group 'ian)
 
+(defconst ian/neotek-inference-models
+  '(deepseek-v4-flash-vllm
+    gpt-oss-120b
+    gpt-oss-20b
+    multilingual-e5-small
+    nemotron-3-super-120b-a12b-nvfp4
+    qwen3-14b-fp4
+    qwen3-235b-a22b-fp4
+    qwen3-8b-fp4
+    qwen3-coder-30b-a3b-instruct
+    qwen3-coder-30b-a3b-instruct-b
+    qwen3-coder-next
+    qwen3.5-122b-a10b-gptq-int4
+    qwen3.6-35b-a3b-nvfp4)
+  "Models advertised by the NeoTek OpenAI-compatible inference endpoint.")
+
 (defun ian/authinfo-secret (host &optional user)
   "Return secret for HOST from auth-source. Default USER is \"apikey\"."
   (let* ((user (or user "apikey"))
@@ -181,6 +197,13 @@ If DEVICE-NAME is provided, use it instead of prompting."
   (let ((openai-key (ian/get-key "api.openai.com" t))
         (anthropic-key (ian/get-key "api.anthropic.com" t))
         (gemini-key (ian/get-key "generativelanguage.googleapis.com" t)))
+    (setq gptel-neotek-backend
+          (gptel-make-openai "NeoTek"
+            :host "infer.neotek.wg"
+            :endpoint "/v1/chat/completions"
+            :stream t
+            :models ian/neotek-inference-models))
+
     (when openai-key
       (setq gptel-openai-backend
             (gptel-make-openai "OpenAI"
@@ -210,13 +233,10 @@ If DEVICE-NAME is provided, use it instead of prompting."
             :stream t
             :models (ian/get-ollama-models)))
 
-    ;; Prefer a configured hosted provider.  Local Ollama remains available
-    ;; from `gptel-menu' and is the fallback when no API key is configured.
-    (cond
-     (openai-key (setq gptel-backend gptel-openai-backend))
-     (anthropic-key (setq gptel-backend gptel-anthropic-backend))
-     (gemini-key (setq gptel-backend gptel-gemini-backend))
-     (t (setq gptel-backend gptel-ollama-backend))))
+    ;; Use NeoTek by default.  Other configured providers remain selectable
+    ;; from `gptel-menu'.
+    (setq gptel-backend gptel-neotek-backend
+          gptel-model (car ian/neotek-inference-models)))
 
   ;; Custom directives
   (setq gptel-directives
