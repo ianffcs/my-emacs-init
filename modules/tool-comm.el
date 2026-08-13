@@ -11,15 +11,19 @@
 ;; ============================================================================
 
 (defvar ian/telega-tdlib-prefix
-  (when (eq system-type 'darwin)
+  (cond
+   ((file-directory-p "~/.local/opt/tdlib-head")
+    (expand-file-name "~/.local/opt/tdlib-head"))
+   ((and (eq system-type 'gnu/linux)
+         (file-exists-p "/usr/include/td/telegram/td_json_client.h"))
+    "/usr")
+   ((eq system-type 'darwin)
     (cond
-     ((file-directory-p "~/.local/opt/tdlib-head")
-      (expand-file-name "~/.local/opt/tdlib-head"))
      ((file-directory-p "/opt/homebrew/opt/tdlib")
       "/opt/homebrew/opt/tdlib")
      ((file-directory-p "/usr/local/opt/tdlib")
-      "/usr/local/opt/tdlib")))
-  "TDLib prefix for telega on macOS.")
+      "/usr/local/opt/tdlib"))))
+  "TDLib installation prefix for telega.")
 
 (use-package telega
   :commands telega
