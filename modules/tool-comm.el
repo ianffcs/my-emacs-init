@@ -129,6 +129,11 @@
 ;; 4. GNUS (Email Client)
 ;; ============================================================================
 
+(use-package auth-source-xoauth2-plugin
+  :demand t
+  :config
+  (auth-source-xoauth2-plugin-mode 1))
+
 (use-package gnus
   :straight (:type built-in)
   :commands gnus
