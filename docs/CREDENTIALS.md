@@ -21,6 +21,16 @@ as `host` and `user=your-nick`. The `Login` collection is queried after the
 existing authinfo and netrc files, so those files keep precedence when the
 same host and user are present in more than one source.
 
+WhatsAppel's bridge token uses the same resolver. Add an entry with
+`host=127.0.0.1` and `user=whatsappel`, or put this in `~/.authinfo.gpg`:
+
+```text
+machine 127.0.0.1 login whatsappel password <WHATSAPPEL_TOKEN>
+```
+
+The configured WhatsAppel client remains lazy-loaded, and its bridge must be
+installed and running separately before `C-c T w` can connect.
+
 To check KeePassXC access without displaying a credential, evaluate this with
 `M-:` after substituting the desired host and user:
 

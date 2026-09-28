@@ -66,7 +66,7 @@ See [docs/CREDENTIALS.md](docs/CREDENTIALS.md) for auth-source lookup order and 
 | `tool-chat.el` | gptel, minuet, aider, org-ai, ellama, chatgpt-shell |
 | `tool-speech.el` | Whisper, org-ai-talk, text-to-speech |
 | `tool-mcp.el` | Emacs, Org, and GPTel MCP servers |
-| `tool-comm.el` | Telega (Telegram), Circe (IRC), Elfeed (RSS) |
+| `tool-comm.el` | Telega (Telegram), WhatsAppel, Circe (IRC), Elfeed (RSS) |
 | `tool-media.el` | EMMS media player |
 | `tool-games.el` | NetHack |
 

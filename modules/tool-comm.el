@@ -1,7 +1,7 @@
 ;;; tool-comm.el --- Communication Tools -*- lexical-binding: t; -*-
 
 ;;; Commentary:
-;; Communication tools: Telega (Telegram), Circe (IRC), GNUS (Email), Elfeed (RSS).
+;; Communication tools: Telega, WhatsAppel, Circe, Gnus, and Elfeed.
 ;; Migrated from README.org literate config.
 
 ;;; Code:
@@ -46,7 +46,23 @@
                                 #'cape-emoji)))))
 
 ;; ============================================================================
-;; 2. CIRCE (IRC Client)
+;; 2. WHATSAPPEL (WhatsApp Client)
+;; ============================================================================
+
+(use-package whatsapp
+  :straight (:type git :host codeberg :repo "berkeley/whatsappel"
+                   :files ("whatsapp.el" "whatsapp-profiles.el"
+                           "whatsapp-delivery.el" "whatsapp-org.el"))
+  :commands (whatsapp-launch whatsapp whatsapp-connect whatsapp-qr)
+  :bind ("C-c T w" . whatsapp-launch)
+  :config
+  ;; Resolve credentials only when the WhatsApp client is first used.
+  (unless whatsapp-bridge-token
+    (setq whatsapp-bridge-token
+          (ian/authinfo-secret "127.0.0.1" "whatsappel"))))
+
+;; ============================================================================
+;; 3. CIRCE (IRC Client)
 ;; ============================================================================
 
 (use-package circe
@@ -110,7 +126,7 @@
   :hook (circe-server-connected . enable-circe-notifications))
 
 ;; ============================================================================
-;; 3. GNUS (Email Client)
+;; 4. GNUS (Email Client)
 ;; ============================================================================
 
 (use-package gnus
@@ -139,7 +155,7 @@
   )
 
 ;; ============================================================================
-;; 4. ELFEED (RSS Reader)
+;; 5. ELFEED (RSS Reader)
 ;; ============================================================================
 
 (use-package elfeed
@@ -185,7 +201,7 @@
   (elfeed-goodies/setup))
 
 ;; ============================================================================
-;; 5. TRANSIENT MENU
+;; 6. TRANSIENT MENU
 ;; ============================================================================
 
 (with-eval-after-load 'transient
@@ -193,6 +209,7 @@
     "Communication commands"
     ["Apps"
      ("t" "Telega (Telegram)" telega)
+     ("w" "WhatsAppel" whatsapp-launch)
      ("i" "IRC (Circe)" circe)
      ("g" "Gnus (Email)" gnus)
      ("r" "Elfeed (RSS)" elfeed)]
