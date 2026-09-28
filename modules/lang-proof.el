@@ -74,7 +74,7 @@
 
 (defun ian/lean4-register-lsp-request-handlers ()
   "Install Lean-specific lsp-mode request handlers."
-  (when-let ((client (and (boundp 'lsp-clients)
+  (when-let* ((client (and (boundp 'lsp-clients)
                           (gethash 'lean4-lsp lsp-clients))))
     (puthash "workspace/inlayHint/refresh"
              #'ian/lean4-ignore-inlay-hint-refresh

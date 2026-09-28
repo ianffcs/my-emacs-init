@@ -69,7 +69,7 @@
   :config
   (setq tab-bar-show 1
         tab-bar-close-button-show nil
-        tab-bar-new-button-show nil
+        tab-bar-format (remq 'tab-bar-format-add-tab tab-bar-format)
         tab-bar-new-tab-choice "*scratch*"
         tab-bar-new-tab-to 'rightmost
         tab-bar-tab-hints t

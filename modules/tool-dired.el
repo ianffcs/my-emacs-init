@@ -55,7 +55,7 @@
   :config
   ;; macOS: use gls if available (--group-directories-first already sorts listings)
   (when (eq system-type 'darwin)
-    (when-let ((gls (executable-find "gls")))
+    (when-let* ((gls (executable-find "gls")))
       (setq insert-directory-program gls)))
 
   ;; Open file externally
@@ -173,7 +173,7 @@
 (defun ian/sidebar-toggle ()
   "Toggle a dired sidebar on the left for the current project root."
   (interactive)
-  (if-let ((win (get-buffer-window ian/sidebar-buffer-name)))
+  (if-let* ((win (get-buffer-window ian/sidebar-buffer-name)))
       (delete-window win)
     (ian/dired-tree-follow-current)))
 

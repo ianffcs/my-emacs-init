@@ -495,7 +495,7 @@
 (defun ian/cider-find-and-clear-repl-buffer ()
   "Find the REPL buffer and clear it."
   (interactive)
-  (when-let ((repl-buffer (cider-current-repl)))
+  (when-let* ((repl-buffer (cider-current-repl)))
     (with-current-buffer repl-buffer
       (cider-repl-clear-buffer))))
 

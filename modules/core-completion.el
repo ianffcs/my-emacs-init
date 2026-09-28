@@ -179,7 +179,7 @@
           (cond
            ((fboundp 'projectile-project-root) (projectile-project-root))
            ((fboundp 'project-root)
-            (when-let ((p (project-current nil)))
+            (when-let* ((p (project-current nil)))
               (project-root p)))
            (t default-directory)))))
 
