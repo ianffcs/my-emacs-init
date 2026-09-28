@@ -32,8 +32,7 @@
 (use-package idris2-mode
   :straight (:host github :repo "idris-community/idris2-mode")
   :mode ("\\.idr\\'" "\\.lidr\\'")
-  :hook ((idris2-mode . subword-mode)
-         (idris2-mode . eglot-ensure))
+  :hook (idris2-mode . subword-mode)
   :bind (:map idris2-mode-map
               ("C-c C-l" . idris2-load-file)
               ("C-c C-t" . idris2-type-at-point)
@@ -45,6 +44,8 @@
 
 (with-eval-after-load 'eglot
   (add-to-list 'eglot-server-programs '(idris2-mode . ("idris2" "--lsp"))))
+
+(add-hook 'idris2-mode-hook #'eglot-ensure)
 
 ;; ============================================================================
 ;; 3. LEAN 4

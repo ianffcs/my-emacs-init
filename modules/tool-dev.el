@@ -124,57 +124,9 @@
                 (plist-put (default-value 'eglot-workspace-configuration)
                            key value)))
 
-(defvar ian/clojure-project-root-files
-  '("deps.edn" "project.clj" "build.boot" "bb.edn" "shadow-cljs.edn")
-  "Files that identify a directory as a Clojure project root.")
-
-(defun ian/clojure-project-root ()
-  "Return a Clojure project root for `default-directory', or nil."
-  (seq-some (lambda (file)
-              (locate-dominating-file default-directory file))
-            ian/clojure-project-root-files))
-
-(defun ian/eglot-ensure-clojure ()
-  "Start Clojure Eglot only inside a concrete Clojure project."
-  (when-let* ((_ (executable-find "clojure-lsp"))
-              (root (ian/clojure-project-root)))
-    (unless (file-equal-p root (expand-file-name "~"))
-      (eglot-ensure))))
-
 (use-package eglot
   :defer t
-  :hook ((clojure-mode . ian/eglot-ensure-clojure)
-         (clojure-ts-mode . ian/eglot-ensure-clojure)
-         (clojurec-mode . ian/eglot-ensure-clojure)
-         (clojurescript-mode . ian/eglot-ensure-clojure)
-         (python-mode . eglot-ensure)
-         (python-ts-mode . eglot-ensure)
-         (js-mode . eglot-ensure)
-         (js-ts-mode . eglot-ensure)
-         (typescript-mode . eglot-ensure)
-         (typescript-ts-mode . eglot-ensure)
-         (tsx-ts-mode . eglot-ensure)
-         (rust-mode . eglot-ensure)
-         (rust-ts-mode . eglot-ensure)
-         (go-mode . eglot-ensure)
-         (go-ts-mode . eglot-ensure)
-         (c-mode . eglot-ensure)
-         (c-ts-mode . eglot-ensure)
-         (c++-mode . eglot-ensure)
-         (c++-ts-mode . eglot-ensure)
-         (java-mode . eglot-ensure)
-         (java-ts-mode . eglot-ensure)
-         (elixir-mode . eglot-ensure)
-         (elixir-ts-mode . eglot-ensure)
-         (haskell-mode . eglot-ensure)
-         (terraform-mode . eglot-ensure)
-         (sh-mode . eglot-ensure)
-         (bash-ts-mode . eglot-ensure)
-         (dockerfile-mode . eglot-ensure)
-         (dockerfile-ts-mode . eglot-ensure)
-         (nix-mode . eglot-ensure)
-         (nix-ts-mode . eglot-ensure)
-         (eglot-managed-mode . eglot-inlay-hints-mode))
+  :hook (eglot-managed-mode . eglot-inlay-hints-mode)
   :bind (:map eglot-mode-map
               ("C-c l r" . eglot-rename)
               ("C-c l a" . eglot-code-actions)
@@ -196,101 +148,6 @@
         eglot-events-buffer-size 0
         eglot-sync-connect nil
         eldoc-echo-area-use-multiline-p nil)
-
-  ;; Clojure LSP
-  (add-to-list 'eglot-server-programs
-               '((clojure-mode clojure-ts-mode clojurec-mode
-                               clojure-ts-clojurec-mode clojurescript-mode
-                               clojure-ts-clojurescript-mode)
-                 . ("clojure-lsp")))
-
-  ;; Elixir
-  (add-to-list 'eglot-server-programs
-               '((elixir-mode elixir-ts-mode heex-ts-mode) . ("elixir-ls")))
-
-  ;; Erlang
-  (add-to-list 'eglot-server-programs
-               '(erlang-mode . ("erlang_ls")))
-
-  ;; Gleam
-  (add-to-list 'eglot-server-programs
-               '((gleam-mode gleam-ts-mode) . ("gleam" "lsp")))
-
-  ;; Haskell
-  (add-to-list 'eglot-server-programs
-               '(haskell-mode . ("haskell-language-server-wrapper" "--lsp")))
-
-  ;; Dart
-  (add-to-list 'eglot-server-programs
-               '(dart-mode . ("dart" "language-server" "--protocol=lsp")))
-
-  ;; R
-  (add-to-list 'eglot-server-programs
-               '(ess-r-mode . ("R" "--slave" "-e" "languageserver::run()")))
-
-  ;; Julia
-  (add-to-list 'eglot-server-programs
-               '(julia-mode . ("julia" "--startup-file=no" "--history-file=no"
-                               "-e" "using LanguageServer; runserver()")))
-
-  ;; Racket
-  (add-to-list 'eglot-server-programs
-               '(racket-mode . ("racket" "-l" "racket-langserver")))
-
-  ;; Ruby
-  (add-to-list 'eglot-server-programs
-               '((ruby-mode ruby-ts-mode) . ("solargraph" "stdio")))
-
-  ;; Lua
-  (add-to-list 'eglot-server-programs
-               '(lua-mode . ("lua-language-server")))
-
-  ;; Bash
-  (add-to-list 'eglot-server-programs
-               '((sh-mode bash-ts-mode) . ("bash-language-server" "start")))
-
-  ;; Kotlin
-  (add-to-list 'eglot-server-programs
-               '((kotlin-mode kotlin-ts-mode) . ("kotlin-language-server")))
-
-  ;; Scala
-  (add-to-list 'eglot-server-programs
-               '((scala-mode scala-ts-mode) . ("metals")))
-
-  ;; C/C++
-  (add-to-list 'eglot-server-programs
-               '((c-mode c-ts-mode c++-mode c++-ts-mode)
-                 . ("clangd" "--background-index" "--clang-tidy")))
-
-  ;; Rust
-  (add-to-list 'eglot-server-programs
-               '((rust-mode rust-ts-mode) . ("rust-analyzer")))
-
-  ;; Go
-  (add-to-list 'eglot-server-programs
-               '((go-mode go-ts-mode) . ("gopls")))
-
-  ;; Zig
-  (add-to-list 'eglot-server-programs
-               '(zig-mode . ("zls")))
-
-  ;; Python
-  (add-to-list 'eglot-server-programs
-               '((python-mode python-ts-mode)
-                 . ("pyright-langserver" "--stdio")))
-
-  ;; Terraform
-  (add-to-list 'eglot-server-programs
-               '(terraform-mode . ("terraform-ls" "serve")))
-
-  ;; Dockerfile
-  (add-to-list 'eglot-server-programs
-               '((dockerfile-mode dockerfile-ts-mode)
-                 . ("docker-langserver" "--stdio")))
-
-  ;; Nix
-  (add-to-list 'eglot-server-programs
-               '((nix-mode nix-ts-mode) . ("nil")))
 
   (when (fboundp 'ian/eglot-add-workspace-config)
     (ian/eglot-add-workspace-config

@@ -548,5 +548,35 @@
     (when (boundp map)
       (define-key (symbol-value map) (kbd "C-c L") #'ian/lisp-menu))))
 
+;; ============================================================================
+;; LSP (Eglot)
+;; ============================================================================
+
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '((clojure-mode clojure-ts-mode clojurec-mode
+                               clojure-ts-clojurec-mode clojurescript-mode
+                               clojure-ts-clojurescript-mode)
+                 . ("clojure-lsp")))
+  (add-to-list 'eglot-server-programs
+               '(racket-mode . ("racket" "-l" "racket-langserver"))))
+
+(defun ian/eglot-ensure-clojure ()
+  "Start Clojure Eglot only inside a concrete Clojure project."
+  (when-let* ((_ (executable-find "clojure-lsp"))
+              (root (seq-some (lambda (file)
+                                (locate-dominating-file default-directory file))
+                              '("deps.edn" "project.clj" "build.boot"
+                                "bb.edn" "shadow-cljs.edn"))))
+    (unless (file-equal-p root (expand-file-name "~"))
+      (eglot-ensure))))
+
+(dolist (hook '(clojure-mode-hook clojure-ts-mode-hook
+                clojurec-mode-hook clojurescript-mode-hook))
+  (add-hook hook #'ian/eglot-ensure-clojure))
+
+(when (executable-find "racket")
+  (add-hook 'racket-mode-hook #'eglot-ensure))
+
 (provide 'lang-lisp)
 ;;; lang-lisp.el ends here

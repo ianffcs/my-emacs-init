@@ -175,5 +175,13 @@
   (setf (alist-get 'css-ts-mode apheleia-mode-alist) '(prettier))
   (setf (alist-get 'scss-mode apheleia-mode-alist) '(prettier)))
 
+;; ============================================================================
+;; LSP (Eglot)
+;; ============================================================================
+
+(dolist (hook '(js-mode-hook js-ts-mode-hook typescript-mode-hook
+                typescript-ts-mode-hook tsx-ts-mode-hook))
+  (add-hook hook #'eglot-ensure))
+
 (provide 'lang-web)
 ;;; lang-web.el ends here

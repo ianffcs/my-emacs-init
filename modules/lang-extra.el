@@ -26,7 +26,6 @@
 ;; Use eglot for Dart (consistent with the rest of this config).
 ;; lsp-dart pulled in lsp-mode which conflicts with eglot.
 (with-eval-after-load 'dart-mode
-  (add-hook 'dart-mode-hook #'eglot-ensure)
   (when (getenv "FLUTTER_HOME")
     (setq-default eglot-workspace-configuration
                   `(:dart (:flutterSdkPath ,(getenv "FLUTTER_HOME"))))))
@@ -129,6 +128,27 @@
   (setf (alist-get 'styler apheleia-formatters)
         '("Rscript" "-e" "styler::style_text(readLines('stdin'))"))
   (setf (alist-get 'ess-r-mode apheleia-mode-alist) '(styler)))
+
+;; ============================================================================
+;; LSP (Eglot)
+;; ============================================================================
+
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '(dart-mode . ("dart" "language-server" "--protocol=lsp")))
+  (add-to-list 'eglot-server-programs
+               '(ess-r-mode . ("R" "--slave" "-e" "languageserver::run()")))
+  (add-to-list 'eglot-server-programs
+               '(julia-mode . ("julia" "--startup-file=no" "--history-file=no"
+                               "-e" "using LanguageServer; runserver()"))))
+
+(add-hook 'dart-mode-hook #'eglot-ensure)
+
+(when (executable-find "R")
+  (add-hook 'ess-r-mode-hook #'eglot-ensure))
+
+(when (executable-find "julia")
+  (add-hook 'julia-mode-hook #'eglot-ensure))
 
 (provide 'lang-extra)
 ;;; lang-extra.el ends here

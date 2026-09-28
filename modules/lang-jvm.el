@@ -196,5 +196,23 @@
   (with-eval-after-load 'scala-mode
     (define-key scala-mode-map (kbd "C-c C-m") #'ian/jvm-menu)))
 
+;; ============================================================================
+;; LSP (Eglot)
+;; ============================================================================
+
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '((kotlin-mode kotlin-ts-mode) . ("kotlin-language-server")))
+  (add-to-list 'eglot-server-programs
+               '((scala-mode scala-ts-mode) . ("metals"))))
+
+(when (executable-find "kotlin-language-server")
+  (dolist (hook '(kotlin-mode-hook kotlin-ts-mode-hook))
+    (add-hook hook #'eglot-ensure)))
+
+(when (executable-find "metals")
+  (dolist (hook '(scala-mode-hook scala-ts-mode-hook))
+    (add-hook hook #'eglot-ensure)))
+
 (provide 'lang-jvm)
 ;;; lang-jvm.el ends here

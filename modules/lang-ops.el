@@ -253,5 +253,21 @@
                             ("v h" "Halt" vagrant-halt)])
   (global-set-key (kbd "C-c O") #'ian/ops-menu))
 
+;; ============================================================================
+;; LSP (Eglot)
+;; ============================================================================
+
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '(terraform-mode . ("terraform-ls" "serve")))
+  (add-to-list 'eglot-server-programs
+               '((dockerfile-mode dockerfile-ts-mode)
+                 . ("docker-langserver" "--stdio")))
+  (add-to-list 'eglot-server-programs '((nix-mode nix-ts-mode) . ("nil"))))
+
+(dolist (hook '(terraform-mode-hook dockerfile-mode-hook dockerfile-ts-mode-hook
+                nix-mode-hook nix-ts-mode-hook))
+  (add-hook hook #'eglot-ensure))
+
 (provide 'lang-ops)
 ;;; lang-ops.el ends here

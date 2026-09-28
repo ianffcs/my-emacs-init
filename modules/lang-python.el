@@ -317,5 +317,17 @@
   (with-eval-after-load 'python-ts-mode
     (define-key python-ts-mode-map (kbd "C-c C-m") #'ian/python-menu)))
 
+;; ============================================================================
+;; LSP (Eglot)
+;; ============================================================================
+
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '((python-mode python-ts-mode)
+                 . ("pyright-langserver" "--stdio"))))
+
+(dolist (hook '(python-mode-hook python-ts-mode-hook))
+  (add-hook hook #'eglot-ensure))
+
 (provide 'lang-python)
 ;;; lang-python.el ends here

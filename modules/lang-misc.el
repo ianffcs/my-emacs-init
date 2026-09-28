@@ -175,5 +175,29 @@
         '("ormolu" "--stdin-input-file" filepath))
   (setf (alist-get 'haskell-mode apheleia-mode-alist) '(ormolu)))
 
+;; ============================================================================
+;; LSP (Eglot)
+;; ============================================================================
+
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '(haskell-mode . ("haskell-language-server-wrapper" "--lsp")))
+  (add-to-list 'eglot-server-programs
+               '((sh-mode bash-ts-mode) . ("bash-language-server" "start")))
+  (add-to-list 'eglot-server-programs
+               '((ruby-mode ruby-ts-mode) . ("solargraph" "stdio")))
+  (add-to-list 'eglot-server-programs
+               '(lua-mode . ("lua-language-server"))))
+
+(dolist (hook '(haskell-mode-hook sh-mode-hook bash-ts-mode-hook))
+  (add-hook hook #'eglot-ensure))
+
+(when (executable-find "solargraph")
+  (dolist (hook '(ruby-mode-hook ruby-ts-mode-hook))
+    (add-hook hook #'eglot-ensure)))
+
+(when (executable-find "lua-language-server")
+  (add-hook 'lua-mode-hook #'eglot-ensure))
+
 (provide 'lang-misc)
 ;;; lang-misc.el ends here

@@ -180,5 +180,26 @@
   (with-eval-after-load 'go-ts-mode
     (define-key go-ts-mode-map (kbd "C-c C-m") #'ian/systems-menu)))
 
+;; ============================================================================
+;; LSP (Eglot)
+;; ============================================================================
+
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '((c-mode c-ts-mode c++-mode c++-ts-mode)
+                 . ("clangd" "--background-index" "--clang-tidy")))
+  (add-to-list 'eglot-server-programs
+               '((rust-mode rust-ts-mode) . ("rust-analyzer")))
+  (add-to-list 'eglot-server-programs
+               '((go-mode go-ts-mode) . ("gopls")))
+  (add-to-list 'eglot-server-programs '(zig-mode . ("zls"))))
+
+(dolist (hook '(c-mode-hook c-ts-mode-hook c++-mode-hook c++-ts-mode-hook
+                rust-mode-hook rust-ts-mode-hook go-mode-hook go-ts-mode-hook))
+  (add-hook hook #'eglot-ensure))
+
+(when (executable-find "zls")
+  (add-hook 'zig-mode-hook #'eglot-ensure))
+
 (provide 'lang-systems)
 ;;; lang-systems.el ends here

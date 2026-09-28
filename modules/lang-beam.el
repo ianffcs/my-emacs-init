@@ -190,5 +190,26 @@
   (with-eval-after-load 'elixir-ts-mode
     (define-key elixir-ts-mode-map (kbd "C-c C-m") #'ian/elixir-menu)))
 
+;; ============================================================================
+;; LSP (Eglot)
+;; ============================================================================
+
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '((elixir-mode elixir-ts-mode heex-ts-mode) . ("elixir-ls")))
+  (add-to-list 'eglot-server-programs '(erlang-mode . ("erlang_ls")))
+  (add-to-list 'eglot-server-programs
+               '((gleam-mode gleam-ts-mode) . ("gleam" "lsp"))))
+
+(dolist (hook '(elixir-mode-hook elixir-ts-mode-hook))
+  (add-hook hook #'eglot-ensure))
+
+(when (executable-find "erlang_ls")
+  (add-hook 'erlang-mode-hook #'eglot-ensure))
+
+(when (executable-find "gleam")
+  (dolist (hook '(gleam-mode-hook gleam-ts-mode-hook))
+    (add-hook hook #'eglot-ensure)))
+
 (provide 'lang-beam)
 ;;; lang-beam.el ends here
