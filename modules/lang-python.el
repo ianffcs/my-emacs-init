@@ -10,6 +10,16 @@
 
 ;;; Code:
 
+(defvar ein:notebook-mode-map)
+(defvar dape-configs)
+(defvar apheleia-mode-alist)
+(defvar apheleia-formatters)
+(defvar eglot-server-programs)
+(declare-function python-indent-line "python")
+(declare-function python-shell-send-region "python")
+(declare-function python-shell-send-buffer "python")
+(declare-function ian/pyvenv-autoload "lang-python")
+
 ;; ============================================================================
 ;; 1. PYTHON MODE
 ;; ============================================================================
@@ -120,7 +130,7 @@
               ("C-c t m" . python-pytest-function)
               ("C-c t M" . python-pytest-function-dwim)
               ("C-c t r" . python-pytest-repeat)
-              ("C-c t p" . python-pytest-popup)
+              ("C-c t p" . python-pytest-dispatch)
               :map python-ts-mode-map
               ("C-c t t" . python-pytest-dispatch)
               ("C-c t f" . python-pytest-file)
@@ -128,7 +138,7 @@
               ("C-c t m" . python-pytest-function)
               ("C-c t M" . python-pytest-function-dwim)
               ("C-c t r" . python-pytest-repeat)
-              ("C-c t p" . python-pytest-popup))
+              ("C-c t p" . python-pytest-dispatch))
   :custom
   (python-pytest-confirm t))
 

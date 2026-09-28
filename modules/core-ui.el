@@ -6,6 +6,8 @@
 
 ;;; Code:
 
+(declare-function parrot-set-parrot-type "parrot")
+
 (require 'seq)
 
 ;; ============================================================================

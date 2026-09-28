@@ -6,6 +6,9 @@
 
 ;;; Code:
 
+(defvar async-bytecomp-allowed-packages)
+(declare-function treesit-auto-add-to-auto-mode-alist "treesit-auto")
+
 ;; 1. USER INFO (from Personal Keymap section)
 (setq user-full-name "Ian Fernandez"
       user-mail-address "d.ian.b@live.com")

@@ -11,6 +11,23 @@
 
 ;;; Code:
 
+(defvar mac-command-modifier)
+(defvar mac-option-modifier)
+(defvar mac-control-modifier)
+(defvar mac-right-option-modifier)
+(defvar mac-function-modifier)
+(defvar ns-use-native-fullscreen)
+(defvar ns-pop-up-frames)
+(defvar ns-use-proxy-icon)
+(defvar mac-mouse-wheel-smooth-scroll)
+(defvar w32-pipe-read-delay)
+(defvar w32-get-true-file-attributes)
+(declare-function ian/reveal-in-finder "core-os")
+(declare-function ian/open-with-default-app "core-os")
+(declare-function ian/macos-dictionary "core-os")
+(declare-function ian/wsl-copy "core-os")
+(declare-function ian/wsl-paste "core-os")
+
 ;; ============================================================================
 ;; 1. EXEC-PATH-FROM-SHELL (PATH synchronization)
 ;; ============================================================================

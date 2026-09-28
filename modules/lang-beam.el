@@ -6,6 +6,11 @@
 
 ;;; Code:
 
+(defvar apheleia-mode-alist)
+(defvar apheleia-formatters)
+(defvar eglot-server-programs)
+(declare-function run-elixir "elixir-mode")
+
 ;; ============================================================================
 ;; 1. ELIXIR
 ;; ============================================================================

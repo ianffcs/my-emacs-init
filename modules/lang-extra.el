@@ -6,6 +6,11 @@
 
 ;;; Code:
 
+(defvar org-babel-load-languages)
+(defvar apheleia-mode-alist)
+(defvar apheleia-formatters)
+(defvar eglot-server-programs)
+
 ;; ============================================================================
 ;; 1. DART / FLUTTER
 ;; ============================================================================
@@ -54,7 +59,7 @@
 
 ;; Org-babel support for Hy
 (use-package ob-hy
-  :after ob
+  :after org
   :if (executable-find "hy")
   :config
   (add-to-list 'org-babel-load-languages '(hy . t)))

@@ -6,6 +6,10 @@
 
 ;;; Code:
 
+(defvar apheleia-mode-alist)
+(defvar apheleia-formatters)
+(defvar eglot-server-programs)
+
 ;; ============================================================================
 ;; 1. TERRAFORM
 ;; ============================================================================
@@ -42,7 +46,7 @@
                                                  (or (string-match-p "ansible" buffer-file-name)
                                                      (string-match-p "playbook" buffer-file-name)
                                                      (string-match-p "roles" buffer-file-name)))
-                                        (ansible 1)))))
+                                        (ansible-mode 1)))))
 
 (use-package ansible-doc
   :after ansible
@@ -87,19 +91,10 @@
   :config
   (kubel-vterm-setup))
 
-;; Kubernetes Helm templates in YAML
+;; Kubernetes Helm commands (the package has no minor mode)
 (use-package kubernetes-helm
-  :after (yaml-mode yaml-ts-mode)
-  :hook ((yaml-mode yaml-ts-mode) . (lambda ()
-                                      (when (and buffer-file-name
-                                                 (string-match-p "templates" buffer-file-name))
-                                        (kubernetes-helm-mode 1)))))
+  :defer t)
 
-;; ============================================================================
-;; 6. NIX
-;; ============================================================================
-
-;; nix-mode kept for non-ts fallback syntax; nix-ts-mode takes .nix when grammar available
 (use-package nix-mode
   :commands nix-mode
   :hook (nix-mode . subword-mode))
@@ -120,7 +115,7 @@
   :after tramp
   :config
   (with-eval-after-load 'tramp
-    (vagrant-tramp-enable)))
+    (vagrant-tramp-add-method)))
 
 ;; ============================================================================
 ;; 8. SYSTEMD

@@ -14,6 +14,12 @@
 
 ;;; Code:
 
+(defvar oer-reveal-theme)
+(defvar oer-reveal-notes-popup)
+(defvar oer-reveal-audio-slideshow-config)
+(declare-function oer-reveal-export-to-html "oer-reveal")
+(declare-function org-alert-enable "org-alert")
+
 ;; ============================================================================
 ;; 1. ORG-MODE CORE
 ;; ============================================================================

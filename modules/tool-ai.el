@@ -6,6 +6,8 @@
 
 ;;; Code:
 
+(defvar ian/default-audio-device)
+
 (require 'auth-source)
 (require 'cl-lib)
 (require 'subr-x)

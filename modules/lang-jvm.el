@@ -6,6 +6,10 @@
 
 ;;; Code:
 
+(defvar apheleia-mode-alist)
+(defvar apheleia-formatters)
+(defvar eglot-server-programs)
+
 ;; ============================================================================
 ;; 1. JAVA
 ;; ============================================================================
@@ -32,9 +36,7 @@
   :hook ((java-mode . eglot-java-mode)
          (java-ts-mode . eglot-java-mode))
   :custom
-  (eglot-java-eclipse-jdt "jdtls")
-  :config
-  (eglot-java-init))
+  (eglot-java-eclipse-jdt "jdtls"))
 
 ;; Groovy (for Gradle)
 (use-package groovy-mode

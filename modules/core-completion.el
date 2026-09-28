@@ -29,8 +29,8 @@
   :config
   ;; Prefix current candidate with arrow
   (advice-add #'vertico--format-candidate :around
-              (lambda (orig cand prefix suffix index _start)
-                (setq cand (funcall orig cand prefix suffix index _start))
+              (lambda (orig cand prefix suffix index start)
+                (setq cand (funcall orig cand prefix suffix index start))
                 (concat
                  (if (= vertico--index index)
                      (propertize "» " 'face 'vertico-current)

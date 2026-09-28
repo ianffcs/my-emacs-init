@@ -13,6 +13,17 @@
 
 ;;; Code:
 
+(defvar cider-clojure-cli-global-options)
+(defvar apheleia-mode-alist)
+(defvar apheleia-formatters)
+(defvar eglot-server-programs)
+(declare-function cider-current-repl "cider")
+(declare-function cider-repl-clear-buffer "cider-repl")
+(declare-function sly-describe-symbol "sly")
+(declare-function sly-symbol-at-point "sly")
+(declare-function geiser-doc-symbol-at-point "geiser-doc")
+(declare-function racket-xp-describe "racket-xp")
+
 ;; ============================================================================
 ;; 1. STRUCTURAL EDITING - PARINFER-RUST (Primary)
 ;; ============================================================================
@@ -58,7 +69,7 @@
   :config
   ;; Don't insert space before delimiters in certain contexts
   (add-to-list 'paredit-space-for-delimiter-predicates
-               (lambda (endp delimiter)
+               (lambda (endp _delimiter)
                  (not (and (not endp)
                            (memq (char-before) '(?@ ?` ?' ?# ?~ ?^)))))))
 
