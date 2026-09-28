@@ -38,6 +38,9 @@ docs/
 # Syntax check a module
 emacs --batch -Q --eval "(find-file \"modules/file.el\") (check-parens)"
 
+# LSP registration consistency (batch, use-package stubbed)
+emacs --batch -Q -l ert -l test/lang-lsp-test.el -f ert-run-tests-batch-and-exit
+
 # Full startup test
 emacs --debug-init
 ```
@@ -85,7 +88,7 @@ All custom bindings under `C-c`. Each prefix opens a transient menu:
 ### New Language
 1. Find or create `modules/lang-{name}.el`
 2. Add `(require 'lang-{name})` to `init.el`
-3. Add `eglot-ensure` hook + server program, formatter via `with-eval-after-load 'apheleia`
+3. In the same module add the LSP registration (`add-to-list 'eglot-server-programs` under `with-eval-after-load 'eglot`, plus `add-hook MODE-hook #'eglot-ensure`) and the formatter via `with-eval-after-load 'apheleia`. List both `-mode` and `-ts-mode` twins. Keep these as top-level forms, not inside `use-package :config`, so `test/lang-lsp-test.el` can see them.
 
 ### Before Modifying
 ```bash
@@ -109,4 +112,5 @@ grep -r "use-package package-name" modules/
 - Run `M-x straight-freeze-versions` after a clean session to pin all package versions to `straight/versions/default.el`
 - Theme switches automatically between `modus-operandi` (day) and `modus-vivendi` (night) via `ian/auto-theme`
 - See `docs/KEYBINDINGS.org` for the full keybinding reference
+- See `docs/ARCHITECTURE.md` for startup order and how modules depend on each other
 - See `README.md` for architecture overview and modification guide
