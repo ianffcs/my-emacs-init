@@ -29,10 +29,11 @@
              mcp-server-get-socket-path)
   :custom
   (mcp-server-socket-name 'user)
-  (mcp-server-debug nil)
-  :config
-  (when ian/emacs-mcp-server-autostart
-    (add-hook 'emacs-startup-hook #'mcp-server-start-unix)))
+  (mcp-server-debug nil))
+
+;; Register before startup regardless of when the deferred package loads.
+(when ian/emacs-mcp-server-autostart
+  (add-hook 'emacs-startup-hook #'mcp-server-start-unix))
 
 (use-package mcp-server-lib
   :straight (:type git :host github :repo "laurynas-biveinis/mcp-server-lib.el")
