@@ -4,18 +4,18 @@ This file provides guidance to Claude Code when working with this repository.
 
 ## Overview
 
-Modular Emacs configuration using `straight.el` + `use-package`. 33 modules across 4 categories in `modules/`.
+Modular Emacs configuration using `straight.el` + `use-package`. 36 modules across 4 categories in `modules/`.
 
 ## Architecture
 
 ```
 init.el          → Entry point, loads modules in order
 early-init.el    → GC tuning, native-comp, GUI suppression
-modules/         → All configuration (33 .el files)
+modules/         → All configuration (36 .el files)
   core-*.el      → 9 files: packages, settings, OS, utils, editor, UI, completion, auth, session
   ui-*.el        → 4 files: navigation, windows, buffers, dashboard
-  tool-*.el      → 7 files: dev/LSP/git, shells, dired, AI, comm, media, games
-  lang-*.el      → 13 files: language support
+  tool-*.el      → 9 files: dev/LSP/git, shells, dired, chat, speech, MCP, comm, media, games
+  lang-*.el      → 14 files: language support
 docs/
   KEYBINDINGS.org → Full keybinding reference
 ```
@@ -28,7 +28,9 @@ docs/
 - `core-completion.el` — Vertico, Consult, Corfu, Embark, Cape, Orderless
 - `core-ui.el` — Modus themes (auto light/dark), fonts, doom-modeline
 - `tool-dev.el` — Magit, Eglot (LSP for 25+ langs), Projectile, apheleia, envrc
-- `tool-ai.el` — GPTel, Minuet, Whisper, Aider, MCP servers, org-ai
+- `tool-chat.el` — GPTel, Minuet, Aider, org-ai and chat clients
+- `tool-speech.el` — Whisper, org-ai-talk and text-to-speech
+- `tool-mcp.el` — Emacs, Org and GPTel MCP servers
 - `lang-proof.el` — Agda, Idris 2, Lean 4, TLA+
 - `lang-org.el` — Org-mode, Org-roam, Babel, Reveal.js, Denote
 
@@ -58,7 +60,7 @@ Check `*Warnings*` buffer after startup.
 - Functions: `ian/{verb}-{noun}` — e.g. `ian/cleanup-buffer`
 
 ### Keybinding Prefixes
-All custom bindings under `C-c`. Each prefix opens a transient menu:
+Custom bindings use `C-c`; some prefixes open transient menus, while others expose direct package commands:
 
 | Prefix  | Domain      | Prefix  | Domain      |
 |---------|-------------|---------|-------------|
@@ -66,7 +68,7 @@ All custom bindings under `C-c`. Each prefix opens a transient menu:
 | `C-c d` | Dired       | `C-c s` | Search      |
 | `C-c e` | Editor      | `C-c t` | Terminals   |
 | `C-c f` | Files       | `C-c w` | Windows     |
-| `C-c g` | AI / Git    | `C-c y` | Snippets    |
+| `C-c g` | GPTel menu | `C-c y` | Snippets    |
 | `C-c j` | Jump/nav    | `C-c l` | LSP/Eglot   |
 | `C-c n` | Org-roam    | `C-c p` | Projectile  |
 

@@ -17,11 +17,11 @@ First launch installs all packages automatically via `straight.el`. Be patient �
 ~/.emacs.d/
 ├── early-init.el          # GC tuning, native-comp, GUI suppression
 ├── init.el                # Entry point — loads modules in order
-├── modules/               # All configuration (33 .el files)
-│   ├── core-*.el          # 8 files: packages, settings, editor, UI, completion…
+├── modules/               # All configuration (36 .el files)
+│   ├── core-*.el          # 9 files: packages, settings, editor, UI, completion…
 │   ├── ui-*.el            # 4 files: navigation, windows, buffers, dashboard
-│   ├── tool-*.el          # 7 files: git/LSP, shells, dired, AI, comms, media, games
-│   └── lang-*.el          # 13 files: language support
+│   ├── tool-*.el          # 9 files: git/LSP, shells, dired, chat, speech, MCP, comms, media, games
+│   └── lang-*.el          # 14 files: language support
 ├── docs/
 │   └── KEYBINDINGS.org    # Full keybinding reference
 ├── snippets/              # YASnippet snippets
@@ -42,7 +42,7 @@ First launch installs all packages automatically via `straight.el`. Be patient �
 | `core-editor.el` | Parens, undo-fu, multiple-cursors, expand-region, hl-todo |
 | `core-ui.el` | Modus themes, fonts, ligatures, nerd-icons, doom-modeline |
 | `core-completion.el` | Vertico, Orderless, Marginalia, Consult, Embark, Corfu, Cape |
-| `core-auth.el` | GPG, pinentry, auth-source, password-store |
+| `core-auth.el` | GPG, pinentry, auth-source, API credentials, password-store |
 | `core-session.el` | savehist, recentf, saveplace, desktop, alerts |
 
 ### UI (`ui-*.el`)
@@ -61,7 +61,9 @@ First launch installs all packages automatically via `straight.el`. Be patient �
 | `tool-dev.el` | Magit, diff-hl, Eglot (LSP), Projectile, apheleia, envrc, dape |
 | `tool-shell.el` | vterm, multi-vterm, eshell, eat, shell-pop, comint |
 | `tool-dired.el` | dired + subtree sidebar, dired-narrow, diredfl, dired-ranger |
-| `tool-ai.el` | gptel, minuet, whisper, aider, org-ai, MCP, ellama, chatgpt-shell |
+| `tool-chat.el` | gptel, minuet, aider, org-ai, ellama, chatgpt-shell |
+| `tool-speech.el` | Whisper, org-ai-talk, text-to-speech |
+| `tool-mcp.el` | Emacs, Org, and GPTel MCP servers |
 | `tool-comm.el` | Telega (Telegram), Circe (IRC), Elfeed (RSS) |
 | `tool-media.el` | EMMS media player |
 | `tool-games.el` | NetHack |
@@ -107,7 +109,7 @@ All custom bindings live under `C-c`:
 | `C-c d` | Dired |
 | `C-c e` | Editor operations |
 | `C-c f` | File utilities |
-| `C-c g` | AI / Git |
+| `C-c g` | GPTel menu |
 | `C-c j` | Jump / navigation |
 | `C-c l` | LSP (Eglot) |
 | `C-c n` | Org-roam notes |
@@ -208,4 +210,6 @@ Check `*Warnings*` buffer after startup.
 | `core-editor.el` | Editing behaviour, text manipulation |
 | `core-os.el` | OS-specific paths, keybindings |
 | `tool-dev.el` | LSP servers, git, formatters |
-| `tool-ai.el` | AI backends, models, MCP |
+| `tool-chat.el` | AI backends, models, chat clients |
+| `tool-speech.el` | Speech input and output |
+| `tool-mcp.el` | MCP servers |

@@ -60,7 +60,7 @@
   (circe-use-cycle-completion t)
   (lui-flyspell-p t)
   :config
-  ;; Helper to fetch password from auth-source
+  ;; Keep the general Circe lookup available for existing configurations.
   (defun ian/circe-fetch-password (&rest params)
     "Fetch the password for an IRC network."
     (require 'auth-source)
@@ -72,9 +72,10 @@
               secret))
         (error "Password not found for %S" params))))
 
+  ;; Reuse the shared auth-source resolver for IRC credentials.
   (defun ian/circe-nickserv-password (server)
     "Fetch NickServ password for SERVER."
-    (ian/circe-fetch-password :login "your-nick" :machine server))
+    (ian/authinfo-secret server "your-nick"))
 
   ;; Count nicks in channel
   (defun ian/circe-count-nicks ()

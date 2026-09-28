@@ -10,7 +10,6 @@
 
 ;;; Code:
 
-(defvar ein:notebook-mode-map)
 (defvar dape-configs)
 (defvar apheleia-mode-alist)
 (defvar apheleia-formatters)
@@ -149,17 +148,18 @@
 ;; EIN - Emacs IPython Notebook
 (use-package ein
   :commands (ein:run ein:login ein:notebooklist-open)
-  :bind (:map ein:notebook-mode-map
-              ("C-c C-c" . ein:worksheet-execute-cell)
-              ("C-c C-a" . ein:worksheet-execute-all-cells)
-              ("C-c C-n" . ein:worksheet-goto-next-input)
-              ("C-c C-p" . ein:worksheet-goto-prev-input)
-              ("C-c C-k" . ein:worksheet-kill-cell)
-              ("C-c C-y" . ein:worksheet-yank-cell)
-              ("C-c C-o" . ein:worksheet-clear-output))
   :custom
   (ein:output-area-inlined-images t)
   (ein:slice-image t))
+
+(with-eval-after-load 'ein-notebook
+  (keymap-set ein:notebook-mode-map "C-c C-c" #'ein:worksheet-execute-cell)
+  (keymap-set ein:notebook-mode-map "C-c C-a" #'ein:worksheet-execute-all-cells)
+  (keymap-set ein:notebook-mode-map "C-c C-n" #'ein:worksheet-goto-next-input)
+  (keymap-set ein:notebook-mode-map "C-c C-p" #'ein:worksheet-goto-prev-input)
+  (keymap-set ein:notebook-mode-map "C-c C-k" #'ein:worksheet-kill-cell)
+  (keymap-set ein:notebook-mode-map "C-c C-y" #'ein:worksheet-yank-cell)
+  (keymap-set ein:notebook-mode-map "C-c C-o" #'ein:worksheet-clear-output))
 
 ;; Code cells in regular Python files
 (use-package code-cells

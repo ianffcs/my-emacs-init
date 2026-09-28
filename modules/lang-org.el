@@ -671,6 +671,8 @@ Thank you!
          :map org-mode-map
          ("C-M-i" . completion-at-point))
   :config
+  (unless (file-directory-p org-roam-directory)
+    (make-directory org-roam-directory t))
   (org-roam-db-autosync-mode))
 
 (use-package deft

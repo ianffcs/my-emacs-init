@@ -6,6 +6,8 @@
 
 ;;; Code:
 
+(declare-function consult--customize-put "consult")
+
 ;; ============================================================================
 ;; 1. VERTICO (Vertical Completion UI)
 ;; ============================================================================
@@ -19,7 +21,6 @@
               ("C-u" . vertico-scroll-down)
               ("C-d" . vertico-scroll-up)
               ("RET" . vertico-directory-enter)
-              ("DEL" . ian/vertico-directory-delete-char)
               ("M-DEL" . vertico-directory-delete-word))
   :custom
   (vertico-count 15)
@@ -42,6 +43,9 @@
   (interactive)
   (when (> (point) (minibuffer-prompt-end))
     (vertico-directory-delete-char 1)))
+
+(with-eval-after-load 'vertico
+  (keymap-set vertico-map "DEL" #'ian/vertico-directory-delete-char))
 
 ;; Vertico extensions
 (use-package vertico-directory
@@ -252,12 +256,6 @@
   (add-to-list 'savehist-additional-variables 'corfu-history))
 
 ;; Corfu terminal support
-(use-package corfu-terminal
-  :straight (:type git :repo "https://codeberg.org/akib/emacs-corfu-terminal.git")
-  :unless (display-graphic-p)
-  :after corfu
-  :config
-  (corfu-terminal-mode +1))
 
 ;; ============================================================================
 ;; 7. CAPE (Completion At Point Extensions)

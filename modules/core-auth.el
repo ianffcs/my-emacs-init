@@ -19,6 +19,55 @@
 ;; Debug auth-source if needed
 ;; (setq auth-source-debug t)
 
+;; Shared credential lookup for AI providers and communication tools.
+(require 'auth-source)
+(require 'subr-x)
+
+(defconst ian/ai-host-env-map
+  '(("api.openai.com" . "OPENAI_API_KEY")
+    ("generativelanguage.googleapis.com" . "GEMINI_API_KEY")
+    ("api.anthropic.com" . "ANTHROPIC_API_KEY"))
+  "Mapping from API host to environment variable fallback for API keys.")
+
+(defconst ian/ai-host-aliases
+  '(("api.anthropic.com" . ("api.claude.ai")))
+  "Host aliases accepted when resolving API keys from auth-source.")
+
+(defun ian/authinfo-secret (host &optional user)
+  "Return secret for HOST from auth-source. Default USER is \"apikey\"."
+  (let* ((user (or user "apikey"))
+         (entry (car (auth-source-search
+                      :host host
+                      :user user
+                      :require '(:secret))))
+         (secret (plist-get entry :secret)))
+    (when secret
+      (funcall secret))))
+
+(defun ian/get-key (host &optional noerror)
+  "Get API key for HOST from auth-source, then env var fallback.
+When NOERROR is non-nil, return nil instead of signaling an error."
+  (let* ((aliases (alist-get host ian/ai-host-aliases nil nil #'string=))
+         (hosts (cons host aliases))
+         (auth-key (catch 'found
+                     (dolist (candidate hosts)
+                       (when-let* ((secret (ian/authinfo-secret candidate)))
+                         (unless (string-empty-p secret)
+                           (throw 'found secret))))
+                     nil))
+         (env-var (alist-get host ian/ai-host-env-map nil nil #'string=))
+         (env-key (and env-var (getenv env-var)))
+         (key (or auth-key env-key)))
+    (cond
+     ((and (stringp key) (not (string-empty-p key))) key)
+     (noerror nil)
+     (t
+      (error (concat "Missing API key for %s. Add one in ~/.authinfo.gpg as "
+                     "\"machine %s login apikey password <KEY>\" "
+                     "or set env var %s")
+             host host (or env-var "YOUR_API_KEY_ENV"))))))
+
+
 ;; ============================================================================
 ;; 2. KEEPASS MODE
 ;; ============================================================================

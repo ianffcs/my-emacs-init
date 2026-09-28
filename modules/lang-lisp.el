@@ -151,7 +151,6 @@
   :bind (:map clojure-ts-mode-map
               ("C-c M-j" . cider-jack-in-clj)
               ("C-c M-J" . cider-jack-in-cljs)
-              ("C-c M-b" . ian/cider-jack-in-basilisp)
               ("C-c M-c" . cider-connect-clj)
               ("C-c C-k" . cider-load-buffer)
               ("C-c C-z" . cider-switch-to-repl-buffer)
@@ -496,6 +495,9 @@
   "Start a Basilisp nREPL server and connect CIDER to it."
   (interactive)
   (cider-jack-in-universal 5))
+
+(with-eval-after-load 'cider
+  (keymap-set clojure-ts-mode-map "C-c M-b" #'ian/cider-jack-in-basilisp))
 
 (defun ian/cider-jack-in-with-profile (profile)
   "Jack in with a specific PROFILE."

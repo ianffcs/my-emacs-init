@@ -46,7 +46,9 @@
 (require 'tool-dev)         ; Git, LSP, Projectile, TRAMP
 (require 'tool-shell)       ; Eshell, vterm, terminals
 (require 'tool-dired)       ; File manager
-(require 'tool-ai)          ; AI assistants
+(require 'tool-chat)        ; AI chat and completion
+(require 'tool-speech)      ; Speech input and output
+(require 'tool-mcp)         ; Model Context Protocol
 (require 'tool-comm)        ; Communication (Telega, IRC, RSS)
 (require 'tool-media)       ; Media player (EMMS, MPD)
 (require 'tool-games)       ; Games (NetHack)

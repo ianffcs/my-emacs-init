@@ -99,10 +99,10 @@
          (kotlin-mode . gradle-mode)
          (kotlin-ts-mode . gradle-mode))
   :bind (:map gradle-mode-map
-              ("C-c g b" . gradle-build)
-              ("C-c g r" . gradle-run)
-              ("C-c g t" . gradle-test)
-              ("C-c g c" . gradle-clean)))
+              ("C-c G b" . gradle-build)
+              ("C-c G r" . gradle-run)
+              ("C-c G t" . gradle-test)
+              ("C-c G c" . gradle-clean)))
 
 ;; ============================================================================
 ;; 5. MAVEN

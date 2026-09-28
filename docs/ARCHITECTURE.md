@@ -10,9 +10,9 @@ How the configuration starts up and how its modules depend on each other.
 flowchart TD
   E["early-init.el<br/>GC tuning, frame defaults, package.el off"] --> I["init.el<br/>adds modules/ to load-path"]
   I --> P["core-packages<br/>straight.el + use-package (root of everything)"]
-  P --> C["core-* (8)<br/>settings, os, utils, editor, ui, completion, auth, session"]
+  P --> C["core-* (9)<br/>settings, os, utils, editor, ui, completion, auth, session"]
   C --> U["ui-* (4)<br/>navigation, windows, buffers, dashboard"]
-  U --> T["tool-* (7)<br/>dev, shell, dired, ai, comm, media, games"]
+  U --> T["tool-* (9)<br/>dev, shell, dired, chat, speech, MCP, comm, media, games"]
   T --> L["lang-* (14)<br/>lisp, carp, systems, jvm, beam, python, web,<br/>org, markdown, latex, ops, misc, extra, proof"]
   L --> S["emacs-startup-hook / after-init-hook<br/>theme sync, MCP servers, timers"]
 ```
@@ -21,7 +21,7 @@ Later groups may use earlier groups. Within a group, order follows `init.el`.
 
 ## What modules share
 
-There are only two direct function-level dependencies. Everything else meets through variables and hooks that Emacs or a package owns.
+Direct function calls connect a few modules; other coordination uses variables and hooks that Emacs or a package owns.
 
 ```mermaid
 flowchart LR
@@ -30,9 +30,12 @@ flowchart LR
     CU --> UD[ui-dashboard]
     CU --> TD[tool-dired]
     CUT["core-utils<br/>ian/toggle-maximize-buffer"] -.bound by.-> UW[ui-windows]
+    CA["core-auth<br/>ian/get-key"] --> TCH[tool-chat]
+    CA --> TC[tool-comm]
   end
   subgraph state["Shared state"]
-    LO["lang-org<br/>sets org-directory"] -.read.-> TA[tool-ai]
+    LO["lang-org<br/>sets org-directory"] -.read.-> TCH[tool-chat]
+    LO -.read.-> TM[tool-mcp]
     LO -.read.-> TC[tool-comm]
     LO -.read.-> LX[lang-latex]
     LO -.read.-> UD2[ui-dashboard]
@@ -40,8 +43,8 @@ flowchart LR
   end
 ```
 
-- `org-directory` is read while `tool-ai` and `tool-comm` load, before `lang-org` sets it. It works because both use Emacs's default `~/org`. Changing the directory in `lang-org` alone would leave those readers on the old path.
-- Timing hooks live in `core-ui` (theme sync on `after-init-hook` plus a timer) and `tool-ai` (MCP servers on `emacs-startup-hook`).
+- `org-directory` is read by `tool-chat`, `tool-mcp`, `tool-comm`, and other modules before `lang-org` sets it. It works because they use Emacs's default `~/org`. Changing the directory in `lang-org` alone would leave those readers on the old path.
+- Timing hooks live in `core-ui` (theme sync on `after-init-hook` plus a timer) and `tool-mcp` (MCP servers on `emacs-startup-hook`).
 
 ## Language toolchains
 

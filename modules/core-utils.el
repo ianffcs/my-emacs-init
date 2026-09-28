@@ -32,7 +32,7 @@
 
   ;; Custom prefixes
   (which-key-add-key-based-replacements
-    "C-c g" "AI/GPT"
+    "C-c g" "GPTel menu"
     "C-c o" "Org"
     "C-c p" "Project"
     "C-c n" "Notes/Roam"

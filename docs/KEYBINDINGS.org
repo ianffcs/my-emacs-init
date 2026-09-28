@@ -2,19 +2,18 @@
 #+AUTHOR: Ian Fernandez
 #+STARTUP: overview
 
-All custom keybindings use the =C-c= prefix. Each prefix maps to a
-transient menu — press the prefix alone to open the menu, or add a
-suffix directly for the shortcut.
+Custom commands use the =C-c= prefix. Some prefixes open transient menus;
+others provide direct package commands. Add a suffix for direct commands.
 
 * Prefix Map
 
-| Prefix  | Domain               | Menu function          |
+| Prefix  | Domain               | Behavior               |
 |---------+----------------------+------------------------|
 | =C-c b= | Buffers              | =ian/buffer-menu=      |
 | =C-c d= | Dired                | =ian/dired-menu=       |
 | =C-c e= | Editor operations    | —                      |
 | =C-c f= | File utilities       | —                      |
-| =C-c g= | AI / Git             | =ian/ai-menu=          |
+| =C-c g= | GPTel                | =gptel-menu=             |
 | =C-c j= | Jump / Navigation    | =ian/jump-menu=        |
 | =C-c l= | LSP (Eglot)          | — (eglot-mode-map)     |
 | =C-c n= | Org-roam             | —                      |
@@ -229,13 +228,11 @@ suffix directly for the shortcut.
 | =C-c t h= | =ian/eshell-here=      | Eshell in current dir      |
 | =C-c t P= | =ian/eshell-project=   | Eshell at project root     |
 
-* Version Control (=C-x g=, =C-c g=)
+* Version Control (=C-x g=)
 
 | Key       | Command              | Notes                      |
 |-----------+----------------------+----------------------------|
 | =C-x g=   | =magit-status=       | Magit status               |
-| =C-c g t= | =git-timemachine=    | Step through file history  |
-| =C-c g b= | =browse-at-remote=   | Open on GitHub / GitLab    |
 
 * LSP / Eglot (=C-c l=, active in =eglot-mode-map=)
 
@@ -255,22 +252,14 @@ suffix directly for the shortcut.
 | =C-c l R= | =eglot-reconnect=                    | Reconnect              |
 | =M-s s=   | =consult-eglot-symbols=              | Workspace symbols      |
 
-* AI Tools (=C-c g=)
+* AI Tools
 
-| Key       | Command                   | Notes                       |
-|-----------+---------------------------+-----------------------------|
-| =C-c g=   | =ian/ai-menu=             | AI transient menu           |
-| =C-c g g= | =gptel-send=              | Send to LLM                 |
-| =C-c g G= | =gptel=                   | Open chat buffer            |
-| =C-c g m= | =gptel-menu=              | GPTel settings / model pick |
-| =C-c g a= | =gptel-add=               | Add buffer/region to context|
-| =C-c g f= | =gptel-add-file=          | Add file to context         |
-| =C-c g r= | =gptel-rewrite=           | Rewrite selection           |
-| =C-c g w= | =whisper-run=             | Speech-to-text              |
-| =C-c g s= | =greader-mode=            | Text-to-speech              |
-| =C-c g c= | =chatgpt-shell=           | ChatGPT shell               |
-| =C-c g p= | =aider-transient-menu=    | Aider pair programmer       |
-| =M-RET=   | =minuet-complete-with-minibuffer= | AI inline completion |
+| Key       | Command                          | Notes                         |
+|-----------+----------------------------------+-------------------------------|
+| =C-c g=   | =gptel-menu=                     | GPTel options and send actions|
+| =M-RET=   | =minuet-complete-with-minibuffer= | AI inline completion          |
+
+Other package commands remain available through =M-x=.
 
 ** Org-AI (inside =org-mode=, =C-c M-=)
 
