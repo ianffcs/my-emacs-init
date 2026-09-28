@@ -66,10 +66,7 @@
     (require 'auth-source)
     (let ((match (car (apply 'auth-source-search params))))
       (if match
-          (let ((secret (plist-get match :secret)))
-            (if (functionp secret)
-                (funcall secret)
-              secret))
+          (auth-info-password match)
         (error "Password not found for %S" params))))
 
   ;; Reuse the shared auth-source resolver for IRC credentials.

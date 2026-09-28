@@ -42,8 +42,10 @@ First launch installs all packages automatically via `straight.el`. Be patient â
 | `core-editor.el` | Parens, undo-fu, multiple-cursors, expand-region, hl-todo |
 | `core-ui.el` | Modus themes, fonts, ligatures, nerd-icons, doom-modeline |
 | `core-completion.el` | Vertico, Orderless, Marginalia, Consult, Embark, Corfu, Cape |
-| `core-auth.el` | GPG, pinentry, auth-source, API credentials, password-store |
+| `core-auth.el` | GPG, pinentry, auth-source, API credentials, KeePassXC Secret Service, password-store |
 | `core-session.el` | savehist, recentf, saveplace, desktop, alerts |
+
+See [docs/CREDENTIALS.md](docs/CREDENTIALS.md) for auth-source lookup order and KeePassXC setup.
 
 ### UI (`ui-*.el`)
 

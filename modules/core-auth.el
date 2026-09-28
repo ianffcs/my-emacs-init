@@ -14,7 +14,10 @@
 
 (setq auth-sources
       '((:source "~/.authinfo.gpg")
-        (:source "~/.netrc")))
+        (:source "~/.netrc")
+        ;; Emacs' built-in Secret Service backend also works with KeePassXC.
+        ;; Keep it last so existing authinfo/netrc entries retain precedence.
+        "secrets:Login"))
 
 ;; Debug auth-source if needed
 ;; (setq auth-source-debug t)
@@ -40,9 +43,8 @@
                       :host host
                       :user user
                       :require '(:secret))))
-         (secret (plist-get entry :secret)))
-    (when secret
-      (funcall secret))))
+         (secret (auth-info-password entry)))
+    secret))
 
 (defun ian/get-key (host &optional noerror)
   "Get API key for HOST from auth-source, then env var fallback.
