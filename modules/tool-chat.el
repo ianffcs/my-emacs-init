@@ -82,49 +82,38 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
   (setq gptel-default-mode 'org-mode)
 
   ;; -- Hosted Backends --
-  (let ((openai-key (ian/get-key "api.openai.com" t))
-        (anthropic-key (ian/get-key "api.anthropic.com" t))
-        (gemini-key (ian/get-key "generativelanguage.googleapis.com" t)))
-    (setq gptel-neotek-backend
-          (gptel-make-openai "NeoTek"
-            :host "infer.neotek.wg"
-            :endpoint "/v1/chat/completions"
-            :stream t
-            :models ian/neotek-inference-models))
+  ;; Register providers independently of whether credentials are available yet.
+  (setq gptel-neotek-backend
+        (gptel-make-openai "NeoTek"
+          :host "infer.neotek.wg"
+          :endpoint "/v1/chat/completions"
+          :stream t
+          :models ian/neotek-inference-models)
+        gptel-openai-backend
+        (gptel-make-openai "OpenAI"
+          :key (lambda () (ian/get-key "api.openai.com"))
+          :stream t)
+        gptel-anthropic-backend
+        (gptel-make-anthropic "Anthropic"
+          :key (lambda () (ian/get-key "api.anthropic.com"))
+          :stream t
+          :models '(claude-sonnet-4-20250514
+                    claude-3-5-sonnet-20241022
+                    claude-3-opus-20240229
+                    claude-3-haiku-20240307))
+        gptel-gemini-backend
+        (gptel-make-gemini "Gemini"
+          :key (lambda () (ian/get-key "generativelanguage.googleapis.com"))
+          :stream t)
+        gptel-ollama-backend
+        (gptel-make-ollama "Ollama"
+          :host ian/ollama-host
+          :stream t
+          :models (ian/get-ollama-models)))
 
-    (when openai-key
-      (setq gptel-openai-backend
-            (gptel-make-openai "OpenAI"
-              :key openai-key
-              :stream t)))
-
-    (when anthropic-key
-      (setq gptel-anthropic-backend
-            (gptel-make-anthropic "Anthropic"
-              :key anthropic-key
-              :stream t
-              :models '(claude-sonnet-4-20250514
-                        claude-3-5-sonnet-20241022
-                        claude-3-opus-20240229
-                        claude-3-haiku-20240307))))
-
-    (when gemini-key
-      (setq gptel-gemini-backend
-            (gptel-make-gemini "Gemini"
-              :key gemini-key
-              :stream t)))
-
-    ;; -- Ollama Backend (Local or Machine-Specific) --
-    (setq gptel-ollama-backend
-          (gptel-make-ollama "Ollama"
-            :host ian/ollama-host
-            :stream t
-            :models (ian/get-ollama-models)))
-
-    ;; Use NeoTek by default.  Other configured providers remain selectable
-    ;; from `gptel-menu'.
-    (setq gptel-backend gptel-neotek-backend
-          gptel-model (car ian/neotek-inference-models)))
+  ;; Provider selection stays explicit in `gptel-menu'.
+  (setq gptel-backend gptel-neotek-backend
+        gptel-model (car ian/neotek-inference-models))
 
   ;; Custom directives
   (setq gptel-directives
@@ -186,7 +175,7 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
               ("C-c M-$" . org-ai-open-account-usage-url))
   :custom
   ;; --- API Configuration ---
-  (org-ai-openai-api-token (ian/get-key "api.openai.com" t))
+  (org-ai-openai-api-token "")
   (org-ai-default-chat-model "gpt-4o")
   (org-ai-default-max-tokens 4096)
   (org-ai-default-chat-system-prompt
@@ -205,9 +194,19 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
   (org-ai-image-default-style "vivid")
 
   :config
-  ;; Enable global mode for AI blocks only when requests can authenticate.
-  (when org-ai-openai-api-token
-    (org-ai-global-mode 1))
+  ;; org-ai has no token callback setting; adapt its request-time lookup.
+  ;; Preserve its native lookup for other services and explicit token settings.
+  (advice-add 'org-ai--openai-get-token :around
+              (lambda (original &optional service)
+                (let ((host (pcase (or service org-ai-service)
+                              ('openai "api.openai.com")
+                              ('anthropic "api.anthropic.com")
+                              ('google "generativelanguage.googleapis.com"))))
+                  (if (and host (string-empty-p org-ai-openai-api-token))
+                      (or (ian/get-key host t) (funcall original service))
+                    (funcall original service))))
+              '((name . shared-credentials)))
+  (org-ai-global-mode 1)
 
   ;; Install yasnippets for org-ai
   (org-ai-install-yasnippets)
@@ -330,7 +329,7 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
 (use-package chatgpt-shell
   :commands chatgpt-shell
   :custom
-  (chatgpt-shell-openai-key (ian/get-key "api.openai.com" t))
+  (chatgpt-shell-openai-key (lambda () (ian/get-key "api.openai.com")))
   (chatgpt-shell-model-version "gpt-4o-mini")
   (chatgpt-shell-system-prompt "You are a helpful assistant.")
   (chatgpt-shell-streaming t)
@@ -340,7 +339,7 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
 (use-package dall-e-shell
   :commands dall-e-shell
   :custom
-  (dall-e-shell-openai-key (ian/get-key "api.openai.com" t))
+  (dall-e-shell-openai-key (lambda () (ian/get-key "api.openai.com")))
   (dall-e-shell-image-size "1024x1024")
   (dall-e-shell-model-version "dall-e-3"))
 
@@ -365,29 +364,31 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
   (minuet-request-timeout 8)
   (minuet-n-completions 1)
   :config
-  ;; Provider preference: OpenAI -> Claude -> local Ollama.
-  (let ((openai-key (ian/get-key "api.openai.com" t))
-        (claude-key (ian/get-key "api.anthropic.com" t)))
-    (cond
-     ((and (stringp openai-key) (not (string-empty-p openai-key)))
-      (setq minuet-provider 'openai)
-      (plist-put minuet-openai-options :model "gpt-4.1-nano")
-      (plist-put minuet-openai-options :api-key (lambda () (ian/get-key "api.openai.com")))
-      (minuet-set-optional-options minuet-openai-options :max_completion_tokens 128)
-      (minuet-set-optional-options minuet-openai-options :reasoning_effort "none"))
-     ((and (stringp claude-key) (not (string-empty-p claude-key)))
-      (setq minuet-provider 'claude)
-      (plist-put minuet-claude-options :model "claude-sonnet-4-20250514")
-      (plist-put minuet-claude-options :api-key (lambda () (ian/get-key "api.anthropic.com")))
-      (minuet-set-optional-options minuet-claude-options :max_tokens 256))
-     (t
-      (setq minuet-provider 'openai-compatible)
-      (plist-put minuet-openai-compatible-options :name "Ollama")
-      (plist-put minuet-openai-compatible-options
-                 :end-point "http://10.100.0.2:11434/v1/chat/completions")
-      (plist-put minuet-openai-compatible-options :api-key "TERM")
-      (plist-put minuet-openai-compatible-options :model "qwen3-next-80b-fixed:latest")
-      (minuet-set-optional-options minuet-openai-compatible-options :max_tokens 256))))
+  ;; Configure every provider without resolving credentials during package load.
+  (plist-put minuet-openai-options :model "gpt-4.1-nano")
+  (plist-put minuet-openai-options :api-key (lambda () (ian/get-key "api.openai.com")))
+  (minuet-set-optional-options minuet-openai-options :max_completion_tokens 128)
+  (minuet-set-optional-options minuet-openai-options :reasoning_effort "none")
+  (plist-put minuet-claude-options :model "claude-sonnet-4-20250514")
+  (plist-put minuet-claude-options :api-key (lambda () (ian/get-key "api.anthropic.com")))
+  (minuet-set-optional-options minuet-claude-options :max_tokens 256)
+  (plist-put minuet-openai-compatible-options :name "Ollama")
+  (plist-put minuet-openai-compatible-options
+             :end-point "http://10.100.0.2:11434/v1/chat/completions")
+  (plist-put minuet-openai-compatible-options :api-key "TERM")
+  (plist-put minuet-openai-compatible-options :model "qwen3-next-80b-fixed:latest")
+  (minuet-set-optional-options minuet-openai-compatible-options :max_tokens 256)
+
+  ;; These are the package's two request entry points, including auto-suggestion.
+  ;; Named inline advice is replaced, rather than duplicated, on module reload.
+  (dolist (command '(minuet-show-suggestion minuet-complete-with-minibuffer))
+    (advice-add command :before
+                (lambda (&rest _)
+                  (setq minuet-provider
+                        (cond ((ian/get-key "api.openai.com" t) 'openai)
+                              ((ian/get-key "api.anthropic.com" t) 'claude)
+                              (t 'openai-compatible))))
+                '((name . credential-provider-preference))))
 
   ;; Styling
   (set-face-attribute 'minuet-suggestion-face nil

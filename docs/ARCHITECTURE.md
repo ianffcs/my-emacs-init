@@ -80,3 +80,32 @@ Each toolchain lists its `-mode` and `-ts-mode` twins explicitly. See `test/lang
 
 - Languages that autostarted before this layout (Python, JS/TS, Rust, Go, C/C++, Java, Elixir, Haskell, Terraform, shell, Dockerfile, Nix, Clojure, Dart, Idris) hook `eglot-ensure` unconditionally.
 - Newer ones (Kotlin, Scala, Ruby, Lua, Zig, Racket, Gleam, Erlang, R, Julia) hook only if the server binary is on `PATH` when the module loads. Installing one mid-session needs a restart, and a server that only exists inside a project's `envrc` environment is missed.
+
+## Request-time credentials and packaged workers
+
+`core-auth` owns shared lookup and fallback rules. `tool-chat` registers all
+gptel backends even when credentials are absent, passing callbacks to gptel,
+chatgpt-shell, DALL-E shell and Minuet. These resolve credentials when used;
+auth-source retains its own caching behavior. Gptel still defaults to NeoTek.
+
+Minuet reevaluates OpenAI → Claude → Ollama before each completion using named
+inline advice on its two completion commands. Org AI lacks a credential callback
+setting, so named inline advice adapts its token lookup for OpenAI, Anthropic and
+Google while retaining explicit tokens and native lookup for other services.
+Neither adapter adds an `ian/` function. These upstream entry points must be
+checked when upgrading packages.
+
+WhatsAppel's straight recipe includes its four Python workers and their shared
+`bridge_protocol.py`, preserving the `scripts/` directory relative to its Lisp
+files. Installing only Lisp can pass a load check but fail on first use.
+
+Offline checks (after package installation):
+
+```sh
+emacs --batch -Q -l init.el -l test/chat-credentials-test.el -f ert-run-tests-batch-and-exit
+python3 test/whatsapp-runtime-test.py
+```
+
+The credential test uses synthetic values and stops Minuet before any request;
+the worker check imports copies isolated from the upstream checkout. Neither
+check connects to an account or sends a message.

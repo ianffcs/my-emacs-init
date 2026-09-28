@@ -52,7 +52,10 @@
 (use-package whatsapp
   :straight (:type git :host codeberg :repo "berkeley/whatsappel"
                    :files ("whatsapp.el" "whatsapp-profiles.el"
-                           "whatsapp-delivery.el" "whatsapp-org.el"))
+                           "whatsapp-delivery.el" "whatsapp-org.el"
+                           ("scripts" "scripts/read-worker.py"
+                            "scripts/send-worker.py" "scripts/media-worker.py"
+                            "scripts/profile-worker.py" "scripts/bridge_protocol.py")))
   :commands (whatsapp-launch whatsapp whatsapp-connect whatsapp-qr)
   :bind ("C-c T w" . whatsapp-launch)
   :config
