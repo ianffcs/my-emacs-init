@@ -185,6 +185,35 @@
         select-enable-primary t))
 
 ;; ============================================================================
+;; 3b. FREEBSD SPECIFIC
+;; ============================================================================
+
+(when (eq system-type 'berkeley-unix)
+  ;; --- PATH: ports and packages install under /usr/local ---
+  (dolist (dir '("/usr/local/bin" "/usr/local/sbin"))
+    (unless (member dir exec-path)
+      (add-to-list 'exec-path dir))
+    (unless (string-match-p (regexp-quote dir) (or (getenv "PATH") ""))
+      (setenv "PATH" (concat dir path-separator (getenv "PATH")))))
+
+  ;; --- Trash ---
+  (setq delete-by-moving-to-trash t)
+
+  ;; --- Browser ---
+  (setq browse-url-browser-function 'browse-url-generic
+        browse-url-generic-program (or (executable-find "xdg-open")
+                                       (executable-find "firefox")
+                                       (executable-find "chrome")))
+
+  ;; --- Notifications ---
+  (when (executable-find "notify-send")
+    (setq alert-default-style 'libnotify))
+
+  ;; --- Clipboard (X11/Wayland) ---
+  (setq select-enable-clipboard t
+        select-enable-primary t))
+
+;; ============================================================================
 ;; 4. WINDOWS SPECIFIC
 ;; ============================================================================
 
@@ -263,6 +292,7 @@
 
 (use-package keychain-environment
   :if (or (eq system-type 'gnu/linux)
+          (eq system-type 'berkeley-unix)
           (eq system-type 'darwin))
   :defer 2
   :config
