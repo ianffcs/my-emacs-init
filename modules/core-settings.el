@@ -15,6 +15,10 @@
 
 ;;; Code:
 
+;; Set the shared Org root before tool and UI modules derive paths from it.
+(defvar org-directory (expand-file-name "org" "~")
+  "Root directory for Org files.")
+
 ;; ============================================================================
 ;; 1. PERFORMANCE
 ;; ============================================================================

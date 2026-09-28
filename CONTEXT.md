@@ -19,6 +19,7 @@ _Avoid_: ts variant, tree-sitter mode alias
 
 ## Flagged ambiguities
 
+- `core-settings` establishes `org-directory` before modules that derive paths from it load. `lang-org` configures Org behavior and paths within that root; it does not own or reset the shared root.
 - Registration is deliberately not abstracted: no `core-lang.el`, no `ian/lang-*` function. Each toolchain uses Emacs's own `eglot-server-programs`, mode hooks, `apheleia-mode-alist` and `apheleia-formatters` directly, so nothing is hidden behind a definition.
 - Autostart is `eglot-ensure` on each mode's hook. Languages that autostarted before this layout hook it unconditionally. Newer ones are gated at load time by `executable-find` on the server binary, so a server installed mid-session needs a restart and one that exists only inside a project's `envrc` environment is missed.
 - Registrations must be top-level forms, or `with-eval-after-load` forms at top level, not inside `use-package :config`. The consistency test stubs `use-package` and loads every `lang-*` module in batch.

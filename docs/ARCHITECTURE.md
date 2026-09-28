@@ -34,16 +34,16 @@ flowchart LR
     CA --> TC[tool-comm]
   end
   subgraph state["Shared state"]
-    LO["lang-org<br/>sets org-directory"] -.read.-> TCH[tool-chat]
-    LO -.read.-> TM[tool-mcp]
-    LO -.read.-> TC[tool-comm]
-    LO -.read.-> LX[lang-latex]
-    LO -.read.-> UD2[ui-dashboard]
+    CS["core-settings<br/>sets org-directory"] -.read.-> TCH[tool-chat]
+    CS -.read.-> TM[tool-mcp]
+    CS -.read.-> TC[tool-comm]
+    CS -.read.-> LX[lang-latex]
+    CS -.read.-> UD2[ui-dashboard]
     LM["lang-* modules<br/>each fills eglot-server-programs,<br/>mode hooks, apheleia-mode-alist"] --> ED["eglot / apheleia<br/>(owned by their packages)"]
   end
 ```
 
-- `org-directory` is read by `tool-chat`, `tool-mcp`, `tool-comm`, and other modules before `lang-org` sets it. It works because they use Emacs's default `~/org`. Changing the directory in `lang-org` alone would leave those readers on the old path.
+- `core-settings` establishes `org-directory` before UI, tool, and language modules load. Consumers derive their paths from this shared root; `lang-org` configures Org behavior and derived Org paths without resetting the root.
 - Timing hooks live in `core-ui` (theme sync on `after-init-hook` plus a timer) and `tool-mcp` (MCP servers on `emacs-startup-hook`).
 
 ## Language toolchains

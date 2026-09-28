@@ -309,17 +309,17 @@
   (widget-insert (propertize "Quick Access: " 'face 'dashboard-heading))
   (insert "[")
   (widget-create 'push-button
-                 :action (lambda (&rest _) (find-file "~/org/inbox.org"))
+                 :action (lambda (&rest _) (find-file (expand-file-name "inbox.org" org-directory)))
                  :button-face 'dashboard-navigator
                  "Inbox")
   (insert "] [")
   (widget-create 'push-button
-                 :action (lambda (&rest _) (find-file "~/org/todo.org"))
+                 :action (lambda (&rest _) (find-file (expand-file-name "todo.org" org-directory)))
                  :button-face 'dashboard-navigator
                  "Todo")
   (insert "] [")
   (widget-create 'push-button
-                 :action (lambda (&rest _) (find-file "~/org/notes.org"))
+                 :action (lambda (&rest _) (find-file (expand-file-name "notes.org" org-directory)))
                  :button-face 'dashboard-navigator
                  "Notes")
   (insert "] [")
@@ -431,8 +431,8 @@
      ("P" "Switch project" projectile-switch-project)
      ("n" "Org-roam" org-roam-node-find)]
     ["Quick Open"
-     ("i" "Inbox" (lambda () (interactive) (find-file "~/org/inbox.org")))
-     ("t" "Todo" (lambda () (interactive) (find-file "~/org/todo.org")))
+     ("i" "Inbox" (lambda () (interactive) (find-file (expand-file-name "inbox.org" org-directory))))
+     ("t" "Todo" (lambda () (interactive) (find-file (expand-file-name "todo.org" org-directory))))
      ("c" "Config" (lambda () (interactive) (find-file user-init-file)))
      ("s" "Scratch" (lambda () (interactive) (switch-to-buffer "*scratch*")))])
 

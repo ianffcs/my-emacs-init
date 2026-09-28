@@ -355,7 +355,7 @@
   :config
   ;; Useful registers
   (set-register ?i (cons 'file user-init-file))
-  (set-register ?o (cons 'file (expand-file-name "~/org")))
+  (set-register ?o (cons 'file org-directory))
   (set-register ?s (cons 'file (expand-file-name "~/src"))))
 
 (defun ian/clear-registers ()
@@ -365,7 +365,7 @@
   (message "All registers cleared"))
 
 ;; Add more register shortcuts
-(set-register ?t (cons 'file (expand-file-name "~/org/todo.org")))
+(set-register ?t (cons 'file (expand-file-name "todo.org" org-directory)))
 (set-register ?c (cons 'file (expand-file-name "docs/cheatsheet.org" user-emacs-directory)))
 
 ;; ============================================================================

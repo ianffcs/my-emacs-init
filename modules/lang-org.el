@@ -33,7 +33,6 @@
          (org-mode . ian/org-mode-setup))
   :custom
   ;; --- Directories ---
-  (org-directory (expand-file-name "~/org"))
   (org-default-notes-file (expand-file-name "inbox.org" org-directory))
   (org-agenda-files (list org-directory))
   (org-agenda-skip-unavailable-files t)
@@ -727,9 +726,10 @@ Thank you!
 (use-package org-ref
   :after org
   :custom
-  (org-ref-default-bibliography '("~/org/bibliography/references.bib"))
-  (org-ref-pdf-directory "~/org/bibliography/pdfs/")
-  (org-ref-notes-directory "~/org/bibliography/notes/"))
+  (org-ref-default-bibliography
+   (list (expand-file-name "bibliography/references.bib" org-directory)))
+  (org-ref-pdf-directory (expand-file-name "bibliography/pdfs/" org-directory))
+  (org-ref-notes-directory (expand-file-name "bibliography/notes/" org-directory)))
 
 ;; --- Org Pomodoro (Time management) ---
 (use-package org-pomodoro

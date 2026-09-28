@@ -269,7 +269,7 @@
 (defun ian/dired-org ()
   "Open dired in org directory."
   (interactive)
-  (dired (expand-file-name "~/org")))
+  (dired org-directory))
 
 (defun ian/dired-copy-path ()
   "Copy the path of file at point."
