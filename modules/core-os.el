@@ -268,6 +268,47 @@
   (setq interprogram-cut-function #'ian/wsl-copy)
   (setq interprogram-paste-function #'ian/wsl-paste))
 
+;; --- Terminal (-nw) clipboard via xclip / wl-copy ---
+(defvar ian/tty-clipboard-process nil
+  "Process currently owning the clipboard selection in terminal Emacs.")
+
+(defun ian/tty-clipboard-tool ()
+  "Return (COPY-CMD PASTE-CMD) for the available clipboard tool, or nil."
+  (cond ((and (getenv "WAYLAND_DISPLAY") (executable-find "wl-copy"))
+         '(("wl-copy") ("wl-paste" "--no-newline")))
+        ((and (getenv "DISPLAY") (executable-find "xclip"))
+         '(("xclip" "-selection" "clipboard" "-i")
+           ("xclip" "-selection" "clipboard" "-o")))))
+
+(defun ian/tty-clipboard-copy (text)
+  "Copy TEXT to the system clipboard when in a terminal frame."
+  (when-let* (((not (display-graphic-p)))
+              (tool (ian/tty-clipboard-tool)))
+    (when (process-live-p ian/tty-clipboard-process)
+      (delete-process ian/tty-clipboard-process))
+    (let ((process-connection-type nil))
+      (setq ian/tty-clipboard-process
+            (make-process :name "tty-clipboard" :buffer nil
+                          :command (car tool) :noquery t
+                          :coding 'utf-8-unix))
+      (process-send-string ian/tty-clipboard-process text)
+      (process-send-eof ian/tty-clipboard-process))))
+
+(defun ian/tty-clipboard-paste ()
+  "Return system clipboard text when in a terminal frame, else nil."
+  (when-let* (((not (display-graphic-p)))
+              (tool (ian/tty-clipboard-tool)))
+    (with-temp-buffer
+      (let ((coding-system-for-read 'utf-8-unix))
+        (when (zerop (apply #'call-process (caar (cdr tool)) nil '(t nil) nil
+                            (cdar (cdr tool))))
+          (let ((s (buffer-string)))
+            (unless (string-empty-p s) s)))))))
+
+(unless (ian/wsl-p)
+  (setq interprogram-cut-function #'ian/tty-clipboard-copy
+        interprogram-paste-function #'ian/tty-clipboard-paste))
+
 ;; ============================================================================
 ;; 6. COMMON SYSTEM UTILITIES
 ;; ============================================================================
