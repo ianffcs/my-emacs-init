@@ -154,15 +154,15 @@ needed for the current Magit version, and suggest safer alternatives.
 #+begin_example
 My Emacs config uses auth-source to retrieve API keys via this helper:
 
-  (defun ian/get-key (host)
-    (let ((secret (plist-get (car (auth-source-search
-                                   :host host :user "apikey"
-                                   :require '(:secret)))
-                             :secret)))
-      (if secret (funcall secret)
-        (error "No API key found for %s in .authinfo" host))))
+  (ian/ai-key PROVIDER &optional NOERROR)
 
-The hosts used are: api.openai.com, api.anthropic.com, generativelanguage.googleapis.com
+PROVIDER is a symbol from `ian/ai-providers' ('openai, 'anthropic, 'google).
+It searches auth-source for the provider's host (and aliases) with user
+"apikey", then falls back to an environment variable:
+
+  openai    -> api.openai.com                     / OPENAI_API_KEY
+  anthropic -> api.anthropic.com (api.claude.ai)  / ANTHROPIC_API_KEY
+  google    -> generativelanguage.googleapis.com  / GEMINI_API_KEY
 
 On a new Linux machine (spark), write the ~/.authinfo.gpg entries I need, explain
 how to create the GPG-encrypted version with gpg --symmetric, and show how to

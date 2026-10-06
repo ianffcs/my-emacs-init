@@ -14,6 +14,7 @@ others provide direct package commands. Add a suffix for direct commands.
 | =C-c e= | Editor operations    | —                      |
 | =C-c f= | File utilities       | —                      |
 | =C-c g= | GPTel                | =gptel-menu=             |
+| =C-c M-g= | Agent shells       | =agent-shell=            |
 | =C-c j= | Jump / Navigation    | =ian/jump-menu=        |
 | =C-c l= | LSP (Eglot)          | — (eglot-mode-map)     |
 | =C-c n= | Org-roam             | —                      |
@@ -257,6 +258,7 @@ others provide direct package commands. Add a suffix for direct commands.
 | Key       | Command                          | Notes                         |
 |-----------+----------------------------------+-------------------------------|
 | =C-c g=   | =gptel-menu=                     | GPTel options and send actions|
+| =C-c M-g= | =agent-shell=                    | ACP agents: Claude, Codex, Kimi, Qwen |
 | =M-RET=   | =minuet-complete-with-minibuffer= | AI inline completion          |
 
 Other package commands remain available through =M-x=.

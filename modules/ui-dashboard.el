@@ -201,41 +201,22 @@
 ;; 2. PROJECT BOOKMARKS
 ;; ============================================================================
 
-(defun ian/register-src-projects ()
-  "Register all directories in ~/src/ as projectile projects."
-  (let ((src-dir (expand-file-name "~/src/")))
-    (when (file-directory-p src-dir)
-      (dolist (dir (directory-files src-dir t "^[^.]"))
-        (when (and (file-directory-p dir)
-                   (not (string-match-p "\\.DS_Store\\|\\.env\\|\\.zip$\\|node_modules" dir)))
-          (projectile-add-known-project dir))))))
+(defconst ian/project-roots '("~/src" "~/work" "~/github")
+  "Directories whose immediate subdirectories are projectile projects.")
 
-(defun ian/register-work-projects ()
-  "Register all directories in ~/work/ as projectile projects."
-  (let ((work-dir (expand-file-name "~/work/")))
-    (when (file-directory-p work-dir)
-      (dolist (dir (directory-files work-dir t "^[^.]"))
-        (when (and (file-directory-p dir)
-                   (not (string-match-p "\\.DS_Store\\|\\.env\\|\\.zip$\\|node_modules" dir)))
-          (projectile-add-known-project dir))))))
-
-(defun ian/register-github-projects ()
-  "Register all directories in ~/github/ as projectile projects."
-  (let ((github-dir (expand-file-name "~/github/")))
-    (when (file-directory-p github-dir)
-      (dolist (dir (directory-files github-dir t "^[^.]"))
-        (when (and (file-directory-p dir)
-                   (not (string-match-p "\\.DS_Store\\|\\.env\\|\\.zip$\\|node_modules" dir)))
-          (projectile-add-known-project dir))))))
+(defun ian/register-projects ()
+  "Register eligible subdirectories of `ian/project-roots' as projectile projects."
+  (dolist (root ian/project-roots)
+    (let ((root-dir (expand-file-name root)))
+      (when (file-directory-p root-dir)
+        (dolist (dir (directory-files root-dir t "^[^.]"))
+          (when (and (file-directory-p dir)
+                     (not (string-match-p "\\.DS_Store\\|\\.env\\|\\.zip$\\|node_modules" dir)))
+            (projectile-add-known-project dir)))))))
 
 ;; Register all project directories on startup
 (with-eval-after-load 'projectile
-  (run-with-idle-timer
-   5 nil
-   (lambda ()
-     (ian/register-src-projects)
-     (ian/register-work-projects)
-     (ian/register-github-projects))))
+  (run-with-idle-timer 5 nil #'ian/register-projects))
 
 ;; ============================================================================
 ;; 3. DESKTOP INTEGRATION
@@ -309,17 +290,17 @@
   (widget-insert (propertize "Quick Access: " 'face 'dashboard-heading))
   (insert "[")
   (widget-create 'push-button
-                 :action (lambda (&rest _) (find-file (expand-file-name "inbox.org" org-directory)))
+                 :action (lambda (&rest _) (find-file (ian/org-file 'inbox)))
                  :button-face 'dashboard-navigator
                  "Inbox")
   (insert "] [")
   (widget-create 'push-button
-                 :action (lambda (&rest _) (find-file (expand-file-name "todo.org" org-directory)))
+                 :action (lambda (&rest _) (find-file (ian/org-file 'todo)))
                  :button-face 'dashboard-navigator
                  "Todo")
   (insert "] [")
   (widget-create 'push-button
-                 :action (lambda (&rest _) (find-file (expand-file-name "notes.org" org-directory)))
+                 :action (lambda (&rest _) (find-file (ian/org-file 'notes)))
                  :button-face 'dashboard-navigator
                  "Notes")
   (insert "] [")
@@ -431,8 +412,8 @@
      ("P" "Switch project" projectile-switch-project)
      ("n" "Org-roam" org-roam-node-find)]
     ["Quick Open"
-     ("i" "Inbox" (lambda () (interactive) (find-file (expand-file-name "inbox.org" org-directory))))
-     ("t" "Todo" (lambda () (interactive) (find-file (expand-file-name "todo.org" org-directory))))
+     ("i" "Inbox" (lambda () (interactive) (find-file (ian/org-file 'inbox))))
+     ("t" "Todo" (lambda () (interactive) (find-file (ian/org-file 'todo))))
      ("c" "Config" (lambda () (interactive) (find-file user-init-file)))
      ("s" "Scratch" (lambda () (interactive) (switch-to-buffer "*scratch*")))])
 

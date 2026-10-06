@@ -5,21 +5,21 @@
 
 ;;; Code:
 
-(declare-function ian/get-key "core-auth")
+(declare-function ian/ai-key "core-auth")
+(defvar ian/ai-providers)
+(declare-function ian/get-host "core-auth")
+(declare-function ian/ai-key-callback "core-auth")
+(declare-function ian/ollama-host "core-auth")
+(declare-function ian/ollama-host-and-port "core-auth")
+(declare-function ian/ai-available-provider "core-auth")
 (require 'cl-lib)
 (require 'subr-x)
 
 ;; 1. HELPER FUNCTIONS
 ;; ============================================================================
 
-(defcustom ian/ollama-host
-  (or (getenv "IAN_OLLAMA_HOST") "10.100.0.3:11434")
-  "Host and port of the Ollama server used by local AI integrations.
-
-Set `IAN_OLLAMA_HOST' for machine-specific or remote Ollama instances, for
-example \"spark.local:11434\".  The value must not include a URL scheme."
-  :type 'string
-  :group 'ian)
+(defconst ian/ollama-chat-model "qwen3-next-80b-fixed:latest"
+  "Default Ollama chat model for ellama and Minuet.")
 
 (defconst ian/neotek-inference-models
   '(deepseek-v4-flash-vllm
@@ -40,8 +40,8 @@ example \"spark.local:11434\".  The value must not include a URL scheme."
 (defun ian/ai-key-status ()
   "Show whether OpenAI and Claude API keys are available."
   (interactive)
-  (let ((openai-ok (ian/get-key "api.openai.com" t))
-        (claude-ok (ian/get-key "api.anthropic.com" t)))
+  (let ((openai-ok (ian/ai-key 'openai t))
+        (claude-ok (ian/ai-key 'anthropic t)))
     (message "AI keys -> OpenAI: %s | Claude: %s"
              (if openai-ok "ok" "missing")
              (if claude-ok "ok" "missing"))))
@@ -50,7 +50,7 @@ example \"spark.local:11434\".  The value must not include a URL scheme."
   "Return models advertised by Ollama at HOST.
 HOST defaults to `ian/ollama-host'.  Return a conservative fallback when the
 server is unavailable, so configuring gptel never makes Emacs unusable."
-  (let* ((host (or host ian/ollama-host))
+  (let* ((host (or host (ian/ollama-host)))
          (url (format "http://%s/api/tags" host))
          (response (with-temp-buffer
                      (when (zerop (call-process "curl" nil t nil
@@ -91,11 +91,11 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
           :models ian/neotek-inference-models)
         gptel-openai-backend
         (gptel-make-openai "OpenAI"
-          :key (lambda () (ian/get-key "api.openai.com"))
+          :key (ian/ai-key-callback 'openai)
           :stream t)
         gptel-anthropic-backend
         (gptel-make-anthropic "Anthropic"
-          :key (lambda () (ian/get-key "api.anthropic.com"))
+          :key (ian/ai-key-callback 'anthropic)
           :stream t
           :models '(claude-sonnet-4-20250514
                     claude-3-5-sonnet-20241022
@@ -103,11 +103,11 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
                     claude-3-haiku-20240307))
         gptel-gemini-backend
         (gptel-make-gemini "Gemini"
-          :key (lambda () (ian/get-key "generativelanguage.googleapis.com"))
+          :key (ian/ai-key-callback 'google)
           :stream t)
         gptel-ollama-backend
         (gptel-make-ollama "Ollama"
-          :host ian/ollama-host
+          :host (ian/ollama-host)
           :stream t
           :models (ian/get-ollama-models)))
 
@@ -150,10 +150,10 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
   (require 'llm-ollama)
   (setq ellama-provider
         (make-llm-ollama
-         :chat-model "qwen3-next-80b-fixed:latest"
+         :chat-model ian/ollama-chat-model
          :embedding-model "nomic-embed-text"
-         :host "10.100.0.2"
-         :port 11434))
+         :host (car (ian/ollama-host-and-port))
+         :port (cdr (ian/ollama-host-and-port))))
 
   ;; Naming scheme for ellama sessions
   (setq ellama-naming-scheme 'ellama-generate-name-by-llm))
@@ -161,6 +161,16 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
 ;; ============================================================================
 ;; 6. ORG-AI (AI in Org-mode)
 ;; ============================================================================
+
+(defun ian/org-ai--get-token-with-shared-credentials (original &optional service)
+  "Advice around `org-ai--openai-get-token' resolving tokens via shared credentials.
+Preserve org-ai's native lookup for other services and for explicit token
+settings."
+  (let ((provider (or service org-ai-service)))
+    (if (and (assq provider ian/ai-providers)
+             (string-empty-p org-ai-openai-api-token))
+        (or (ian/ai-key provider t) (funcall original service))
+      (funcall original service))))
 
 (use-package org-ai
   :after org
@@ -197,14 +207,7 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
   ;; org-ai has no token callback setting; adapt its request-time lookup.
   ;; Preserve its native lookup for other services and explicit token settings.
   (advice-add 'org-ai--openai-get-token :around
-              (lambda (original &optional service)
-                (let ((host (pcase (or service org-ai-service)
-                              ('openai "api.openai.com")
-                              ('anthropic "api.anthropic.com")
-                              ('google "generativelanguage.googleapis.com"))))
-                  (if (and host (string-empty-p org-ai-openai-api-token))
-                      (or (ian/get-key host t) (funcall original service))
-                    (funcall original service))))
+              #'ian/org-ai--get-token-with-shared-credentials
               '((name . shared-credentials)))
   (org-ai-global-mode 1)
 
@@ -329,7 +332,7 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
 (use-package chatgpt-shell
   :commands chatgpt-shell
   :custom
-  (chatgpt-shell-openai-key (lambda () (ian/get-key "api.openai.com")))
+  (chatgpt-shell-openai-key (ian/ai-key-callback 'openai))
   (chatgpt-shell-model-version "gpt-4o-mini")
   (chatgpt-shell-system-prompt "You are a helpful assistant.")
   (chatgpt-shell-streaming t)
@@ -339,7 +342,7 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
 (use-package dall-e-shell
   :commands dall-e-shell
   :custom
-  (dall-e-shell-openai-key (lambda () (ian/get-key "api.openai.com")))
+  (dall-e-shell-openai-key (ian/ai-key-callback 'openai))
   (dall-e-shell-image-size "1024x1024")
   (dall-e-shell-model-version "dall-e-3"))
 
@@ -366,17 +369,17 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
   :config
   ;; Configure every provider without resolving credentials during package load.
   (plist-put minuet-openai-options :model "gpt-4.1-nano")
-  (plist-put minuet-openai-options :api-key (lambda () (ian/get-key "api.openai.com")))
+  (plist-put minuet-openai-options :api-key (ian/ai-key-callback 'openai))
   (minuet-set-optional-options minuet-openai-options :max_completion_tokens 128)
   (minuet-set-optional-options minuet-openai-options :reasoning_effort "none")
   (plist-put minuet-claude-options :model "claude-sonnet-4-20250514")
-  (plist-put minuet-claude-options :api-key (lambda () (ian/get-key "api.anthropic.com")))
+  (plist-put minuet-claude-options :api-key (ian/ai-key-callback 'anthropic))
   (minuet-set-optional-options minuet-claude-options :max_tokens 256)
   (plist-put minuet-openai-compatible-options :name "Ollama")
   (plist-put minuet-openai-compatible-options
-             :end-point "http://10.100.0.2:11434/v1/chat/completions")
+             :end-point (format "http://%s/v1/chat/completions" (ian/ollama-host)))
   (plist-put minuet-openai-compatible-options :api-key "TERM")
-  (plist-put minuet-openai-compatible-options :model "qwen3-next-80b-fixed:latest")
+  (plist-put minuet-openai-compatible-options :model ian/ollama-chat-model)
   (minuet-set-optional-options minuet-openai-compatible-options :max_tokens 256)
 
   ;; These are the package's two request entry points, including auto-suggestion.
@@ -384,10 +387,7 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
   (dolist (command '(minuet-show-suggestion minuet-complete-with-minibuffer))
     (advice-add command :before
                 (lambda (&rest _)
-                  (setq minuet-provider
-                        (cond ((ian/get-key "api.openai.com" t) 'openai)
-                              ((ian/get-key "api.anthropic.com" t) 'claude)
-                              (t 'openai-compatible))))
+                  (setq minuet-provider (ian/ai-available-provider)))
                 '((name . credential-provider-preference))))
 
   ;; Styling
@@ -405,8 +405,38 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
   :custom
   (aider-args '("--model" "gpt-4o-mini")))
 
-;; C-c g opens the existing GPTel menu. Other AI integrations remain
-;; available through their package commands; Org-AI also has local Org bindings.
+;; ============================================================================
+;; 15. AGENT-SHELL (ACP coding agents: Claude, Codex, Kimi, Qwen)
+;; ============================================================================
+
+(use-package agent-shell
+  :commands (agent-shell
+             agent-shell-anthropic-start-claude-code
+             agent-shell-openai-start-codex
+             agent-shell-kimi-start-agent
+             agent-shell-qwen-start)
+  :bind ("C-c M-g" . agent-shell)
+  :config
+  ;; Claude and Codex resolve API keys at session start, like the other
+  ;; AI integrations.  Qwen and Kimi authenticate through their own CLIs
+  ;; (/usr/bin/qwen, /usr/bin/kimi); inherit the session environment so
+  ;; PATH, HOME, and the CLI login state are available to the agent.
+  (setq agent-shell-anthropic-authentication
+        (agent-shell-anthropic-make-authentication
+         :api-key (ian/ai-key-callback 'anthropic))
+        agent-shell-openai-authentication
+        (agent-shell-openai-make-authentication
+         :api-key (ian/ai-key-callback 'openai))
+        agent-shell-qwen-authentication
+        (agent-shell-qwen-make-authentication :login t)
+        agent-shell-qwen-environment
+        (agent-shell-make-environment-variables :inherit-env t)
+        agent-shell-kimi-environment
+        (agent-shell-make-environment-variables :inherit-env t)))
+
+;; C-c g opens the existing GPTel menu. C-c M-g opens agent-shell (Claude,
+;; Codex, Kimi, Qwen via ACP). Other AI integrations remain available
+;; through their package commands; Org-AI also has local Org bindings.
 ;; M-RET opens Minuet completion.
 ;; C-c M- prefix for org-ai in org-mode:
 ;; C-c M-a   - org-ai-complete

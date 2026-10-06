@@ -43,6 +43,9 @@ emacs --batch -Q --eval "(find-file \"modules/file.el\") (check-parens)"
 # LSP registration consistency (batch, use-package stubbed)
 emacs --batch -Q -l ert -l test/lang-lsp-test.el -f ert-run-tests-batch-and-exit
 
+# Shared batch-test setup lives in test/test-helper.el; run all batch tests
+for t in lang-lsp ui-theme clipboard org-paths org-existing-paths core-auth; do emacs --batch -Q -l ert -l test/$t-test.el -f ert-run-tests-batch-and-exit; done
+
 # Full startup test
 emacs --debug-init
 ```

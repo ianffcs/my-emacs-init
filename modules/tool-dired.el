@@ -271,19 +271,18 @@
   (interactive)
   (dired org-directory))
 
-(defun ian/dired-copy-path ()
-  "Copy the path of file at point."
-  (interactive)
-  (let ((path (dired-get-filename)))
+(defun ian/dired-copy-path (&optional only-filename)
+  "Copy the path of the file at point.
+With ONLY-FILENAME (prefix argument), copy just the filename."
+  (interactive "P")
+  (let ((path (dired-get-filename (when only-filename 'no-dir))))
     (kill-new path)
     (message "Copied: %s" path)))
 
 (defun ian/dired-copy-filename ()
   "Copy the filename at point."
   (interactive)
-  (let ((filename (dired-get-filename 'no-dir)))
-    (kill-new filename)
-    (message "Copied: %s" filename)))
+  (ian/dired-copy-path t))
 
 ;; Add to dired-mode-map
 (with-eval-after-load 'dired

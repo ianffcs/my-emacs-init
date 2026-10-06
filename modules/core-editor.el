@@ -365,7 +365,7 @@
   (message "All registers cleared"))
 
 ;; Add more register shortcuts
-(set-register ?t (cons 'file (expand-file-name "todo.org" org-directory)))
+(set-register ?t (cons 'file (ian/org-file 'todo)))
 (set-register ?c (cons 'file (expand-file-name "docs/cheatsheet.org" user-emacs-directory)))
 
 ;; ============================================================================

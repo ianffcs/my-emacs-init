@@ -6,6 +6,12 @@
 
 ;;; Code:
 
+(defconst ian/preferred-shell
+  (or (executable-find "zsh")
+      (executable-find "bash")
+      "/bin/sh")
+  "Preferred shell binary: zsh when installed, then bash, then /bin/sh.")
+
 ;; ============================================================================
 ;; 1. ESHELL
 ;; ============================================================================
@@ -32,7 +38,6 @@
   :config
   ;; Aliases
   (defalias 'eshell/ll (lambda () (eshell/ls "-la")))
-  (defalias 'eshell/la (lambda () (eshell/ls "-la")))
   (defalias 'eshell/.. (lambda () (eshell/cd "..")))
   (defalias 'eshell/... (lambda () (eshell/cd "../..")))
 
@@ -107,9 +112,7 @@
          ("C-c C-d" . ian/vterm-send-C-d)
          ("C-q" . vterm-send-next-key))
   :custom
-  (vterm-shell (or (executable-find "zsh")
-                   (executable-find "bash")
-                   "/bin/sh"))
+  (vterm-shell ian/preferred-shell)
   (vterm-max-scrollback 10000)
   (vterm-kill-buffer-on-exit t)
   (vterm-always-compile-module t)
@@ -160,9 +163,7 @@
   :hook ((eshell-first-time-mode . eat-eshell-visual-command-mode)
          (eshell-first-time-mode . eat-eshell-mode))
   :custom
-  (eat-shell (or (executable-find "zsh")
-                 (executable-find "bash")
-                 "/bin/sh"))
+  (eat-shell ian/preferred-shell)
   (eat-kill-buffer-on-exit t))
 
 ;; ============================================================================

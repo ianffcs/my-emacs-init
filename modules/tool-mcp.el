@@ -5,6 +5,8 @@
 
 ;;; Code:
 
+(require 'subr-x)
+(require 'pcase)
 
 ;; 13. MCP (Model Context Protocol)
 ;; ============================================================================
@@ -49,7 +51,7 @@
   :commands (org-mcp-enable org-mcp-disable)
   :custom
   ;; Keep this explicit and narrow; add files interactively as needed.
-  (org-mcp-allowed-files (list (expand-file-name "inbox.org" org-directory))))
+  (org-mcp-allowed-files (list (ian/org-file 'inbox))))
 
 (defun ian/org-mcp-allow-current-file ()
   "Allow current Org file for org-mcp access."
@@ -93,40 +95,102 @@
   :config
   (require 'mcp-hub)
 
-  (let ((filesystem-roots
-         (if (and (boundp 'mcp-filesystem-server-project-root)
-                  (listp mcp-filesystem-server-project-root)
-                  mcp-filesystem-server-project-root)
-             (mapcar #'expand-file-name mcp-filesystem-server-project-root)
-           '("/tmp"))))
-    (setq mcp-hub-servers
-          `(;; Filesystem access
-            ("filesystem" . (:command "npx"
-                                      :args ("-y" "@modelcontextprotocol/server-filesystem")
-                                      :roots ,filesystem-roots))
+  (setq mcp-hub-servers (ian/mcp-hub-server-defs))
 
-            ;; DuckDuckGo search
-            ("duckduckgo" . (:command ,(or (executable-find "uvx") "uvx")
-                                      :args ("duckduckgo-mcp-server")))
+  ;; Clojure REPL access: register when a CIDER REPL connects.  Checking
+  ;; at config time can never see a REPL, and a port captured early would
+  ;; go stale, so the entry is added lazily per connection.
+  (defvar cider-connected-hook)
+  (defun ian/mcp-maybe-register-clojure ()
+    "Register the Clojure MCP server for the current CIDER REPL."
+    (when-let* ((port (and (fboundp 'cider-current-repl-port)
+                           (ignore-errors (cider-current-repl-port)))))
+      (unless (assoc "clojure" mcp-hub-servers)
+        (add-to-list 'mcp-hub-servers
+                     `("clojure" . (:command "clojure"
+                                             :args ("-X:mcp"
+                                                    "--port"
+                                                    ,(number-to-string port))))))))
+  (add-hook 'cider-connected-hook #'ian/mcp-maybe-register-clojure)
 
-            ;; URL fetching
-            ("fetch" . (:command ,(or (executable-find "uvx") "uvx")
-                                 :args ("mcp-server-fetch")))
+  ;; gptel gets the same servers as tools on demand: M-x gptel-mcp-connect
+  ;; (or mcp-hub-start-all-server) starts them explicitly.  Nothing spawns
+  ;; npx/uvx processes at startup.
+  )
 
-            ;; Shell commands (restricted)
-            ("mcp-shell-server" . (:command ,(or (executable-find "uvx") "uvx")
-                                            :args ("mcp-shell-server")
-                                            :env (:ALLOW_COMMANDS
-                                                  "bc,cat,chmod,curl,date,echo,find,git,grep,head,jq,ls,pwd,rg,sed,tail,wc")))
+;; ============================================================================
+;; SHARED MCP SERVER DEFINITIONS
+;; ============================================================================
 
-            ;; Clojure REPL (when CIDER is active)
-            ,@(when (and (fboundp 'cider-current-repl)
-                         (ignore-errors (cider-current-repl)))
-                `(("clojure" . (:command "clojure"
-                                         :args ("-X:mcp"
-                                                "--port"
-                                                ,(number-to-string
-                                                  (cider-current-repl-port)))))))))))
+(defconst ian/mcp-servers
+  '(("filesystem" :command "npx"
+     :args ("-y" "@modelcontextprotocol/server-filesystem")
+     :roots t)
+    ("duckduckgo" :command "uvx"
+     :args ("duckduckgo-mcp-server"))
+    ("fetch" :command "uvx"
+     :args ("mcp-server-fetch"))
+    ("mcp-shell-server" :command "uvx"
+     :args ("mcp-shell-server")
+     :env ("ALLOW_COMMANDS=bc,cat,chmod,curl,date,echo,find,git,grep,head,jq,ls,pwd,rg,sed,tail,wc")))
+  "Local MCP servers shared by mcp-hub (org-mcp and gptel tools) and
+agent-shell sessions.  Each entry is (NAME :command CMD :args ARGS
+[:env (\"KEY=VALUE\" ...)] [:roots t]); :roots marks the filesystem
+server, which gets its roots from `mcp-filesystem-server-project-root'
+or /tmp.")
+
+(defun ian/mcp-command (command)
+  "Resolve COMMAND to an installed binary, falling back to COMMAND itself."
+  (or (executable-find command) command))
+
+(defun ian/mcp-env-alist (env)
+  "Split \"K=V\" strings in ENV into an alist of (KEY . VALUE)."
+  (mapcar (lambda (pair)
+            (cons (car (split-string pair "="))
+                  (cadr (split-string pair "=" t))))
+          env))
+
+(defun ian/mcp-hub-server-defs ()
+  "Return `ian/mcp-servers' in mcp-hub's plist format."
+  (mapcar
+   (lambda (server)
+     (pcase-let ((`(,name . ,plist) server))
+       `(,name
+         . (:command ,(ian/mcp-command (plist-get plist :command))
+            :args ,(plist-get plist :args)
+            ,@(when-let* ((env (ian/mcp-env-alist (plist-get plist :env))))
+                (list :env (apply #'append
+                                  (mapcar (lambda (kv)
+                                            (list (intern (concat ":" (car kv)))
+                                                  (cdr kv)))
+                                          env))))
+            ,@(when (plist-get plist :roots)
+                (list :roots
+                      (if (and (boundp 'mcp-filesystem-server-project-root)
+                               (listp mcp-filesystem-server-project-root)
+                               mcp-filesystem-server-project-root)
+                          (mapcar #'expand-file-name mcp-filesystem-server-project-root)
+                        '("/tmp"))))))))
+   ian/mcp-servers))
+
+(defun ian/mcp-agent-shell-server-defs ()
+  "Return `ian/mcp-servers' in agent-shell's ACP alist format."
+  (mapcar
+   (lambda (server)
+     (pcase-let ((`(,name . ,plist) server))
+       `((name . ,name)
+         (command . ,(ian/mcp-command (plist-get plist :command)))
+         (args . ,(plist-get plist :args))
+         ,@(when-let* ((env (ian/mcp-env-alist (plist-get plist :env))))
+             (list `(env . ,(mapcar (lambda (kv)
+                                      `((name . ,(car kv)) (value . ,(cdr kv))))
+                                    env)))))))
+   ian/mcp-servers))
+
+;; agent-shell sessions get the same MCP servers (tool-chat loads before
+;; tool-mcp, so set this once agent-shell itself loads).
+(with-eval-after-load 'agent-shell
+  (setq agent-shell-mcp-servers (ian/mcp-agent-shell-server-defs)))
 
 ;; ============================================================================
 

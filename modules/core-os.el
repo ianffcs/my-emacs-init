@@ -25,8 +25,6 @@
 (declare-function ian/reveal-in-finder "core-os")
 (declare-function ian/open-with-default-app "core-os")
 (declare-function ian/macos-dictionary "core-os")
-(declare-function ian/wsl-copy "core-os")
-(declare-function ian/wsl-paste "core-os")
 
 ;; ============================================================================
 ;; 1. EXEC-PATH-FROM-SHELL (PATH synchronization)
@@ -237,77 +235,109 @@
 ;; 5. WSL (Windows Subsystem for Linux)
 ;; ============================================================================
 
+(defvar ian/wsl-p-cache 'unset
+  "Cached result of `ian/wsl-p'; `unset' until first computed.")
+
 (defun ian/wsl-p ()
-  "Return non-nil when running inside WSL."
-  (and (eq system-type 'gnu/linux)
-       (file-readable-p "/proc/version")
-       (with-temp-buffer
-         (insert-file-contents "/proc/version")
-         (goto-char (point-min))
-         (re-search-forward "microsoft\\|WSL" nil t))))
+  "Return non-nil when running inside WSL (cached; reads /proc/version once)."
+  (when (eq ian/wsl-p-cache 'unset)
+    (setq ian/wsl-p-cache
+          (and (eq system-type 'gnu/linux)
+               (file-readable-p "/proc/version")
+               (with-temp-buffer
+                 (insert-file-contents "/proc/version")
+                 (goto-char (point-min))
+                 (and (re-search-forward "microsoft\\|WSL" nil t) t)))))
+  ian/wsl-p-cache)
 
 (when (ian/wsl-p)
   ;; --- Browser (use Windows browser) ---
   (setq browse-url-browser-function 'browse-url-generic
-        browse-url-generic-program "wslview")
+        browse-url-generic-program "wslview"))
 
-  ;; --- Clipboard integration ---
-  (defun ian/wsl-copy (text)
-    "Copy TEXT to Windows clipboard via clip.exe."
-    (let ((process-connection-type nil))
-      (let ((proc (start-process "clip" nil "clip.exe")))
-        (process-send-string proc text)
-        (process-send-eof proc))))
+;; --- Clipboard module ---
+;; Interface: `ian/clipboard-copy' and `ian/clipboard-paste', installed once as
+;; `interprogram-cut-function' / `interprogram-paste-function'.  The adapter is
+;; chosen per call by `ian/clipboard-adapter' (so each frame gets the right one).
 
-  (defun ian/wsl-paste ()
-    "Paste from Windows clipboard via powershell.exe."
-    (with-temp-buffer
-      (call-process "powershell.exe" nil t nil "-NoProfile" "-Command" "Get-Clipboard")
-      (replace-regexp-in-string "\r" "" (buffer-string))))
+(defvar ian/clipboard-process nil
+  "Process currently owning the clipboard selection for the wayland/x11 adapters.")
 
-  (setq interprogram-cut-function #'ian/wsl-copy)
-  (setq interprogram-paste-function #'ian/wsl-paste))
+(defun ian/clipboard-adapter ()
+  "Return the clipboard adapter for the selected frame.
+One of `wsl', `gui', `wayland', `x11', or nil when none is usable."
+  (cond ((ian/wsl-p) 'wsl)
+        ((display-graphic-p) 'gui)
+        ((and (getenv "WAYLAND_DISPLAY") (executable-find "wl-copy")) 'wayland)
+        ((and (getenv "DISPLAY") (executable-find "xclip")) 'x11)))
 
-;; --- Terminal (-nw) clipboard via xclip / wl-copy ---
-(defvar ian/tty-clipboard-process nil
-  "Process currently owning the clipboard selection in terminal Emacs.")
+(defun ian/clipboard--tool (adapter)
+  "Return (COPY-CMD PASTE-CMD) for the wayland/x11 ADAPTER."
+  (pcase adapter
+    ('wayland '(("wl-copy") ("wl-paste" "--no-newline")))
+    ('x11 '(("xclip" "-selection" "clipboard" "-i")
+            ("xclip" "-selection" "clipboard" "-o")))))
 
-(defun ian/tty-clipboard-tool ()
-  "Return (COPY-CMD PASTE-CMD) for the available clipboard tool, or nil."
-  (cond ((and (getenv "WAYLAND_DISPLAY") (executable-find "wl-copy"))
-         '(("wl-copy") ("wl-paste" "--no-newline")))
-        ((and (getenv "DISPLAY") (executable-find "xclip"))
-         '(("xclip" "-selection" "clipboard" "-i")
-           ("xclip" "-selection" "clipboard" "-o")))))
+(defun ian/clipboard--wsl-copy (text)
+  "Copy TEXT to Windows clipboard via clip.exe."
+  (let* ((process-connection-type nil)
+         (proc (start-process "clip" nil "clip.exe")))
+    (process-send-string proc text)
+    (process-send-eof proc)))
 
-(defun ian/tty-clipboard-copy (text)
-  "Copy TEXT to the system clipboard when in a terminal frame."
-  (when-let* (((not (display-graphic-p)))
-              (tool (ian/tty-clipboard-tool)))
-    (when (process-live-p ian/tty-clipboard-process)
-      (delete-process ian/tty-clipboard-process))
-    (let ((process-connection-type nil))
-      (setq ian/tty-clipboard-process
-            (make-process :name "tty-clipboard" :buffer nil
-                          :command (car tool) :noquery t
-                          :coding 'utf-8-unix))
-      (process-send-string ian/tty-clipboard-process text)
-      (process-send-eof ian/tty-clipboard-process))))
+(defun ian/clipboard--wsl-paste ()
+  "Return Windows clipboard text via powershell.exe."
+  (with-temp-buffer
+    (call-process "powershell.exe" nil t nil "-NoProfile" "-Command" "Get-Clipboard")
+    (replace-regexp-in-string "\r" "" (buffer-string))))
 
-(defun ian/tty-clipboard-paste ()
-  "Return system clipboard text when in a terminal frame, else nil."
-  (when-let* (((not (display-graphic-p)))
-              (tool (ian/tty-clipboard-tool)))
+(defun ian/clipboard--process-copy (adapter text)
+  "Copy TEXT using the external tool of ADAPTER (wayland or x11)."
+  (when (process-live-p ian/clipboard-process)
+    (delete-process ian/clipboard-process))
+  (let ((process-connection-type nil))
+    (setq ian/clipboard-process
+          (make-process :name "clipboard" :buffer nil
+                        :command (car (ian/clipboard--tool adapter))
+                        :noquery t :coding 'utf-8-unix))
+    (process-send-string ian/clipboard-process text)
+    (process-send-eof ian/clipboard-process)))
+
+(defun ian/clipboard--process-paste (adapter)
+  "Return clipboard text using the external tool of ADAPTER, or nil."
+  (let ((cmd (cadr (ian/clipboard--tool adapter))))
     (with-temp-buffer
       (let ((coding-system-for-read 'utf-8-unix))
-        (when (zerop (apply #'call-process (caar (cdr tool)) nil '(t nil) nil
-                            (cdar (cdr tool))))
+        (when (zerop (apply #'call-process (car cmd) nil '(t nil) nil (cdr cmd)))
           (let ((s (buffer-string)))
             (unless (string-empty-p s) s)))))))
 
-(unless (ian/wsl-p)
-  (setq interprogram-cut-function #'ian/tty-clipboard-copy
-        interprogram-paste-function #'ian/tty-clipboard-paste))
+(defun ian/clipboard-copy (text)
+  "Copy TEXT to the system clipboard through the current adapter."
+  (let ((adapter (ian/clipboard-adapter)))
+    (pcase adapter
+      ('wsl (ian/clipboard--wsl-copy text))
+      ('gui (gui-select-text text))
+      ((or 'wayland 'x11) (ian/clipboard--process-copy adapter text)))))
+
+(defun ian/clipboard-paste ()
+  "Return system clipboard text through the current adapter, or nil."
+  (let ((adapter (ian/clipboard-adapter)))
+    (pcase adapter
+      ('wsl (ian/clipboard--wsl-paste))
+      ('gui (gui-selection-value))
+      ((or 'wayland 'x11) (ian/clipboard--process-paste adapter)))))
+
+(setq interprogram-cut-function #'ian/clipboard-copy
+      interprogram-paste-function #'ian/clipboard-paste)
+
+(defun ian/yank-to-system-clipboard (&rest _args)
+  "Copy the text just yanked from the kill ring to the system clipboard."
+  (when-let* ((text (current-kill 0 t)))
+    (ian/clipboard-copy text)))
+
+(advice-add 'yank :after #'ian/yank-to-system-clipboard)
+(advice-add 'yank-pop :after #'ian/yank-to-system-clipboard)
 
 ;; ============================================================================
 ;; 6. COMMON SYSTEM UTILITIES

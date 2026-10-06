@@ -170,13 +170,17 @@
 
 ;; Cape + Eglot: merge eglot's capf with cape sources so file/dabbrev
 ;; completion still works in LSP buffers (eglot otherwise replaces all capfs).
-(add-hook 'eglot-managed-mode-hook
-          (lambda ()
-            (setq-local completion-at-point-functions
-                        (list (cape-capf-super
-                               #'eglot-completion-at-point
-                               #'cape-file
-                               #'cape-dabbrev)))))
+(defun ian/eglot-merge-capfs ()
+  "Merge eglot completion with cape's file and dabbrev sources.
+Installed on `eglot-managed-mode-hook'; note this replaces the buffer-local
+`completion-at-point-functions' outright."
+  (setq-local completion-at-point-functions
+              (list (cape-capf-super
+                     #'eglot-completion-at-point
+                     #'cape-file
+                     #'cape-dabbrev))))
+
+(add-hook 'eglot-managed-mode-hook #'ian/eglot-merge-capfs)
 
 (use-package consult-eglot
   :after (consult eglot)

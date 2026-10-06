@@ -496,8 +496,9 @@
   (interactive)
   (cider-jack-in-universal 5))
 
-(with-eval-after-load 'cider
-  (keymap-set clojure-ts-mode-map "C-c M-b" #'ian/cider-jack-in-basilisp))
+(with-eval-after-load 'clojure-ts-mode
+  (with-eval-after-load 'cider
+    (keymap-set clojure-ts-mode-map "C-c M-b" #'ian/cider-jack-in-basilisp)))
 
 (defun ian/cider-jack-in-with-profile (profile)
   "Jack in with a specific PROFILE."

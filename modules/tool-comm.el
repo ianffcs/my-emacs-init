@@ -83,7 +83,7 @@
   (defun ian/circe-fetch-password (&rest params)
     "Fetch the password for an IRC network."
     (require 'auth-source)
-    (let ((match (car (apply 'auth-source-search params))))
+    (let ((match (car (apply #'auth-source-search params))))
       (if match
           (auth-info-password match)
         (error "Password not found for %S" params))))
@@ -91,7 +91,7 @@
   ;; Reuse the shared auth-source resolver for IRC credentials.
   (defun ian/circe-nickserv-password (server)
     "Fetch NickServ password for SERVER."
-    (ian/authinfo-secret server "your-nick"))
+    (ian/circe-fetch-password :host server :user "your-nick" :require '(:secret)))
 
   ;; Count nicks in channel
   (defun ian/circe-count-nicks ()
@@ -198,7 +198,7 @@
 (use-package elfeed-org
   :after elfeed
   :custom
-  (rmh-elfeed-org-files (list (expand-file-name "elfeed.org" org-directory)))
+  (rmh-elfeed-org-files (list (ian/org-file 'elfeed)))
   :config
   (elfeed-org))
 

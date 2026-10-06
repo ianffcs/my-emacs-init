@@ -76,37 +76,36 @@
 ;; 4. VOLUME CONTROL
 ;; ============================================================================
 
+(defun ian/volume-command (action)
+  "Return the command list for volume ACTION on this platform.
+ACTION is one of `up', `down', or `toggle'."
+  (pcase (cons system-type action)
+    ('(darwin . up)
+     '("osascript" "-e" "set volume output volume ((output volume of (get volume settings)) + 5)"))
+    ('(darwin . down)
+     '("osascript" "-e" "set volume output volume ((output volume of (get volume settings)) - 5)"))
+    ('(darwin . toggle)
+     '("osascript" "-e" "set volume output muted not (output muted of (get volume settings))"))
+    ('(gnu/linux . up) '("amixer" "set" "Master" "2%+"))
+    ('(gnu/linux . down) '("amixer" "set" "Master" "2%-"))
+    ('(gnu/linux . toggle) '("amixer" "set" "Master" "toggle"))))
+
 (defun ian/volume-up ()
   "Increase system volume."
   (interactive)
-  (cond
-   ((eq system-type 'darwin)
-    (start-process "volume-up" nil "osascript" "-e"
-                   "set volume output volume ((output volume of (get volume settings)) + 5)"))
-   ((eq system-type 'gnu/linux)
-    (start-process "volume-up" nil "amixer" "set" "Master" "2%+")))
+  (apply #'start-process "volume" nil (ian/volume-command 'up))
   (message "Volume Up"))
 
 (defun ian/volume-down ()
   "Decrease system volume."
   (interactive)
-  (cond
-   ((eq system-type 'darwin)
-    (start-process "volume-down" nil "osascript" "-e"
-                   "set volume output volume ((output volume of (get volume settings)) - 5)"))
-   ((eq system-type 'gnu/linux)
-    (start-process "volume-down" nil "amixer" "set" "Master" "2%-")))
+  (apply #'start-process "volume" nil (ian/volume-command 'down))
   (message "Volume Down"))
 
 (defun ian/volume-toggle-mute ()
   "Toggle mute."
   (interactive)
-  (cond
-   ((eq system-type 'darwin)
-    (start-process "volume-mute" nil "osascript" "-e"
-                   "set volume output muted not (output muted of (get volume settings))"))
-   ((eq system-type 'gnu/linux)
-    (start-process "volume-mute" nil "amixer" "set" "Master" "toggle")))
+  (apply #'start-process "volume" nil (ian/volume-command 'toggle))
   (message "Volume Toggled"))
 
 ;; Volume keybindings

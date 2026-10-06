@@ -14,12 +14,8 @@
 (require 'seq)
 (require 'subr-x)
 
-(defconst lang-lsp-test--root
-  (file-name-directory
-   (directory-file-name (file-name-directory (or load-file-name buffer-file-name)))))
-
-(defmacro use-package (&rest _) nil)
-(defun straight-use-package (&rest _) nil)
+(load (expand-file-name "test-helper" (file-name-directory (or load-file-name buffer-file-name))) nil t)
+(test-helper-stub-packages)
 
 (defun lang-lsp-test--modes (entry)
   "Return the list of major modes named by the `eglot-server-programs' ENTRY."
@@ -31,8 +27,8 @@
   "Server entries added by the lang-* modules (those not in Eglot's defaults).")
 
 (let ((defaults (copy-sequence eglot-server-programs))
-      (load-path (cons (expand-file-name "modules" lang-lsp-test--root) load-path)))
-  (dolist (file (directory-files (expand-file-name "modules" lang-lsp-test--root)
+      (load-path (cons (expand-file-name "modules" test-helper-root) load-path)))
+  (dolist (file (directory-files (expand-file-name "modules" test-helper-root)
                                  t "\\`lang-.*\\.el\\'"))
     (load file nil t))
   (setq lang-lsp-test--entries
@@ -61,7 +57,7 @@ heex-ts-mode only shares elixir-ls; the Clojure ones derive from
 
 (ert-deftest lang-lsp-no-module-requires-another ()
   "Load order in init.el is the only dependency between modules."
-  (dolist (file (directory-files (expand-file-name "modules" lang-lsp-test--root)
+  (dolist (file (directory-files (expand-file-name "modules" test-helper-root)
                                  t "\\.el\\'"))
     (with-temp-buffer
       (insert-file-contents file)

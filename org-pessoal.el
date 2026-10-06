@@ -1,15 +1,13 @@
 ;;; org-pessoal.el --- Org-mode pessoal -*- lexical-binding: t; -*-
 (setq ian/org-master-file
-      (expand-file-name "~/org/planos.org"))
+      (expand-file-name "planos.org" org-directory))
 
 (setq ian/org-project-files
-      '(("~/org/vida.org")
-        ("~/org/infra.org")
-        ("~/org/ia.org")
-        ("~/org/tecnica.org")
-        ("~/org/trabalho.org")))
+      (mapcar (lambda (f) (expand-file-name f org-directory))
+              '("vida.org" "infra.org" "ia.org" "tecnica.org" "trabalho.org")))
 
-(setq org-agenda-files (mapcar #'car ian/org-project-files))
+;; `ian/org-existing-paths' comes from modules/core-settings.el.
+(setq org-agenda-files (ian/org-existing-paths ian/org-project-files))
 
 
 (setq org-capture-templates

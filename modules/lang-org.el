@@ -33,8 +33,7 @@
          (org-mode . ian/org-mode-setup))
   :custom
   ;; --- Directories ---
-  (org-default-notes-file (expand-file-name "inbox.org" org-directory))
-  (org-agenda-files (list org-directory))
+  (org-default-notes-file (ian/org-file 'inbox))
   (org-agenda-skip-unavailable-files t)
 
   ;; --- Appearance ---
@@ -132,16 +131,7 @@
   :config
 
   ;; Drop missing agenda paths to avoid interactive startup prompts.
-  (setq org-agenda-files
-        (delq nil
-              (mapcar (lambda (path)
-                        (let ((expanded (expand-file-name path)))
-                          (when (or (file-directory-p expanded)
-                                    (file-exists-p expanded))
-                            expanded)))
-                      (if (listp org-agenda-files)
-                          org-agenda-files
-                        (list org-agenda-files)))))
+  (setq org-agenda-files (ian/org-existing-paths (list org-directory)))
 
   (defun ian/org-mode-setup ()
     "Custom org mode setup."
@@ -212,7 +202,7 @@
   (org-agenda-start-with-log-mode t)
   (org-agenda-log-mode-items '(closed clock state))
   (org-agenda-include-diary t)
-  (org-agenda-diary-file (expand-file-name "diary.org" org-directory))
+  (org-agenda-diary-file (ian/org-file 'diary))
   (org-agenda-dim-blocked-tasks t)
   (org-agenda-compact-blocks t)
   (org-agenda-sticky t)
