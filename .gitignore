@@ -42,3 +42,14 @@ var/recentf-save.el
 private/
 custom/custom.el
 org-pessoal.el
+
+# Runtime state (no-littering); includes cookies and session data
+var/
+
+# Local checkouts, tool and harness state
+td/
+.codex
+.claude/autoharness/
+modules/.claude/
+.claude/skills/**/.ledger.jsonl
+.claude/skills/**/.sidecar.json
