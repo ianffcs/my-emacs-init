@@ -406,7 +406,15 @@ settings."
   (aider-args '("--model" "gpt-4o-mini")))
 
 ;; ============================================================================
-;; 15. AGENT-SHELL (ACP coding agents: Claude, Codex, Kimi, Qwen)
+;; 15. SHELL-MAKER (Shell process abstraction for agent-shell)
+;; ============================================================================
+
+(use-package shell-maker
+  :straight (:host github :repo "xenodium/shell-maker"
+             :pin "0.97.5"))
+
+;; ============================================================================
+;; 16. AGENT-SHELL (ACP coding agents: Claude, Codex, Kimi, Qwen)
 ;; ============================================================================
 
 (use-package agent-shell
@@ -434,10 +442,10 @@ settings."
         agent-shell-kimi-environment
         (agent-shell-make-environment-variables :inherit-env t)))
 
-;; C-c g opens the existing GPTel menu. C-c M-g opens agent-shell (Claude,
-;; Codex, Kimi, Qwen via ACP). Other AI integrations remain available
-;; through their package commands; Org-AI also has local Org bindings.
-;; M-RET opens Minuet completion.
+;; KEYBINDINGS:
+;; C-c g         - GPTel menu
+;; C-c M-g       - agent-shell (Claude, Codex, Kimi, Qwen via ACP)
+;; M-RET         - Minuet completion
 ;; C-c M- prefix for org-ai in org-mode:
 ;; C-c M-a   - org-ai-complete
 ;; C-c M-r   - org-ai-on-region
