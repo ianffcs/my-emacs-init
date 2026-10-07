@@ -137,27 +137,40 @@
 ;; 6. SPELL CHECKING
 ;; ============================================================================
 
+;; Configure the spellchecker before `ispell-change-dictionary' builds its
+;; completion list.  This must run at module load time rather than inside a
+;; lazy `flyspell' configuration block.
+(require 'ispell)
+
+;; Prefer Hunspell when available so its installed locale dictionaries,
+;; including pt_BR, appear in `ispell-change-dictionary'.
+(cond
+ ((executable-find "hunspell")
+  (setq ispell-program-name "hunspell"
+        ispell-local-dictionary "en_US"
+        ispell-extra-args nil)
+  (add-to-list 'ispell-local-dictionary-alist
+               '("pt" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil
+                 ("-d" "pt_BR") nil utf-8))
+  (add-to-list 'ispell-local-dictionary-alist
+               '("pt_BR" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil
+                 ("-d" "pt_BR") nil utf-8)))
+ ;; Fall back to Aspell when Hunspell is unavailable.
+ ((executable-find "aspell")
+  (setq ispell-program-name "aspell"
+        ispell-extra-args '("--sug-mode=ultra" "--lang=en_US"))
+  ;; Aspell has pt_BR/pt_PT but not bare "pt"; org-mode maps #+LANGUAGE: pt-br → "pt"
+  (add-to-list 'ispell-local-dictionary-alist
+               '("pt" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil
+                 ("-d" "pt_BR") nil utf-8))))
+
 ;; flyspell prog-mode hook kept; text-mode hook removed — spell-fu covers text-mode below.
 (use-package flyspell
   :straight (:type built-in)
   :hook (prog-mode . flyspell-prog-mode)
   :custom
   (flyspell-issue-message-flag nil)
-  (flyspell-issue-welcome-flag nil)
-  :config
-  ;; Use aspell if available
-  (when (executable-find "aspell")
-    (setq ispell-program-name "aspell"
-          ispell-extra-args '("--sug-mode=ultra" "--lang=en_US"))
-    ;; aspell has pt_BR/pt_PT but not bare "pt"; org-mode maps #+LANGUAGE: pt-br → "pt"
-    (add-to-list 'ispell-local-dictionary-alist
-                 '("pt" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "pt_BR") nil utf-8)))
-
-  ;; Or use hunspell
-  (when (and (not (executable-find "aspell"))
-             (executable-find "hunspell"))
-    (setq ispell-program-name "hunspell"
-          ispell-local-dictionary "en_US")))
+  (flyspell-issue-welcome-flag nil))
 
 ;; Spell correction with Consult
 (use-package consult-flyspell
