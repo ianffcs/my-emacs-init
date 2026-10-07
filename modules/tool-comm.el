@@ -150,6 +150,89 @@
   :config
   (auth-source-xoauth2-plugin-mode 1))
 
+;; Browser callback login: oauth2.el normally opens the browser and then asks
+;; you to paste the code.  Instead, listen on a loopback port, point the
+;; redirect URI at it, and capture the code from the redirect.  Falls back to
+;; the manual prompt if no callback arrives.
+(defvar ian/oauth-callback-port 8765
+  "Loopback port for the OAuth redirect listener.")
+
+(defvar ian/oauth-callback-timeout 180
+  "Seconds to wait for the browser redirect before falling back to a prompt.")
+
+(defun ian/oauth-callback-uri ()
+  "Return the loopback redirect URI."
+  (format "http://localhost:%d" ian/oauth-callback-port))
+
+(defun ian/oauth--callback-filter (proc string)
+  "Parse the redirect request in STRING from PROC and stash the result."
+  (when (string-match "\\`GET [^ ?]*\\?\\([^ ]+\\)" string)
+    (let* ((query (url-parse-query-string (match-string 1 string)))
+           (code (cadr (assoc "code" query)))
+           (err (cadr (assoc "error" query))))
+      (process-put proc :result (or code (and err (list 'error err))))
+      (process-send-string
+       proc
+       (concat "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n"
+               "Connection: close\r\n\r\n"
+               "<html><body>Login complete. You can close this tab.</body></html>"))
+      (delete-process proc)
+      (setq ian/oauth--result (process-get proc :result)))))
+
+(defvar ian/oauth--result nil
+  "Authorization code (or (error MSG)) captured by the callback listener.")
+
+(defun ian/oauth-request-authorization (orig auth-url client-id &optional scope
+                                             state redirect-uri user-name
+                                             code-verifier)
+  "Around advice for `oauth2-request-authorization' using a loopback callback.
+Calls ORIG with AUTH-URL CLIENT-ID SCOPE STATE REDIRECT-URI USER-NAME and
+CODE-VERIFIER unchanged when REDIRECT-URI is not our loopback URI."
+  (if (not (equal redirect-uri (ian/oauth-callback-uri)))
+      (funcall orig auth-url client-id scope state redirect-uri user-name
+               code-verifier)
+    (setq ian/oauth--result nil)
+    (let ((server (make-network-process
+                   :name "ian-oauth-callback" :server t :host 'local
+                   :service ian/oauth-callback-port
+                   :family 'ipv4 :noquery t
+                   :filter #'ian/oauth--callback-filter))
+          (url (oauth2--build-authorization-request-url
+                auth-url client-id redirect-uri scope state user-name
+                code-verifier)))
+      (unwind-protect
+          (progn
+            (browse-url url)
+            (message "Waiting for browser login callback on %s ..."
+                     redirect-uri)
+            (let ((deadline (+ (float-time) ian/oauth-callback-timeout)))
+              (while (and (null ian/oauth--result)
+                          (< (float-time) deadline))
+                (accept-process-output nil 0.2)))
+            (cond
+             ((stringp ian/oauth--result) ian/oauth--result)
+             ((consp ian/oauth--result)
+              (user-error "OAuth login failed: %s" (cadr ian/oauth--result)))
+             (t (read-string (format "No callback received.  Visit:\n%s\nEnter the code: "
+                                     url)))))
+        (delete-process server)))))
+
+(defun ian/oauth-use-loopback-redirect (args)
+  "Filter ARGS of `oauth2-auth-and-store', swapping localhost redirects.
+The redirect URI is the 6th argument."
+  (let ((redirect (nth 5 args)))
+    (when (and (stringp redirect)
+               (string-match-p "\\`https?://localhost/?\\'" redirect))
+      (setq args (copy-sequence args))
+      (setf (nth 5 args) (ian/oauth-callback-uri))))
+  args)
+
+(with-eval-after-load 'oauth2
+  (advice-add 'oauth2-auth-and-store :filter-args
+              #'ian/oauth-use-loopback-redirect)
+  (advice-add 'oauth2-request-authorization :around
+              #'ian/oauth-request-authorization))
+
 (use-package plstore
   :straight (:type built-in)
   :demand t
