@@ -132,10 +132,40 @@
 ;; 4. GNUS (Email Client)
 ;; ============================================================================
 
+(defconst ian/outlook-mail-address "d.ian.b@live.com"
+  "Mailbox configured for the Outlook account used by dev-machine.")
+
+(defconst ian/outlook-imap-host "outlook.office365.com"
+  "Outlook IMAP endpoint.")
+
+(defconst ian/outlook-smtp-host "smtp.office365.com"
+  "Outlook SMTP submission endpoint.")
+
 (use-package auth-source-xoauth2-plugin
   :demand t
+  :init
+  ;; OAuth refresh tokens belong in oauth2.plstore.  Do not let nnimap's
+  ;; create/save path try to write short-lived access tokens into authinfo.
+  (setq auth-source-save-behavior nil)
   :config
   (auth-source-xoauth2-plugin-mode 1))
+
+(use-package plstore
+  :straight (:type built-in)
+  :demand t
+  :config
+  ;; Use the EdDSA key for plstore encryption (principal email key).
+  (setq plstore-encrypt-to "0476ED26015BD774ECFF61F4A5C40CA014A688C9"
+        plstore-select-keys 'silent))
+
+(use-package smtpmail
+  :straight (:type built-in)
+  :custom
+  (message-send-mail-function #'smtpmail-send-it)
+  (smtpmail-smtp-server ian/outlook-smtp-host)
+  (smtpmail-smtp-service 587)
+  (smtpmail-stream-type 'starttls)
+  (smtpmail-smtp-user ian/outlook-mail-address))
 
 (use-package gnus
   :straight (:type built-in)
@@ -145,21 +175,44 @@
         gnus-asynchronous t
         gnus-use-cache t
         gnus-use-header-prefetch t)
-  ;; Secondary select methods - configure with your email
-  ;; Example for IMAP:
-  ;; (setq gnus-secondary-select-methods
-  ;;       '((nnimap "Gmail"
-  ;;          (nnimap-address "imap.gmail.com")
-  ;;          (nnimap-server-port 993)
-  ;;          (nnimap-stream ssl)
-  ;;          (nnir-search-engine imap)
-  ;;          (nnimap-authinfo-file "~/.authinfo.gpg"))))
+  ;; Outlook OAuth2 credentials are resolved from ~/.authinfo.gpg.  The
+  ;; matching entry should use auth=xoauth2 and
+  ;; auth-source-xoauth2-predefined-service=microsoft; no password is stored.
+  ;; Add these entries once with your preferred encrypted auth-source editor:
+  ;; machine outlook.office365.com login d.ian.b@live.com port imaps auth xoauth2 auth-source-xoauth2-predefined-service microsoft
+  ;; machine smtp.office365.com login d.ian.b@live.com port 587 auth xoauth2 auth-source-xoauth2-predefined-service microsoft
+  (setq gnus-secondary-select-methods
+        `((nnimap "Outlook"
+           (nnimap-address ,ian/outlook-imap-host)
+           (nnimap-server-port 993)
+           (nnimap-stream ssl)
+           (nnimap-authenticator xoauth2)
+           (nnimap-user ,ian/outlook-mail-address)
+           (nnir-search-engine imap))))
 
   ;; Posting styles
-  ;; (setq gnus-posting-styles
-  ;;       '((".*"
-  ;;          (address "your-email@example.com")
-  ;;          (signature "Your Name"))))
+  (setq gnus-posting-styles
+        `((".*"
+           (address ,ian/outlook-mail-address))))
+
+  ;; Recreate oauth2.plstore if missing (after GPG key rotation).
+  (defun ian/ensure-oauth2-plstore ()
+    "Initialize oauth2.plstore if missing by opening the plstore connection."
+    (let ((plstore-file (expand-file-name "oauth2.plstore" user-emacs-directory)))
+      (unless (file-exists-p plstore-file)
+        (require 'plstore)
+        (let ((store (plstore-open plstore-file)))
+          (plstore-close store)))))
+
+  ;; Unlock GPG key once per session when auth-source first needs it.
+  (defun ian/unlock-authinfo-gpg ()
+    "Unlock .authinfo.gpg once per session by accessing auth-source."
+    (require 'auth-source)
+    (when (file-exists-p (expand-file-name ".authinfo.gpg" (getenv "HOME")))
+      (auth-source-search :host "openrouter.ai" :max 1)))
+
+  (add-hook 'gnus-startup-hook #'ian/ensure-oauth2-plstore)
+  (add-hook 'gnus-startup-hook #'ian/unlock-authinfo-gpg)
   )
 
 ;; ============================================================================
