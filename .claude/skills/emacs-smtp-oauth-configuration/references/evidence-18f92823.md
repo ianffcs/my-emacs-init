@@ -1,0 +1,1 @@
+Done! I've removed the hardcoded `smtpmail-smtp-user` so that `smtpmail-send-it` will use `auth-source` to resolve the OAuth credentials from `.authinfo.gpg` instead of relying on a plain password. This aligns with your IMAP configuration which already uses xoauth2 authentication.

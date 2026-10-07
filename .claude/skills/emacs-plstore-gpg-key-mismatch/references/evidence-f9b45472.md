@@ -1,0 +1,1 @@
+Warning: Opening nnimap server on Outlook...failed: ; Unable to open server nnimap+Outlook due to: GPG error: "Decryption failed", "No secret key: F746DAC6DCCAE67A"

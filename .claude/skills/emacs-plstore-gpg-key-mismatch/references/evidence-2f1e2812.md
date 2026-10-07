@@ -1,0 +1,1 @@
+Episode session context: Round-trip GPG test (encrypt succeeded, decrypt failed with "Bad passphrase") revealed the encryption subkey F746DAC6DCCAE67A IS in the keyring but gpg-agent can't prompt for passphrase in Emacs context. The "No secret key" message masked a passphrase/pinentry/agent issue, not a missing key.

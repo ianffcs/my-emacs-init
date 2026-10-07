@@ -164,7 +164,11 @@
   (message-send-mail-function #'smtpmail-send-it)
   (smtpmail-smtp-server ian/outlook-smtp-host)
   (smtpmail-smtp-service 587)
-  (smtpmail-stream-type 'starttls))
+  (smtpmail-stream-type 'starttls)
+  ;; Identify the account so smtpmail attempts auth and the xoauth2 plugin
+  ;; picks the matching authinfo entry; OAuth only, never a password.
+  (smtpmail-smtp-user ian/outlook-mail-address)
+  (smtpmail-auth-supported '(xoauth2)))
 
 (use-package gnus
   :straight (:type built-in)
