@@ -164,8 +164,7 @@
   (message-send-mail-function #'smtpmail-send-it)
   (smtpmail-smtp-server ian/outlook-smtp-host)
   (smtpmail-smtp-service 587)
-  (smtpmail-stream-type 'starttls)
-  (smtpmail-smtp-user ian/outlook-mail-address))
+  (smtpmail-stream-type 'starttls))
 
 (use-package gnus
   :straight (:type built-in)
