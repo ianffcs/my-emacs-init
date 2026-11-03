@@ -163,7 +163,8 @@
   ;; Scala (scalafmt)
   (setf (alist-get 'scalafmt apheleia-formatters)
         '("scalafmt" "--stdin"))
-  (setf (alist-get 'scala-mode apheleia-mode-alist) '(scalafmt)))
+  (setf (alist-get 'scala-mode apheleia-mode-alist) '(scalafmt))
+  (setf (alist-get 'scala-ts-mode apheleia-mode-alist) '(scalafmt)))
 
 ;; ============================================================================
 ;; 9. TRANSIENT MENU

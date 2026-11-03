@@ -47,6 +47,31 @@
 (ert-deftest org-file-errors-on-unknown-name ()
   (should-error (ian/org-file 'no-such-file)))
 
+(ert-deftest org-dir-resolves-under-org-directory ()
+  (dolist (entry ian/org-dirs)
+    (should (equal (ian/org-dir (car entry))
+                   (expand-file-name (cdr entry) org-directory))))
+  (should (equal (ian/org-dir 'roam) (expand-file-name "roam" org-directory))))
+
+(ert-deftest org-dir-follows-let-bound-org-directory ()
+  (let ((org-directory "/tmp/other-org"))
+    (should (equal (ian/org-dir 'journal) "/tmp/other-org/journal"))))
+
+(ert-deftest org-dir-errors-on-unknown-name ()
+  (should-error (ian/org-dir 'no-such-dir)))
+
+(ert-deftest modules-do-not-spell-org-directory-subdirs ()
+  (let ((offenders nil))
+    (dolist (file (directory-files (expand-file-name "modules" test-helper-root)
+                                   t "\\.el\\'"))
+      (unless (equal (file-name-nondirectory file) "core-settings.el")
+        (with-temp-buffer
+          (insert-file-contents file)
+          (goto-char (point-min))
+          (while (re-search-forward "(expand-file-name \"[^\"]+\" org-directory)" nil t)
+            (push (file-name-nondirectory file) offenders)))))
+    (should (null offenders))))
+
 (ert-deftest modules-do-not-hard-code-named-org-files ()
   (let ((names '("inbox.org" "todo.org" "notes.org" "diary.org" "elfeed.org"))
         (offenders nil))

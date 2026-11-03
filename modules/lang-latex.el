@@ -93,7 +93,7 @@
 (use-package org-noter
   :after (org pdf-tools)
   :custom
-  (org-noter-notes-search-path (list (expand-file-name "notes" org-directory))))
+  (org-noter-notes-search-path (list (ian/org-dir 'notes))))
 
 ;; ============================================================================
 ;; 8. BIBTEX

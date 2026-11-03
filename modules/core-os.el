@@ -235,20 +235,76 @@
 ;; 5. WSL (Windows Subsystem for Linux)
 ;; ============================================================================
 
-(defvar ian/wsl-p-cache 'unset
-  "Cached result of `ian/wsl-p'; `unset' until first computed.")
+;; --- Platform interface ---
+;; `ian/platform' names the platform (`wsl', `darwin', `windows' or `linux');
+;; per-purpose dispatchers below map it to concrete commands.  Callers use
+;; these instead of branching on `system-type'.  Tests inject a fake platform
+;; by let-binding `ian/platform-override'.
+
+(defvar ian/platform-override nil
+  "When non-nil, a platform symbol returned by `ian/platform' (for tests).")
+
+(defvar ian/wsl-p-cache nil
+  "Memoized WSL detection: nil when not yet computed, else `yes' or `no'.")
+
+(defun ian/platform--detect-wsl ()
+  "Return non-nil when /proc/version says this Linux is WSL."
+  (and (eq system-type 'gnu/linux)
+       (file-readable-p "/proc/version")
+       (with-temp-buffer
+         (insert-file-contents "/proc/version")
+         (goto-char (point-min))
+         (and (re-search-forward "microsoft\\|WSL" nil t) t))))
+
+(defun ian/platform ()
+  "Return the current platform: `wsl', `darwin', `windows' or `linux'.
+Computed per call; only the WSL probe of /proc/version is memoized.
+Other Unixes count as `linux'."
+  (or ian/platform-override
+      (pcase system-type
+        ('darwin 'darwin)
+        ((or 'windows-nt 'cygwin 'ms-dos) 'windows)
+        (_ (unless ian/wsl-p-cache
+             (setq ian/wsl-p-cache (if (ian/platform--detect-wsl) 'yes 'no)))
+           (if (eq ian/wsl-p-cache 'yes) 'wsl 'linux)))))
 
 (defun ian/wsl-p ()
-  "Return non-nil when running inside WSL (cached; reads /proc/version once)."
-  (when (eq ian/wsl-p-cache 'unset)
-    (setq ian/wsl-p-cache
-          (and (eq system-type 'gnu/linux)
-               (file-readable-p "/proc/version")
-               (with-temp-buffer
-                 (insert-file-contents "/proc/version")
-                 (goto-char (point-min))
-                 (and (re-search-forward "microsoft\\|WSL" nil t) t)))))
-  ian/wsl-p-cache)
+  "Return non-nil when running inside WSL."
+  (eq (ian/platform) 'wsl))
+
+(defun ian/platform-open-command (file)
+  "Return the argv that opens FILE with the desktop default app, or nil.
+nil on `windows', where `ian/open-external' uses `w32-shell-execute'."
+  (pcase (ian/platform)
+    ('darwin (list "open" file))
+    ('wsl (list "wslview" file))
+    ('linux (list "xdg-open" file))))
+
+(defun ian/open-external (file)
+  "Open FILE with the platform's default external application."
+  (if (eq (ian/platform) 'windows)
+      (w32-shell-execute "open" file)
+    (when-let* ((cmd (ian/platform-open-command file)))
+      (apply #'start-process "open-external" nil cmd))))
+
+(defun ian/platform-volume-command (action)
+  "Return the argv for volume ACTION (`up', `down' or `toggle'), or nil."
+  (pcase (cons (ian/platform) action)
+    ('(darwin . up)
+     '("osascript" "-e" "set volume output volume ((output volume of (get volume settings)) + 5)"))
+    ('(darwin . down)
+     '("osascript" "-e" "set volume output volume ((output volume of (get volume settings)) - 5)"))
+    ('(darwin . toggle)
+     '("osascript" "-e" "set volume output muted not (output muted of (get volume settings))"))
+    (`(,(or 'linux 'wsl) . up) '("amixer" "set" "Master" "2%+"))
+    (`(,(or 'linux 'wsl) . down) '("amixer" "set" "Master" "2%-"))
+    (`(,(or 'linux 'wsl) . toggle) '("amixer" "set" "Master" "toggle"))))
+
+(defun ian/platform-screenshot-command ()
+  "Return an interactive screenshot command string with a %s file slot, or nil."
+  (pcase (ian/platform)
+    ('darwin "screencapture -i %s")
+    ((or 'linux 'wsl) "scrot -s %s")))
 
 (when (ian/wsl-p)
   ;; --- Browser (use Windows browser) ---

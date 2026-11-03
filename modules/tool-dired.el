@@ -6,6 +6,8 @@
 
 ;;; Code:
 
+(declare-function ian/open-external "core-os")
+
 ;; ============================================================================
 ;; 1. DIRED (Built-in)
 ;; ============================================================================
@@ -62,11 +64,7 @@
   (defun ian/dired-open-external ()
     "Open file at point with external application."
     (interactive)
-    (let ((file (dired-get-file-for-visit)))
-      (pcase system-type
-        ('darwin (start-process "dired-open-external" nil "open" file))
-        ('gnu/linux (start-process "dired-open-external" nil "xdg-open" file))
-        ('windows-nt (w32-shell-execute "open" file))))))
+    (ian/open-external (dired-get-file-for-visit))))
 
 ;; Dired-x (extra features)
 (use-package dired-x

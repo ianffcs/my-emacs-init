@@ -224,6 +224,8 @@
   (setf (alist-get 'alejandra apheleia-formatters)
         '("alejandra" "-"))
   (setf (alist-get 'nix-mode apheleia-mode-alist)
+        '(alejandra))
+  (setf (alist-get 'nix-ts-mode apheleia-mode-alist)
         '(alejandra)))
 
 ;; ============================================================================

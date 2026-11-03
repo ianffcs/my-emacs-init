@@ -14,10 +14,10 @@
   (cond
    ((file-directory-p "~/.local/opt/tdlib-head")
     (expand-file-name "~/.local/opt/tdlib-head"))
-   ((and (eq system-type 'gnu/linux)
+   ((and (memq (ian/platform) '(linux wsl))
          (file-exists-p "/usr/include/td/telegram/td_json_client.h"))
     "/usr")
-   ((eq system-type 'darwin)
+   ((eq (ian/platform) 'darwin)
     (cond
      ((file-directory-p "/opt/homebrew/opt/tdlib")
       "/opt/homebrew/opt/tdlib")

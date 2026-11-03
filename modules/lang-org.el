@@ -399,7 +399,7 @@
   (oer-reveal-revealjs-version "4")
   (oer-reveal-plugin-4-config
    "  plugins: [ RevealMarkdown, RevealHighlight, RevealNotes, RevealSearch, RevealZoom, RevealMath.KaTeX ],")
-  (oer-reveal-master "~/.emacs.d/reveal.js")
+  (oer-reveal-master (expand-file-name "reveal.js" user-emacs-directory))
   (oer-reveal-export-dir "./public")
   (oer-reveal-single-file nil)
   (oer-reveal-slide-width 1920)
@@ -626,7 +626,7 @@ Thank you!
 
 (use-package org-roam
   :custom
-  (org-roam-directory (expand-file-name "roam" org-directory))
+  (org-roam-directory (ian/org-dir 'roam))
   (org-roam-dailies-directory "daily/")
   (org-roam-completion-everywhere t)
   (org-roam-capture-templates
@@ -692,12 +692,11 @@ Thank you!
          (dired-mode . org-download-enable))
   :custom
   (org-download-method 'directory)
-  (org-download-image-dir (expand-file-name "images" org-directory))
+  (org-download-image-dir (ian/org-dir 'images))
   (org-download-heading-lvl nil)
   (org-download-timestamp "%Y%m%d-%H%M%S_")
   (org-download-screenshot-method
-   (cond ((eq system-type 'darwin) "screencapture -i %s")
-         ((eq system-type 'gnu/linux) "scrot -s %s"))))
+   (ian/platform-screenshot-command)))
 
 ;; --- Org Cliplink (Paste links with titles) ---
 (use-package org-cliplink
@@ -717,9 +716,9 @@ Thank you!
   :after org
   :custom
   (org-ref-default-bibliography
-   (list (expand-file-name "bibliography/references.bib" org-directory)))
-  (org-ref-pdf-directory (expand-file-name "bibliography/pdfs/" org-directory))
-  (org-ref-notes-directory (expand-file-name "bibliography/notes/" org-directory)))
+   (list (expand-file-name "references.bib" (ian/org-dir 'bibliography))))
+  (org-ref-pdf-directory (file-name-as-directory (ian/org-dir 'bibliography-pdfs)))
+  (org-ref-notes-directory (file-name-as-directory (ian/org-dir 'bibliography-notes))))
 
 ;; --- Org Pomodoro (Time management) ---
 (use-package org-pomodoro
@@ -744,7 +743,7 @@ Thank you!
   :after org
   :bind (("C-c o j" . org-journal-new-entry))
   :custom
-  (org-journal-dir (expand-file-name "journal" org-directory))
+  (org-journal-dir (ian/org-dir 'journal))
   (org-journal-date-format "%Y-%m-%d (%A)")
   (org-journal-file-format "%Y%m%d.org")
   (org-journal-enable-encryption nil))
@@ -818,7 +817,7 @@ Thank you!
 ;; --- Denote (Simple note-taking alternative to Roam) ---
 (use-package denote
   :custom
-  (denote-directory (expand-file-name "notes" org-directory))
+  (denote-directory (ian/org-dir 'notes))
   (denote-known-keywords '("emacs" "project" "reference" "idea"))
   (denote-infer-keywords t)
   (denote-sort-keywords t)

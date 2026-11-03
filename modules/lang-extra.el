@@ -147,7 +147,8 @@
                '(julia-mode . ("julia" "--startup-file=no" "--history-file=no"
                                "-e" "using LanguageServer; runserver()"))))
 
-(add-hook 'dart-mode-hook #'eglot-ensure)
+(dolist (hook '(dart-mode-hook dart-ts-mode-hook))
+  (add-hook hook #'eglot-ensure))
 
 (when (executable-find "R")
   (add-hook 'ess-r-mode-hook #'eglot-ensure))

@@ -201,7 +201,8 @@
     (add-hook hook #'eglot-ensure)))
 
 (when (executable-find "lua-language-server")
-  (add-hook 'lua-mode-hook #'eglot-ensure))
+  (dolist (hook '(lua-mode-hook lua-ts-mode-hook))
+    (add-hook hook #'eglot-ensure)))
 
 (provide 'lang-misc)
 ;;; lang-misc.el ends here

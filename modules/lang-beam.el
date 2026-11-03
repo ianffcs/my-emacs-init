@@ -65,13 +65,23 @@
   :mode (("\\.erl\\'" . erlang-mode)
          ("\\.hrl\\'" . erlang-mode)
          ("\\.app\\.src\\'" . erlang-mode)
-         ("rebar\\.config\\'" . erlang-mode)
+         ("\\.escript\\'" . erlang-mode)
+         ("\\.[xy]rl\\'" . erlang-mode)
+         ("rebar\\.\\(?:config\\|lock\\)\\'" . erlang-mode)
          ("sys\\.config\\'" . erlang-mode)
          ("relup\\'" . erlang-mode)
          ("app\\.config\\'" . erlang-mode))
   :custom
   (erlang-indent-level 4)
+  :hook (erlang-mode . subword-mode)
   :config
+  (with-eval-after-load 'erlang
+    (define-key erlang-mode-map (kbd "C-c C-c c")
+                (lambda () (interactive) (compile "rebar3 compile")))
+    (define-key erlang-mode-map (kbd "C-c C-c t")
+                (lambda () (interactive) (compile "rebar3 eunit")))
+    (define-key erlang-mode-map (kbd "C-c C-c d")
+                (lambda () (interactive) (compile "rebar3 dialyzer"))))
   ;; Erlang root directory
   (when (file-directory-p "/usr/local/lib/erlang")
     (setq erlang-root-dir "/usr/local/lib/erlang")))
@@ -154,6 +164,7 @@
   ;; Elixir
   (setf (alist-get 'mix-format apheleia-formatters)
         '("mix" "format" "-"))
+  (setf (alist-get 'elixir-mode apheleia-mode-alist) '(mix-format))
   (setf (alist-get 'elixir-ts-mode apheleia-mode-alist) '(mix-format))
 
   ;; Erlang
@@ -164,7 +175,8 @@
   ;; Gleam
   (setf (alist-get 'gleam-format apheleia-formatters)
         '("gleam" "format" "--stdin"))
-  (setf (alist-get 'gleam-mode apheleia-mode-alist) '(gleam-format)))
+  (setf (alist-get 'gleam-mode apheleia-mode-alist) '(gleam-format))
+  (setf (alist-get 'gleam-ts-mode apheleia-mode-alist) '(gleam-format)))
 
 ;; ============================================================================
 ;; 9. TRANSIENT MENU
@@ -202,14 +214,17 @@
 (with-eval-after-load 'eglot
   (add-to-list 'eglot-server-programs
                '((elixir-mode elixir-ts-mode heex-ts-mode) . ("elixir-ls")))
-  (add-to-list 'eglot-server-programs '(erlang-mode . ("erlang_ls")))
+  ;; ELP is the maintained Erlang server; erlang_ls is the fallback.
+  (add-to-list 'eglot-server-programs
+               `(erlang-mode . ,(eglot-alternatives
+                                 '(("elp" "server") ("erlang_ls")))))
   (add-to-list 'eglot-server-programs
                '((gleam-mode gleam-ts-mode) . ("gleam" "lsp"))))
 
 (dolist (hook '(elixir-mode-hook elixir-ts-mode-hook))
   (add-hook hook #'eglot-ensure))
 
-(when (executable-find "erlang_ls")
+(when (or (executable-find "elp") (executable-find "erlang_ls"))
   (add-hook 'erlang-mode-hook #'eglot-ensure))
 
 (when (executable-find "gleam")

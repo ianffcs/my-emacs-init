@@ -76,19 +76,12 @@
 ;; 4. VOLUME CONTROL
 ;; ============================================================================
 
+(declare-function ian/platform-volume-command "core-os")
+
 (defun ian/volume-command (action)
   "Return the command list for volume ACTION on this platform.
 ACTION is one of `up', `down', or `toggle'."
-  (pcase (cons system-type action)
-    ('(darwin . up)
-     '("osascript" "-e" "set volume output volume ((output volume of (get volume settings)) + 5)"))
-    ('(darwin . down)
-     '("osascript" "-e" "set volume output volume ((output volume of (get volume settings)) - 5)"))
-    ('(darwin . toggle)
-     '("osascript" "-e" "set volume output muted not (output muted of (get volume settings))"))
-    ('(gnu/linux . up) '("amixer" "set" "Master" "2%+"))
-    ('(gnu/linux . down) '("amixer" "set" "Master" "2%-"))
-    ('(gnu/linux . toggle) '("amixer" "set" "Master" "toggle"))))
+  (ian/platform-volume-command action))
 
 (defun ian/volume-up ()
   "Increase system volume."

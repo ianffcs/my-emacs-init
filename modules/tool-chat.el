@@ -194,7 +194,7 @@ settings."
   ;; --- Behavior Settings ---
   (org-ai-auto-fill nil)
   (org-ai-talk-spoken-input t)
-  (org-ai-image-directory (expand-file-name "org-ai-images" org-directory))
+  (org-ai-image-directory (ian/org-dir 'ai-images))
 
   ;; --- Model Selection ---
   (org-ai-default-completion-model "gpt-4o-mini")
@@ -326,6 +326,15 @@ settings."
   (define-key org-mode-map (kbd "C-c M-t") #'ian/org-ai-translate))
 
 ;; ============================================================================
+;; SHELL-MAKER (Shared dependency for chatgpt-shell and agent-shell)
+;; ============================================================================
+
+;; Register before consumers so Straight uses the same recipe for dependencies.
+(use-package shell-maker
+  :straight (:host github :repo "xenodium/shell-maker"
+             :branch "v0.97.5"))
+
+;; ============================================================================
 ;; 10. CHATGPT-SHELL (Alternative Chat Interface)
 ;; ============================================================================
 
@@ -406,16 +415,23 @@ settings."
   (aider-args '("--model" "gpt-4o-mini")))
 
 ;; ============================================================================
-;; 15. SHELL-MAKER (Shell process abstraction for agent-shell)
-;; ============================================================================
-
-(use-package shell-maker
-  :straight (:host github :repo "xenodium/shell-maker"
-             :pin "0.97.5"))
-
-;; ============================================================================
 ;; 16. AGENT-SHELL (ACP coding agents: Claude, Codex, Kimi, Qwen)
 ;; ============================================================================
+
+(defun ian/qwen-small-router-api-key ()
+  "Read the Small Router API key from Qwen Code's local settings."
+  (let ((settings-file (expand-file-name "~/.qwen/settings.json")))
+    (unless (file-readable-p settings-file)
+      (user-error "Qwen settings file is not readable: %s" settings-file))
+    (with-temp-buffer
+      (insert-file-contents settings-file)
+      (let* ((settings (json-parse-buffer :object-type 'hash-table))
+             (environment (gethash "env" settings))
+             (api-key (and (hash-table-p environment)
+                           (gethash "SMALL_ROUTER_API_KEY" environment))))
+        (if (and (stringp api-key) (not (string-empty-p api-key)))
+            api-key
+          (user-error "SMALL_ROUTER_API_KEY is missing from Qwen settings"))))))
 
 (use-package agent-shell
   :commands (agent-shell
@@ -423,12 +439,14 @@ settings."
              agent-shell-openai-start-codex
              agent-shell-kimi-start-agent
              agent-shell-qwen-start)
-  :bind ("C-c M-g" . agent-shell)
+  :bind (("C-c M-g" . agent-shell)
+         ("C-c M-q" . agent-shell-qwen-start))
+  :custom
+  (agent-shell-qwen-acp-command '("/usr/bin/qwen" "--experimental-acp"))
   :config
-  ;; Claude and Codex resolve API keys at session start, like the other
-  ;; AI integrations.  Qwen and Kimi authenticate through their own CLIs
-  ;; (/usr/bin/qwen, /usr/bin/kimi); inherit the session environment so
-  ;; PATH, HOME, and the CLI login state are available to the agent.
+  ;; Claude and Codex resolve API keys at session start.  Qwen uses the
+  ;; OpenAI-compatible Small Router key from its local settings; Kimi uses
+  ;; its own CLI login.  Inherit PATH, HOME, and the session environment.
   (setq agent-shell-anthropic-authentication
         (agent-shell-anthropic-make-authentication
          :api-key (ian/ai-key-callback 'anthropic))
@@ -436,9 +454,13 @@ settings."
         (agent-shell-openai-make-authentication
          :api-key (ian/ai-key-callback 'openai))
         agent-shell-qwen-authentication
-        (agent-shell-qwen-make-authentication :login t)
+        (agent-shell-qwen-make-authentication
+         :openai-api-key #'ian/qwen-small-router-api-key)
         agent-shell-qwen-environment
-        (agent-shell-make-environment-variables :inherit-env t)
+        (agent-shell-make-environment-variables
+         "OPENAI_BASE_URL" "http://localhost:8081/v1"
+         "OPENAI_MODEL" "fast"
+         :inherit-env t)
         agent-shell-kimi-environment
         (agent-shell-make-environment-variables :inherit-env t)))
 

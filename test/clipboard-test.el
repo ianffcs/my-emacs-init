@@ -18,7 +18,7 @@
 (defmacro clipboard-test--env (wsl graphic env tools &rest body)
   "Run BODY with WSL, GRAPHIC, ENV (alist) and TOOLS (executables) stubbed."
   (declare (indent 4))
-  `(let ((ian/wsl-p-cache ,wsl))
+  `(let ((ian/platform-override (if ,wsl 'wsl 'linux)))
      (cl-letf (((symbol-function 'display-graphic-p) (lambda (&optional _f) ,graphic))
                ((symbol-function 'getenv)
                 (lambda (v &rest _) (cdr (assoc v ,env))))

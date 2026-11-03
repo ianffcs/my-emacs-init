@@ -41,6 +41,27 @@ Resolved at call time, so a changed `org-directory' is honoured."
       (error "Unknown Org file: %S" name))
     (expand-file-name (cdr entry) org-directory)))
 
+(defvar ian/org-dirs
+  '((roam . "roam")
+    (images . "images")
+    (journal . "journal")
+    (notes . "notes")
+    (ai-images . "org-ai-images")
+    (bibliography . "bibliography")
+    (bibliography-pdfs . "bibliography/pdfs")
+    (bibliography-notes . "bibliography/notes"))
+  "Alist mapping a symbol to an Org directory relative to `org-directory'.
+Reach these through `ian/org-dir' instead of spelling the directory names.")
+
+(defun ian/org-dir (name)
+  "Return the absolute path of the Org directory NAME under `org-directory'.
+NAME is a key of `ian/org-dirs'.  Signal an error for an unknown NAME.
+Resolved at call time, so a changed `org-directory' is honoured."
+  (let ((entry (assq name ian/org-dirs)))
+    (unless entry
+      (error "Unknown Org directory: %S" name))
+    (expand-file-name (cdr entry) org-directory)))
+
 (defun ian/org-existing-paths (paths)
   "Return the existing members of PATHS, expanded; drop the rest.
 Both files and directories count as existing.  Keeps missing paths out of

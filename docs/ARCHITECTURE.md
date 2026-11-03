@@ -43,7 +43,7 @@ flowchart LR
   end
 ```
 
-- `core-settings` establishes `org-directory` before UI, tool, and language modules load. `core-settings` also owns the named Org files (`ian/org-files`, reached via `(ian/org-file 'inbox)`) and `ian/org-existing-paths`. Consumers derive named files through `ian/org-file` and directories from the shared root; `lang-org` configures Org behavior without resetting the root or spelling file names.
+- `core-settings` establishes `org-directory` before UI, tool, and language modules load. `core-settings` also owns the named Org files (`ian/org-files`, reached via `(ian/org-file 'inbox)`) the named Org directories (`ian/org-dirs`, reached via `(ian/org-dir 'roam)`), and `ian/org-existing-paths`. Consumers derive named files through `ian/org-file` and directories from the shared root; `lang-org` configures Org behavior without resetting the root or spelling file names.
 - Timing hooks live in `core-ui` (theme sync on `after-init-hook` plus a timer) and `tool-mcp` (MCP servers on `emacs-startup-hook`).
 
 ## MCP servers
@@ -132,6 +132,10 @@ python3 test/whatsapp-runtime-test.py
 The credential test uses synthetic values and stops Minuet before any request;
 the worker check imports copies isolated from the upstream checkout. Neither
 check connects to an account or sends a message.
+
+## Platform
+
+`core-os.el` exposes `(ian/platform)` (`wsl`/`darwin`/`windows`/`linux`, injectable via `ian/platform-override`) and dispatchers `ian/open-external`, `ian/platform-volume-command`, `ian/platform-screenshot-command`; modules call these instead of branching on `system-type`.
 
 ## Clipboard
 

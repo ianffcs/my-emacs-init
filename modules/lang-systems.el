@@ -24,7 +24,14 @@
                      (c-mode . "linux")
                      (c++-mode . "stroustrup")
                      (other . "gnu")))
-  (c-basic-offset 4))
+  (c-basic-offset 4)
+  :config
+  ;; Header/source switch and quick build, shared by the classic and ts modes.
+  (with-eval-after-load 'c-ts-mode
+    (dolist (map (list c-mode-map c++-mode-map c-ts-mode-map c++-ts-mode-map))
+      (define-key map (kbd "C-c C-o") #'ff-find-other-file)
+      (define-key map (kbd "C-c C-c c") #'compile)
+      (define-key map (kbd "C-c C-c r") #'recompile))))
 
 (use-package c-ts-mode
   :straight (:type built-in)
@@ -32,7 +39,8 @@
          ("\\.h\\'" . c-ts-mode))
   :hook (c-ts-mode . subword-mode)
   :custom
-  (c-ts-mode-indent-offset 4))
+  (c-ts-mode-indent-offset 4)
+  (c-ts-mode-indent-style 'linux))
 
 (use-package c++-ts-mode
   :straight (:type built-in)
@@ -191,7 +199,10 @@
 (with-eval-after-load 'eglot
   (add-to-list 'eglot-server-programs
                '((c-mode c-ts-mode c++-mode c++-ts-mode)
-                 . ("clangd" "--background-index" "--clang-tidy")))
+                 . ("clangd" "--background-index" "--clang-tidy"
+                           "--header-insertion=iwyu"
+                           "--completion-style=detailed"
+                           "--function-arg-placeholders")))
   (add-to-list 'eglot-server-programs
                '((rust-mode rust-ts-mode) . ("rust-analyzer")))
   (add-to-list 'eglot-server-programs
@@ -203,7 +214,8 @@
   (add-hook hook #'eglot-ensure))
 
 (when (executable-find "zls")
-  (add-hook 'zig-mode-hook #'eglot-ensure))
+  (dolist (hook '(zig-mode-hook zig-ts-mode-hook))
+    (add-hook hook #'eglot-ensure)))
 
 (provide 'lang-systems)
 ;;; lang-systems.el ends here

@@ -12,6 +12,10 @@ _Avoid_: language profile, language spec, language support
 A `-ts-mode` major mode paired with its classic `-mode` counterpart. Every registration lists both explicitly.
 _Avoid_: ts variant, tree-sitter mode alias
 
+**Platform**:
+The operating environment named by `(ian/platform)` in `core-os.el`: `wsl`, `darwin`, `windows`, or `linux` (other Unixes). Computed per call; consumers use the per-purpose dispatchers (`ian/open-external`, `ian/platform-volume-command`, `ian/platform-screenshot-command`) rather than branching on `system-type`. Tests inject one via `ian/platform-override`.
+_Avoid_: OS, system type branch
+
 **Clipboard adapter**:
 The mechanism `core-os.el` uses to reach the system clipboard on the selected frame: `wsl`, `gui`, `wayland`, `x11`, or none. Chosen per call, in that priority order, behind `ian/clipboard-copy` and `ian/clipboard-paste`.
 _Avoid_: clipboard backend, clipboard provider, tty clipboard
@@ -23,6 +27,10 @@ _Avoid_: API host (as the identifier), service host, provider host
 **Org file**:
 A named file under `org-directory` (`inbox`, `todo`, `notes`, `diary`, `elfeed`), defined once in `ian/org-files` and reached via `(ian/org-file NAME)`.
 _Avoid_: hard-coded "inbox.org" paths
+
+**Org directory**:
+A named directory under `org-directory` (`roam`, `images`, `journal`, `notes`, `ai-images`, `bibliography`, `bibliography-pdfs`, `bibliography-notes`), defined once in `ian/org-dirs` and reached via `(ian/org-dir NAME)`.
+_Avoid_: `(expand-file-name "roam" org-directory)` spelled at the consumer
 
 ## Relationships
 
