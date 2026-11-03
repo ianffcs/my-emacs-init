@@ -9,6 +9,29 @@
     (should (assq service ian/ai-providers))
     (should (stringp (plist-get (alist-get service ian/ai-providers) :host)))))
 
+(ert-deftest ai-key-status-iterates-provider-table ()
+  (let (shown)
+    (cl-letf (((symbol-function 'ian/ai-key)
+               (lambda (provider &optional _noerror)
+                 (and (eq provider 'anthropic) "synthetic")))
+              ((symbol-function 'message)
+               (lambda (fmt &rest args) (setq shown (apply #'format fmt args)))))
+      (ian/ai-key-status)
+      (dolist (provider (ian/ai-provider-names))
+        (should (string-match-p (symbol-name provider) shown)))
+      (should (string-match-p "anthropic: ok" shown))
+      (should (string-match-p "google: missing" shown)))))
+
+(ert-deftest org-ai-shared-token-advice-uses-provider-query ()
+  (let ((org-ai-service 'anthropic) (org-ai-openai-api-token ""))
+    (cl-letf (((symbol-function 'ian/ai-key) (lambda (&rest _) "synthetic")))
+      (should (equal "synthetic"
+                     (ian/org-ai--get-token-with-shared-credentials
+                      (lambda (&rest _) "original") 'anthropic)))
+      (should (equal "original"
+                     (ian/org-ai--get-token-with-shared-credentials
+                      (lambda (&rest _) "original") 'bogus))))))
+
 (ert-deftest host-entry-lookup ()
   (cl-letf (((symbol-function 'ian/authinfo-secret)
              (lambda (host &optional user)

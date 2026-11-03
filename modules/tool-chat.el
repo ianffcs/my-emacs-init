@@ -6,7 +6,8 @@
 ;;; Code:
 
 (declare-function ian/ai-key "core-auth")
-(defvar ian/ai-providers)
+(declare-function ian/ai-provider-p "core-auth")
+(declare-function ian/ai-provider-names "core-auth")
 (declare-function ian/get-host "core-auth")
 (declare-function ian/ai-key-callback "core-auth")
 (declare-function ian/ollama-host "core-auth")
@@ -38,13 +39,13 @@
   "Models advertised by the NeoTek OpenAI-compatible inference endpoint.")
 
 (defun ian/ai-key-status ()
-  "Show whether OpenAI and Claude API keys are available."
+  "Show whether an API key is available for each AI provider."
   (interactive)
-  (let ((openai-ok (ian/ai-key 'openai t))
-        (claude-ok (ian/ai-key 'anthropic t)))
-    (message "AI keys -> OpenAI: %s | Claude: %s"
-             (if openai-ok "ok" "missing")
-             (if claude-ok "ok" "missing"))))
+  (message "AI keys -> %s"
+           (mapconcat (lambda (provider)
+                        (format "%s: %s" provider
+                                (if (ian/ai-key provider t) "ok" "missing")))
+                      (ian/ai-provider-names) " | ")))
 
 (defun ian/get-ollama-models (&optional host)
   "Return models advertised by Ollama at HOST.
@@ -167,10 +168,95 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
 Preserve org-ai's native lookup for other services and for explicit token
 settings."
   (let ((provider (or service org-ai-service)))
-    (if (and (assq provider ian/ai-providers)
+    (if (and (ian/ai-provider-p provider)
              (string-empty-p org-ai-openai-api-token))
         (or (ian/ai-key provider t) (funcall original service))
       (funcall original service))))
+
+;; --- org-ai block commands: one table, one generator ---
+(defun ian/org-ai--insert-chat (text &optional point-after)
+  "Insert TEXT at point; move point just after POINT-AFTER if non-nil."
+  (insert text)
+  (when point-after
+    (search-backward point-after)
+    (goto-char (match-end 0))))
+
+(defun ian/org-ai--prompt-buffer (bufname sys me body)
+  "Show BUFNAME as an org-ai chat with system SYS, user prefix ME and BODY."
+  (with-current-buffer (get-buffer-create bufname)
+    (erase-buffer)
+    (org-mode)
+    (insert "#+begin_ai :chat t\n"
+            (format "[SYS]: %s\n\n" sys)
+            (format "[ME]: %s" me)
+            body
+            "\n#+end_ai")
+    (goto-char (point-min))
+    (org-ai-complete)
+    (switch-to-buffer (current-buffer))))
+
+(defun ian/org-ai--with-region (fn)
+  "Call FN with the active region text, or message when there is none."
+  (if (use-region-p)
+      (funcall fn (buffer-substring-no-properties (region-beginning) (region-end)))
+    (message "No region selected")))
+
+(defconst ian/org-ai-commands
+  `((ian/org-ai-complete-block "C-c M-b" nil "Insert an org-ai block and start completion."
+     ,(lambda ()
+        (insert "#+begin_ai\n\n#+end_ai")
+        (forward-line -1)
+        (org-ai-complete)))
+    (ian/org-ai-chat-block "C-c M-c" nil "Insert an org-ai chat block."
+     ,(lambda ()
+        (ian/org-ai--insert-chat "#+begin_ai :chat t\n[ME]: \n#+end_ai" "[ME]: ")))
+    (ian/org-ai-code-block "C-c M-C" "sLanguage: " "Insert an org-ai block for code generation in LANG."
+     ,(lambda (lang)
+        (ian/org-ai--insert-chat
+         (format "#+begin_ai :chat t\n[SYS]: You are an expert %s programmer. Write clean, well-documented code.\n\n[ME]: \n#+end_ai" lang)
+         "[ME]: ")))
+    (ian/org-ai-summarize-buffer "C-c M-S" nil "Summarize the current buffer using org-ai."
+     ,(lambda ()
+        (ian/org-ai--prompt-buffer
+         "*org-ai-summary*"
+         "You are a summarization expert. Provide clear, concise summaries."
+         "Please summarize the following text:\n\n"
+         (buffer-substring-no-properties (point-min) (point-max)))))
+    (ian/org-ai-explain-code "C-c M-e" nil "Explain the selected code using org-ai."
+     ,(lambda ()
+        (ian/org-ai--with-region
+         (lambda (code)
+           (let ((mode (symbol-name major-mode)))
+             (ian/org-ai--prompt-buffer
+              "*org-ai-explain*" "You are a code explanation expert."
+              (format "Explain this %s code:\n\n" mode)
+              (format "```%s\n%s\n```\n" mode code)))))))
+    (ian/org-ai-improve-text "C-c M-i" nil "Improve the selected text using org-ai."
+     ,(lambda ()
+        (ian/org-ai--with-region
+         (lambda (text)
+           (ian/org-ai--prompt-buffer
+            "*org-ai-improve*"
+            "You are a professional editor. Improve clarity, grammar, and style while preserving meaning."
+            "Please improve the following text:\n\n" text)))))
+    (ian/org-ai-translate "C-c M-t" "sTranslate to language: " "Translate the selected text to TARGET-LANG using org-ai."
+     ,(lambda (target-lang)
+        (ian/org-ai--with-region
+         (lambda (text)
+           (ian/org-ai--prompt-buffer
+            "*org-ai-translate*"
+            "You are a professional translator. Translate accurately while preserving tone and meaning."
+            (format "Translate the following text to %s:\n\n" target-lang)
+            text))))))
+  "Table of (COMMAND KEY INTERACTIVE-SPEC DOC HANDLER) for org-ai block commands.")
+
+(dolist (entry ian/org-ai-commands)
+  (pcase-let ((`(,name ,_key ,spec ,doc ,handler) entry))
+    (defalias name
+      (lambda (&rest args)
+        (interactive (advice-eval-interactive-spec spec))
+        (apply handler args))
+      doc)))
 
 (use-package org-ai
   :after org
@@ -224,106 +310,9 @@ settings."
           ("researcher" . "You are a research assistant. Provide accurate, cited information.")
           ("translator" . "You are a professional translator. Translate accurately while preserving tone.")))
 
-  ;; --- Helper Functions ---
-  (defun ian/org-ai-complete-block ()
-    "Insert an org-ai block and start completion."
-    (interactive)
-    (insert "#+begin_ai\n\n#+end_ai")
-    (forward-line -1)
-    (org-ai-complete))
-
-  (defun ian/org-ai-chat-block ()
-    "Insert an org-ai chat block."
-    (interactive)
-    (insert "#+begin_ai :chat t\n[ME]: \n#+end_ai")
-    (search-backward "[ME]: ")
-    (goto-char (match-end 0)))
-
-  (defun ian/org-ai-code-block (lang)
-    "Insert an org-ai block for code generation in LANG."
-    (interactive "sLanguage: ")
-    (insert (format "#+begin_ai :chat t\n[SYS]: You are an expert %s programmer. Write clean, well-documented code.\n\n[ME]: \n#+end_ai" lang))
-    (search-backward "[ME]: ")
-    (goto-char (match-end 0)))
-
-  (defun ian/org-ai-summarize-buffer ()
-    "Summarize the current buffer using org-ai."
-    (interactive)
-    (let ((content (buffer-substring-no-properties (point-min) (point-max))))
-      (with-current-buffer (get-buffer-create "*org-ai-summary*")
-        (erase-buffer)
-        (org-mode)
-        (insert "#+begin_ai :chat t\n")
-        (insert "[SYS]: You are a summarization expert. Provide clear, concise summaries.\n\n")
-        (insert "[ME]: Please summarize the following text:\n\n")
-        (insert content)
-        (insert "\n#+end_ai")
-        (goto-char (point-min))
-        (org-ai-complete)
-        (switch-to-buffer (current-buffer)))))
-
-  (defun ian/org-ai-explain-code ()
-    "Explain the selected code using org-ai."
-    (interactive)
-    (if (use-region-p)
-        (let ((code (buffer-substring-no-properties (region-beginning) (region-end)))
-              (mode (symbol-name major-mode)))
-          (with-current-buffer (get-buffer-create "*org-ai-explain*")
-            (erase-buffer)
-            (org-mode)
-            (insert "#+begin_ai :chat t\n")
-            (insert "[SYS]: You are a code explanation expert.\n\n")
-            (insert (format "[ME]: Explain this %s code:\n\n```%s\n%s\n```\n" mode mode code))
-            (insert "#+end_ai")
-            (goto-char (point-min))
-            (org-ai-complete)
-            (switch-to-buffer (current-buffer))))
-      (message "No region selected")))
-
-  (defun ian/org-ai-improve-text ()
-    "Improve the selected text using org-ai."
-    (interactive)
-    (if (use-region-p)
-        (let ((text (buffer-substring-no-properties (region-beginning) (region-end))))
-          (with-current-buffer (get-buffer-create "*org-ai-improve*")
-            (erase-buffer)
-            (org-mode)
-            (insert "#+begin_ai :chat t\n")
-            (insert "[SYS]: You are a professional editor. Improve clarity, grammar, and style while preserving meaning.\n\n")
-            (insert "[ME]: Please improve the following text:\n\n")
-            (insert text)
-            (insert "\n#+end_ai")
-            (goto-char (point-min))
-            (org-ai-complete)
-            (switch-to-buffer (current-buffer))))
-      (message "No region selected")))
-
-  (defun ian/org-ai-translate (target-lang)
-    "Translate the selected text to TARGET-LANG using org-ai."
-    (interactive "sTranslate to language: ")
-    (if (use-region-p)
-        (let ((text (buffer-substring-no-properties (region-beginning) (region-end))))
-          (with-current-buffer (get-buffer-create "*org-ai-translate*")
-            (erase-buffer)
-            (org-mode)
-            (insert "#+begin_ai :chat t\n")
-            (insert "[SYS]: You are a professional translator. Translate accurately while preserving tone and meaning.\n\n")
-            (insert (format "[ME]: Translate the following text to %s:\n\n" target-lang))
-            (insert text)
-            (insert "\n#+end_ai")
-            (goto-char (point-min))
-            (org-ai-complete)
-            (switch-to-buffer (current-buffer))))
-      (message "No region selected")))
-
-  ;; Additional keybindings
-  (define-key org-mode-map (kbd "C-c M-b") #'ian/org-ai-complete-block)
-  (define-key org-mode-map (kbd "C-c M-c") #'ian/org-ai-chat-block)
-  (define-key org-mode-map (kbd "C-c M-C") #'ian/org-ai-code-block)
-  (define-key org-mode-map (kbd "C-c M-S") #'ian/org-ai-summarize-buffer)
-  (define-key org-mode-map (kbd "C-c M-e") #'ian/org-ai-explain-code)
-  (define-key org-mode-map (kbd "C-c M-i") #'ian/org-ai-improve-text)
-  (define-key org-mode-map (kbd "C-c M-t") #'ian/org-ai-translate))
+  ;; Commands are generated at top level from `ian/org-ai-commands'.
+  (pcase-dolist (`(,name ,key . ,_) ian/org-ai-commands)
+    (define-key org-mode-map (kbd key) name)))
 
 ;; ============================================================================
 ;; SHELL-MAKER (Shared dependency for chatgpt-shell and agent-shell)

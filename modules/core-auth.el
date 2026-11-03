@@ -59,6 +59,14 @@ Each entry is (MINUET-PROVIDER . PROVIDER); the provider's key gates it.")
   (or (alist-get provider ian/ai-providers)
       (error "Unknown AI provider: %S" provider)))
 
+(defun ian/ai-provider-p (provider)
+  "Return non-nil when PROVIDER is a symbol known to `ian/ai-providers'."
+  (and (symbolp provider) (assq provider ian/ai-providers) t))
+
+(defun ian/ai-provider-names ()
+  "Return the list of known AI provider symbols, in table order."
+  (mapcar #'car ian/ai-providers))
+
 (defun ian/ai-key (provider &optional noerror)
   "Get API key for PROVIDER from auth-source, then env var fallback.
 PROVIDER is a symbol in `ian/ai-providers'; an unknown one always signals.
@@ -98,6 +106,19 @@ Fall back to 'openai-compatible (Ollama) when no hosted key is available."
           (when (ian/ai-key (cdr entry) t)
             (throw 'found (car entry)))))
       'openai-compatible))
+
+(defun ian/authinfo-unlock ()
+  "Decrypt the first existing file in `auth-sources' so GPG prompts once.
+Do nothing when no file source exists, e.g. only Secret Service is configured."
+  (when (seq-some
+         (lambda (source)
+           (let ((path (if (stringp source) source (plist-get source :source))))
+             (and (stringp path)
+                  (not (string-prefix-p "secrets:" path))
+                  (file-exists-p (expand-file-name path)))))
+         auth-sources)
+    (auth-source-search :host "ian-unlock.invalid" :max 1)
+    t))
 
 (defun ian/get-host (name &optional noerror)
   "Get host entry NAME (a \"host:port\" string) from auth-source.

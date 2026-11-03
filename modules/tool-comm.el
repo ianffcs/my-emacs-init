@@ -79,19 +79,13 @@
   (circe-use-cycle-completion t)
   (lui-flyspell-p t)
   :config
-  ;; Keep the general Circe lookup available for existing configurations.
-  (defun ian/circe-fetch-password (&rest params)
-    "Fetch the password for an IRC network."
-    (require 'auth-source)
-    (let ((match (car (apply #'auth-source-search params))))
-      (if match
-          (auth-info-password match)
-        (error "Password not found for %S" params))))
-
   ;; Reuse the shared auth-source resolver for IRC credentials.
   (defun ian/circe-nickserv-password (server)
-    "Fetch NickServ password for SERVER."
-    (ian/circe-fetch-password :host server :user "your-nick" :require '(:secret)))
+    "Fetch NickServ password for SERVER, signaling an error when missing.
+The login is `circe-default-nick' when set, else \"your-nick\"."
+    (or (ian/authinfo-secret
+         server (or (bound-and-true-p circe-default-nick) "your-nick"))
+        (error "NickServ password not found for %s" server)))
 
   ;; Count nicks in channel
   (defun ian/circe-count-nicks ()
@@ -164,12 +158,24 @@
   "Return the loopback redirect URI."
   (format "http://localhost:%d" ian/oauth-callback-port))
 
+(defvar ian/oauth--result nil
+  "Authorization code (or (error MSG)) captured by the callback listener.")
+
+(defun ian/oauth-parse-callback-request (request)
+  "Parse the HTTP request line in REQUEST from an OAuth redirect.
+Return a plist (:code CODE :state STATE :error ERROR) with nil for absent
+parameters, or nil when REQUEST is not a GET with a query string."
+  (when (string-match "\\`GET [^ ?]*\\?\\([^ ]+\\)" request)
+    (let ((query (url-parse-query-string (match-string 1 request))))
+      (list :code (cadr (assoc "code" query))
+            :state (cadr (assoc "state" query))
+            :error (cadr (assoc "error" query))))))
+
 (defun ian/oauth--callback-filter (proc string)
   "Parse the redirect request in STRING from PROC and stash the result."
-  (when (string-match "\\`GET [^ ?]*\\?\\([^ ]+\\)" string)
-    (let* ((query (url-parse-query-string (match-string 1 string)))
-           (code (cadr (assoc "code" query)))
-           (err (cadr (assoc "error" query))))
+  (when-let* ((parsed (ian/oauth-parse-callback-request string)))
+    (let ((code (plist-get parsed :code))
+          (err (plist-get parsed :error)))
       (process-put proc :result (or code (and err (list 'error err))))
       (process-send-string
        proc
@@ -179,8 +185,12 @@
       (delete-process proc)
       (setq ian/oauth--result (process-get proc :result)))))
 
-(defvar ian/oauth--result nil
-  "Authorization code (or (error MSG)) captured by the callback listener.")
+(defun ian/oauth--wait-for-result ()
+  "Wait up to `ian/oauth-callback-timeout' seconds for `ian/oauth--result'."
+  (let ((deadline (+ (float-time) ian/oauth-callback-timeout)))
+    (while (and (null ian/oauth--result)
+                (< (float-time) deadline))
+      (accept-process-output nil 0.2))))
 
 (defun ian/oauth-request-authorization (orig auth-url client-id &optional scope
                                              state redirect-uri user-name
@@ -205,10 +215,7 @@ CODE-VERIFIER unchanged when REDIRECT-URI is not our loopback URI."
             (browse-url url)
             (message "Waiting for browser login callback on %s ..."
                      redirect-uri)
-            (let ((deadline (+ (float-time) ian/oauth-callback-timeout)))
-              (while (and (null ian/oauth--result)
-                          (< (float-time) deadline))
-                (accept-process-output nil 0.2)))
+            (ian/oauth--wait-for-result)
             (cond
              ((stringp ian/oauth--result) ian/oauth--result)
              ((consp ian/oauth--result)
@@ -292,10 +299,8 @@ The redirect URI is the 6th argument."
 
   ;; Unlock GPG key once per session when auth-source first needs it.
   (defun ian/unlock-authinfo-gpg ()
-    "Unlock .authinfo.gpg once per session by accessing auth-source."
-    (require 'auth-source)
-    (when (file-exists-p (expand-file-name ".authinfo.gpg" (getenv "HOME")))
-      (auth-source-search :host "openrouter.ai" :max 1)))
+    "Unlock the encrypted auth-source file once per session."
+    (ian/authinfo-unlock))
 
   (add-hook 'gnus-startup-hook #'ian/ensure-oauth2-plstore)
   (add-hook 'gnus-startup-hook #'ian/unlock-authinfo-gpg)

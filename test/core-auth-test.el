@@ -86,6 +86,26 @@
       (setq keys '((anthropic . "k") (openai . "k")))
       (should (eq 'openai (ian/ai-available-provider))))))
 
+(ert-deftest core-auth-provider-queries ()
+  (should (ian/ai-provider-p 'openai))
+  (should-not (ian/ai-provider-p 'bogus))
+  (should-not (ian/ai-provider-p "api.openai.com"))
+  (should (equal '(openai anthropic google) (ian/ai-provider-names))))
+
+(ert-deftest core-auth-unlock-searches-only-when-a-file-source-exists ()
+  (let ((file (make-temp-file "authinfo-"))
+        (calls 0))
+    (unwind-protect
+        (cl-letf (((symbol-function 'auth-source-search)
+                   (lambda (&rest _) (cl-incf calls) nil)))
+          (let ((auth-sources (list (list :source file) "secrets:Login")))
+            (should (ian/authinfo-unlock))
+            (should (= calls 1)))
+          (let ((auth-sources (list "/nonexistent/authinfo.gpg" "secrets:Login")))
+            (should-not (ian/authinfo-unlock))
+            (should (= calls 1))))
+      (delete-file file))))
+
 (ert-deftest core-auth-includes-keepassxc-secret-service-source ()
   (should (member "secrets:Login" auth-sources)))
 
