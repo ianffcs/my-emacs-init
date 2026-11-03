@@ -10,8 +10,10 @@
 (declare-function ian/ai-provider-names "core-auth")
 (declare-function ian/get-host "core-auth")
 (declare-function ian/ai-key-callback "core-auth")
-(declare-function ian/ollama-host "core-auth")
-(declare-function ian/ollama-host-and-port "core-auth")
+(declare-function ian/ollama-endpoint-host "core-auth")
+(declare-function ian/ollama-endpoint-port "core-auth")
+(declare-function ian/ollama-endpoint-url "core-auth")
+(defvar gptel-ollama-backend)
 (declare-function ian/ai-available-provider "core-auth")
 (require 'cl-lib)
 (require 'subr-x)
@@ -47,30 +49,58 @@
                                 (if (ian/ai-key provider t) "ok" "missing")))
                       (ian/ai-provider-names) " | ")))
 
-(defun ian/get-ollama-models (&optional host)
-  "Return models advertised by Ollama at HOST.
-HOST defaults to `ian/ollama-host'.  Return a conservative fallback when the
-server is unavailable, so configuring gptel never makes Emacs unusable."
-  (let* ((host (or host (ian/ollama-host)))
-         (url (format "http://%s/api/tags" host))
-         (response (with-temp-buffer
-                     (when (zerop (call-process "curl" nil t nil
-                                                "--noproxy" "*"
-                                                "--connect-timeout" "3"
-                                                "--max-time" "3"
-                                                "-s" url))
-                       (buffer-string))))
-         (models '()))
-    (if (not (stringp response))
-        '("mistral:latest")
-      (with-temp-buffer
-        (insert response)
-        (goto-char (point-min))
-        (while (re-search-forward "\"name\":\"\\([^\"]+\\)\"" nil t)
-          (push (match-string 1) models)))
-      (if models
-          (nreverse models)
-        '("mistral:latest")))))
+(defconst ian/ollama-default-models '("mistral:latest")
+  "Models assumed for Ollama until `ian/ollama-refresh-models' hears back.")
+
+(defun ian/ollama-parse-models (json)
+  "Return the model names in Ollama /api/tags response JSON (a string).
+Return nil when JSON is malformed or lists no models."
+  (condition-case nil
+      (let ((tags (json-parse-string json :object-type 'alist :array-type 'list)))
+        (delq nil (mapcar (lambda (model)
+                            (let ((name (alist-get 'name model)))
+                              (and (stringp name) name)))
+                          (alist-get 'models tags))))
+    (error nil)))
+
+(defun ian/ollama-fetch-models (callback)
+  "Fetch the Ollama model list without blocking; call CALLBACK with it.
+CALLBACK receives a list of names, or nil when the server is unavailable
+or lists nothing.  Never signals."
+  (require 'url)
+  (let ((url (ian/ollama-endpoint-url "/api/tags"))
+        (url-request-method "GET")
+        (url-proxy-services nil))
+    (if (not url)
+        (funcall callback nil)
+      (condition-case nil
+          (url-retrieve
+           url
+           (lambda (status)
+             (let ((models (and (not (plist-get status :error))
+                                (progn
+                                  (goto-char (point-min))
+                                  (re-search-forward "\r?\n\r?\n" nil t))
+                                (ian/ollama-parse-models
+                                 (buffer-substring (point) (point-max))))))
+               (kill-buffer (current-buffer))
+               (funcall callback models)))
+           nil t t)
+        (error (funcall callback nil))))))
+
+(defun ian/ollama-refresh-models ()
+  "Refresh gptel's Ollama backend models from the server, asynchronously.
+Keeps the current list when the server is unreachable."
+  (interactive)
+  (ian/ollama-fetch-models
+   (lambda (models)
+     (when (and models (boundp 'gptel-ollama-backend) gptel-ollama-backend)
+       (setf (gptel-backend-models gptel-ollama-backend) models)))))
+
+(defun ian/ollama--refresh-once (&rest _)
+  "Refresh Ollama models on first `gptel-menu' use, then stop."
+  (advice-remove 'gptel-menu #'ian/ollama--refresh-once)
+  (ian/ollama-refresh-models))
 
 ;; ============================================================================
 ;; 3. GPTEL (Main Chat Client)
@@ -108,9 +138,13 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
           :stream t)
         gptel-ollama-backend
         (gptel-make-ollama "Ollama"
-          :host (ian/ollama-host)
+          :host (and (ian/ollama-endpoint-host)
+                     (format "%s:%d" (ian/ollama-endpoint-host)
+                             (ian/ollama-endpoint-port)))
           :stream t
-          :models (ian/get-ollama-models)))
+          ;; Static list now; refreshed asynchronously on first gptel-menu.
+          :models ian/ollama-default-models))
+  (advice-add 'gptel-menu :before #'ian/ollama--refresh-once)
 
   ;; Provider selection stays explicit in `gptel-menu'.
   (setq gptel-backend gptel-neotek-backend
@@ -153,8 +187,8 @@ server is unavailable, so configuring gptel never makes Emacs unusable."
         (make-llm-ollama
          :chat-model ian/ollama-chat-model
          :embedding-model "nomic-embed-text"
-         :host (car (ian/ollama-host-and-port))
-         :port (cdr (ian/ollama-host-and-port))))
+         :host (ian/ollama-endpoint-host)
+         :port (ian/ollama-endpoint-port)))
 
   ;; Naming scheme for ellama sessions
   (setq ellama-naming-scheme 'ellama-generate-name-by-llm))
@@ -375,7 +409,7 @@ settings."
   (minuet-set-optional-options minuet-claude-options :max_tokens 256)
   (plist-put minuet-openai-compatible-options :name "Ollama")
   (plist-put minuet-openai-compatible-options
-             :end-point (format "http://%s/v1/chat/completions" (ian/ollama-host)))
+             :end-point (ian/ollama-endpoint-url "/v1/chat/completions"))
   (plist-put minuet-openai-compatible-options :api-key "TERM")
   (plist-put minuet-openai-compatible-options :model ian/ollama-chat-model)
   (minuet-set-optional-options minuet-openai-compatible-options :max_tokens 256)
@@ -407,21 +441,6 @@ settings."
 ;; 16. AGENT-SHELL (ACP coding agents: Claude, Codex, Kimi, Qwen)
 ;; ============================================================================
 
-(defun ian/qwen-small-router-api-key ()
-  "Read the Small Router API key from Qwen Code's local settings."
-  (let ((settings-file (expand-file-name "~/.qwen/settings.json")))
-    (unless (file-readable-p settings-file)
-      (user-error "Qwen settings file is not readable: %s" settings-file))
-    (with-temp-buffer
-      (insert-file-contents settings-file)
-      (let* ((settings (json-parse-buffer :object-type 'hash-table))
-             (environment (gethash "env" settings))
-             (api-key (and (hash-table-p environment)
-                           (gethash "SMALL_ROUTER_API_KEY" environment))))
-        (if (and (stringp api-key) (not (string-empty-p api-key)))
-            api-key
-          (user-error "SMALL_ROUTER_API_KEY is missing from Qwen settings"))))))
-
 (use-package agent-shell
   :commands (agent-shell
              agent-shell-anthropic-start-claude-code
@@ -444,7 +463,7 @@ settings."
          :api-key (ian/ai-key-callback 'openai))
         agent-shell-qwen-authentication
         (agent-shell-qwen-make-authentication
-         :openai-api-key #'ian/qwen-small-router-api-key)
+         :openai-api-key (ian/ai-key-callback 'qwen))
         agent-shell-qwen-environment
         (agent-shell-make-environment-variables
          "OPENAI_BASE_URL" "http://localhost:8081/v1"

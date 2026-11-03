@@ -123,19 +123,19 @@
 (defun ian/phoenix-server ()
   "Start Phoenix server in a compilation buffer."
   (interactive)
-  (let ((default-directory (projectile-project-root)))
+  (ian/with-project-root
     (compile "mix phx.server")))
 
 (defun ian/phoenix-routes ()
   "Show Phoenix routes."
   (interactive)
-  (let ((default-directory (projectile-project-root)))
+  (ian/with-project-root
     (compile "mix phx.routes")))
 
 (defun ian/phoenix-iex ()
   "Start IEx with Phoenix loaded."
   (interactive)
-  (let ((default-directory (projectile-project-root)))
+  (ian/with-project-root
     (run-elixir "iex -S mix phx.server")))
 
 ;; Phoenix keybindings

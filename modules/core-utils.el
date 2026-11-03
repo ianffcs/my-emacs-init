@@ -208,5 +208,27 @@
   :config
   (google-this-mode 1))
 
+;; ============================================================================
+;; 13. PROJECT ROOT (shared by every "run this from the project" command)
+;; ============================================================================
+
+(require 'project)
+
+(defun ian/project-root ()
+  "Return the root directory of the current project; never nil.
+Uses `project-root' of `project-current' (projectile is a backend, see
+tool-dev.el).  Outside any project, return `default-directory'."
+  (let ((root (when-let* ((proj (project-current nil)))
+                (project-root proj))))
+    (if (and root (file-directory-p root))
+        root
+      default-directory)))
+
+(defmacro ian/with-project-root (&rest body)
+  "Run BODY with `default-directory' bound to `ian/project-root'."
+  (declare (indent 0) (debug t))
+  `(let ((default-directory (ian/project-root)))
+     ,@body))
+
 (provide 'core-utils)
 ;;; core-utils.el ends here

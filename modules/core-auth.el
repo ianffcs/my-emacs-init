@@ -25,6 +25,7 @@
 ;; Shared credential lookup for AI providers and communication tools.
 (require 'auth-source)
 (require 'subr-x)
+(require 'json)
 
 ;; One row per AI provider.  :host is the auth-source machine name (user
 ;; "apikey"), :aliases are further hosts accepted there, :env is the
@@ -34,9 +35,15 @@
   '((openai :host "api.openai.com" :env "OPENAI_API_KEY")
     (anthropic :host "api.anthropic.com" :aliases ("api.claude.ai")
                :env "ANTHROPIC_API_KEY")
-    (google :host "generativelanguage.googleapis.com" :env "GEMINI_API_KEY"))
+    (google :host "generativelanguage.googleapis.com" :env "GEMINI_API_KEY")
+    (qwen :file "~/.qwen/settings.json" :json-path ("env" "SMALL_ROUTER_API_KEY")
+          :env "SMALL_ROUTER_API_KEY"))
   "AI provider facts, keyed by provider symbol.
-Each row is (PROVIDER :host HOST [:aliases HOSTS] :env ENV-VAR).")
+Each row is (PROVIDER SOURCE... [:env ENV-VAR]).  A hosted row has
+:host HOST [:aliases HOSTS], looked up in auth-source (user \"apikey\").
+A settings-file row has :file PATH and :json-path KEYS, the nested object
+keys leading to the key string inside a JSON settings file.  :env is the
+environment variable fallback.")
 
 (defconst ian/ai-completion-order
   '((openai . openai)
@@ -67,24 +74,44 @@ Each entry is (MINUET-PROVIDER . PROVIDER); the provider's key gates it.")
   "Return the list of known AI provider symbols, in table order."
   (mapcar #'car ian/ai-providers))
 
+(defun ian/ai-json-file-key (file json-path)
+  "Return the string at JSON-PATH (a list of keys) in JSON FILE, or nil.
+Return nil when FILE is unreadable or malformed, or the value is not a
+non-empty string."
+  (let ((file (expand-file-name file)))
+    (when (file-readable-p file)
+      (ignore-errors
+        (with-temp-buffer
+          (insert-file-contents file)
+          (let ((value (json-parse-buffer :object-type 'hash-table)))
+            (dolist (key json-path)
+              (setq value (and (hash-table-p value) (gethash key value))))
+            (and (stringp value) (not (string-empty-p value)) value)))))))
+
 (defun ian/ai-key (provider &optional noerror)
   "Get API key for PROVIDER from auth-source, then env var fallback.
 PROVIDER is a symbol in `ian/ai-providers'; an unknown one always signals.
 When NOERROR is non-nil, return nil instead of signaling a missing-key error."
   (let* ((row (ian/ai-provider--row provider))
          (host (plist-get row :host))
+         (file (plist-get row :file))
          (env-var (plist-get row :env))
-         (auth-key (catch 'found
-                     (dolist (candidate (cons host (plist-get row :aliases)))
-                       (when-let* ((secret (ian/authinfo-secret candidate)))
-                         (unless (string-empty-p secret)
-                           (throw 'found secret))))
-                     nil))
+         (auth-key (if file
+                       (ian/ai-json-file-key file (plist-get row :json-path))
+                     (catch 'found
+                       (dolist (candidate (cons host (plist-get row :aliases)))
+                         (when-let* ((secret (ian/authinfo-secret candidate)))
+                           (unless (string-empty-p secret)
+                             (throw 'found secret))))
+                       nil)))
          (env-key (and env-var (getenv env-var)))
          (key (or auth-key env-key)))
     (cond
      ((and (stringp key) (not (string-empty-p key))) key)
      (noerror nil)
+     (file
+      (error "Missing API key for %s in %s (or env var %s)"
+             provider file (or env-var "YOUR_API_KEY_ENV")))
      (t
       (error (concat "Missing API key for %s. Add one in ~/.authinfo.gpg as "
                      "\"machine %s login apikey password <KEY>\" "
@@ -148,10 +175,34 @@ for machine-specific or remote Ollama instances, for example
             (or (ignore-errors (ian/get-host "ollama" t))
                 (getenv "IAN_OLLAMA_HOST")))))
 
-(defun ian/ollama-host-and-port ()
-  "Return (HOST . PORT) parsed from `ian/ollama-host'."
-  (let ((parts (split-string (ian/ollama-host) ":")))
-    (cons (car parts) (string-to-number (cadr parts)))))
+(defconst ian/ollama-default-port 11434
+  "Port assumed when the Ollama host entry names none.")
+
+(defun ian/ollama-endpoint ()
+  "Return the Ollama endpoint as a plist (:host HOST :port PORT), or nil.
+Parsed from `ian/ollama-host'; PORT defaults to `ian/ollama-default-port'.
+This is the one place the endpoint is split; use the accessors below."
+  (when-let* ((hostport (ian/ollama-host))
+              ((not (string-empty-p hostport))))
+    (let ((parts (split-string hostport ":")))
+      (list :host (car parts)
+            :port (if (cadr parts)
+                      (string-to-number (cadr parts))
+                    ian/ollama-default-port)))))
+
+(defun ian/ollama-endpoint-host ()
+  "Return the Ollama host name without port, or nil."
+  (plist-get (ian/ollama-endpoint) :host))
+
+(defun ian/ollama-endpoint-port ()
+  "Return the Ollama port number, or nil."
+  (plist-get (ian/ollama-endpoint) :port))
+
+(defun ian/ollama-endpoint-url (&optional path)
+  "Return the Ollama base URL (\"http://host:port\") plus PATH, or nil."
+  (when-let* ((endpoint (ian/ollama-endpoint)))
+    (format "http://%s:%d%s" (plist-get endpoint :host)
+            (plist-get endpoint :port) (or path ""))))
 
 
 ;; ============================================================================

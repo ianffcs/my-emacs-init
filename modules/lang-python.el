@@ -322,9 +322,9 @@
      ("r r" "Run Python" run-python)
      ("r s" "Send buffer/region" ian/python-send-buffer-or-region)])
 
+  ;; python.el provides only `python' and defines both mode maps.
   (with-eval-after-load 'python
-    (define-key python-mode-map (kbd "C-c C-m") #'ian/python-menu))
-  (with-eval-after-load 'python-ts-mode
+    (define-key python-mode-map (kbd "C-c C-m") #'ian/python-menu)
     (define-key python-ts-mode-map (kbd "C-c C-m") #'ian/python-menu)))
 
 ;; ============================================================================
@@ -334,7 +334,12 @@
 (with-eval-after-load 'eglot
   (add-to-list 'eglot-server-programs
                '((python-mode python-ts-mode)
-                 . ("pyright-langserver" "--stdio"))))
+                 . ("pyright-langserver" "--stdio")))
+  (ian/eglot-add-workspace-config
+   :python.analysis '(:autoSearchPaths t
+                      :useLibraryCodeForTypes t
+                      :diagnosticMode "workspace"
+                      :typeCheckingMode "basic")))
 
 (dolist (hook '(python-mode-hook python-ts-mode-hook))
   (add-hook hook #'eglot-ensure))

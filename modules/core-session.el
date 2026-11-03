@@ -58,7 +58,7 @@
 (use-package alert
   :commands alert
   :custom
-  (alert-default-style (if (eq system-type 'darwin)
+  (alert-default-style (if (eq (ian/platform) 'darwin)
                            'osx-notifier
                          'libnotify))
   (alert-log-messages t)

@@ -12,6 +12,7 @@
 (require 'ert)
 
 (load (expand-file-name "test-helper" (file-name-directory (or load-file-name buffer-file-name))) nil t)
+(test-helper-load-module 'core-os t)
 (test-helper-load-module 'core-ui t)
 
 (defun ui-theme-test--capture (hour graphic-p)

@@ -66,7 +66,6 @@
                  (cl-incf lookups)
                  (or (cdr (assq provider keys))
                      (unless noerror (error "Missing synthetic key")))))
-              ((symbol-function 'ian/get-ollama-models) (lambda (&rest _) '("test")))
               (ian/ollama-host--value "ollama.test:11434"))
       (require 'gptel)
       (require 'minuet)

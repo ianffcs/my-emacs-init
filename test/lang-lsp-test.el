@@ -34,6 +34,8 @@
   (cl-letf (((symbol-function 'executable-find) (lambda (cmd &rest _)
                                                    ;; agda-mode is run, not just probed
                                                    (unless (equal cmd "agda-mode") "/stub"))))
+   ;; tool-dev loads before lang-* and owns `ian/eglot-add-workspace-config'.
+   (load (expand-file-name "modules/tool-dev.el" test-helper-root) nil t)
    (dolist (file (directory-files (expand-file-name "modules" test-helper-root)
                                  t "\\`lang-.*\\.el\\'"))
     (load file nil t))

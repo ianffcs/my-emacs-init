@@ -11,54 +11,59 @@
 ;; 2. AUDIO DEVICE DETECTION (macOS - for Whisper/Speech)
 ;; ============================================================================
 
-(when (eq system-type 'darwin)
-  (defun ian/get-ffmpeg-device ()
-    "Get the list of devices available to ffmpeg on macOS.
+(defun ian/parse-ffmpeg-devices (output)
+  "Parse ffmpeg avfoundation `-list_devices' OUTPUT (a string).
 Returns two lists: (video-devices audio-devices).
 Each list contains cons cells of (device-number . device-name)."
-    (let ((lines (string-split
-                  (shell-command-to-string
-                   "ffmpeg -list_devices true -f avfoundation -i dummy 2>&1 || true")
-                  "\n")))
-      (cl-loop with at-video-devices = nil
-               with at-audio-devices = nil
-               with video-devices = nil
-               with audio-devices = nil
-               for line in lines
-               when (string-match "AVFoundation video devices:" line)
-               do (setq at-video-devices t at-audio-devices nil)
-               when (string-match "AVFoundation audio devices:" line)
-               do (setq at-audio-devices t at-video-devices nil)
-               when (and at-video-devices
-                         (string-match "\\[\\([0-9]+\\)\\] \\(.+\\)" line))
-               do (push (cons (string-to-number (match-string 1 line))
-                              (match-string 2 line))
-                        video-devices)
-               when (and at-audio-devices
-                         (string-match "\\[\\([0-9]+\\)\\] \\(.+\\)" line))
-               do (push (cons (string-to-number (match-string 1 line))
-                              (match-string 2 line))
-                        audio-devices)
-               finally return (list (nreverse video-devices)
-                                    (nreverse audio-devices)))))
+  (cl-loop with at-video-devices = nil
+           with at-audio-devices = nil
+           with video-devices = nil
+           with audio-devices = nil
+           for line in (string-split output "\n")
+           when (string-match "AVFoundation video devices:" line)
+           do (setq at-video-devices t at-audio-devices nil)
+           when (string-match "AVFoundation audio devices:" line)
+           do (setq at-audio-devices t at-video-devices nil)
+           when (and at-video-devices
+                     (string-match "\\[\\([0-9]+\\)\\] \\(.+\\)" line))
+           do (push (cons (string-to-number (match-string 1 line))
+                          (match-string 2 line))
+                    video-devices)
+           when (and at-audio-devices
+                     (string-match "\\[\\([0-9]+\\)\\] \\(.+\\)" line))
+           do (push (cons (string-to-number (match-string 1 line))
+                          (match-string 2 line))
+                    audio-devices)
+           finally return (list (nreverse video-devices)
+                                (nreverse audio-devices))))
 
-  (defun ian/find-device-matching (string type)
-    "Find device matching STRING of TYPE (:video or :audio)."
-    (let* ((devices (ian/get-ffmpeg-device))
-           (device-list (if (eq type :video) (car devices) (cadr devices))))
-      (cl-loop for device in device-list
-               when (string-match-p string (cdr device))
-               return (car device))))
+(defun ian/get-ffmpeg-device ()
+  "Get the list of devices available to ffmpeg on macOS.
+Returns two lists: (video-devices audio-devices); see
+`ian/parse-ffmpeg-devices'."
+  (ian/parse-ffmpeg-devices
+   (shell-command-to-string
+    "ffmpeg -list_devices true -f avfoundation -i dummy 2>&1 || true")))
 
-  (defcustom ian/default-audio-device nil
-    "The default audio device to use for whisper and audio processes."
-    :type 'integer
-    :group 'ian)
+(defun ian/find-device-matching (string type)
+  "Find device matching STRING of TYPE (:video or :audio)."
+  (let* ((devices (ian/get-ffmpeg-device))
+         (device-list (if (eq type :video) (car devices) (cadr devices))))
+    (cl-loop for device in device-list
+             when (string-match-p string (cdr device))
+             return (car device))))
 
-  (defun ian/select-default-audio-device (&optional device-name)
-    "Interactively select an audio device for whisper.
+(defcustom ian/default-audio-device nil
+  "The default audio device to use for whisper and audio processes."
+  :type '(choice (const nil) integer)
+  :group 'ian)
+
+(defun ian/select-default-audio-device (&optional device-name)
+  "Interactively select an audio device for whisper (macOS only).
 If DEVICE-NAME is provided, use it instead of prompting."
-    (interactive)
+  (interactive)
+  (if (not (eq (ian/platform) 'darwin))
+      (message "Audio device selection is only supported on macOS")
     (let* ((audio-devices (cadr (ian/get-ffmpeg-device)))
            (names (mapcar #'cdr audio-devices))
            (name (or device-name (completing-read "Select audio device: " names nil t))))
@@ -89,11 +94,10 @@ If DEVICE-NAME is provided, use it instead of prompting."
 
   :config
   ;; macOS-specific audio device setup — deferred to avoid blocking ffmpeg call on org-mode open
-  (when (eq system-type 'darwin)
+  (when (eq (ian/platform) 'darwin)
     (run-with-idle-timer 3 nil
       (lambda ()
-        (when (fboundp 'ian/select-default-audio-device)
-          (ian/select-default-audio-device "MacBook Pro Microphone")))))
+        (ian/select-default-audio-device "MacBook Pro Microphone"))))
 
   ;; List available macOS voices
   (defun ian/list-macos-voices ()
@@ -139,8 +143,8 @@ If DEVICE-NAME is provided, use it instead of prompting."
   (whisper-insert-text-at-point t)
   :config
   ;; macOS audio device setup
-  (when (eq system-type 'darwin)
-    (when (and (boundp 'ian/default-audio-device) ian/default-audio-device)
+  (when (eq (ian/platform) 'darwin)
+    (when ian/default-audio-device
       (setq whisper--ffmpeg-input-device
             (format ":%s" ian/default-audio-device))))
 
@@ -167,7 +171,7 @@ If DEVICE-NAME is provided, use it instead of prompting."
   (greader-espeak-rate 200)
   :config
   ;; Use macOS 'say' command if available
-  (when (eq system-type 'darwin)
+  (when (eq (ian/platform) 'darwin)
     (setq greader-tts-engine 'greader-say)))
 
 ;; ============================================================================

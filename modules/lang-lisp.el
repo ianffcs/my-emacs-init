@@ -450,9 +450,7 @@
   "Run the deftest at point via `basilisp test -k'."
   (interactive)
   (let* ((lpy-name (ian/basilisp--test-name-at-point))
-         (default-directory (or (and (fboundp 'projectile-project-root)
-                                     (projectile-project-root))
-                                default-directory))
+         (default-directory (ian/project-root))
          (cmd (if lpy-name
                   (format "basilisp test -k %s"
                           (shell-quote-argument
@@ -464,17 +462,13 @@
   "Run all tests in the current `.lpy' file."
   (interactive)
   (let* ((file (buffer-file-name))
-         (default-directory (or (and (fboundp 'projectile-project-root)
-                                     (projectile-project-root))
-                                default-directory)))
+         (default-directory (ian/project-root)))
     (compile (format "basilisp test %s" (shell-quote-argument file)))))
 
 (defun ian/basilisp-run-all-tests ()
   "Run the full Basilisp test suite."
   (interactive)
-  (let ((default-directory (or (and (fboundp 'projectile-project-root)
-                                    (projectile-project-root))
-                               default-directory)))
+  (ian/with-project-root
     (compile "basilisp test")))
 
 (defun ian/basilisp-setup ()
@@ -556,11 +550,20 @@
                             ("d" "Eval defun" eval-defun)
                             ("B" "Eval buffer" eval-buffer)])
 
-  (dolist (map '(clojure-ts-mode-map
-                 emacs-lisp-mode-map
-                 lisp-mode-map))
-    (when (boundp map)
-      (define-key (symbol-value map) (kbd "C-c L") #'ian/lisp-menu))))
+  ;; C-c L, not C-c C-m: C-c RET is `emacs-lisp-macroexpand' and the
+  ;; clj-refactor prefix, so the shared mode-menu key would shadow them.
+  (with-eval-after-load 'clojure-ts-mode
+    (define-key clojure-ts-mode-map (kbd "C-c L") #'ian/lisp-menu))
+  (with-eval-after-load 'clojure-mode
+    (define-key clojure-mode-map (kbd "C-c L") #'ian/lisp-menu))
+  (with-eval-after-load 'elisp-mode
+    (define-key emacs-lisp-mode-map (kbd "C-c L") #'ian/lisp-menu))
+  (with-eval-after-load 'lisp-mode
+    (define-key lisp-mode-map (kbd "C-c L") #'ian/lisp-menu))
+  (with-eval-after-load 'scheme
+    (define-key scheme-mode-map (kbd "C-c L") #'ian/lisp-menu))
+  (with-eval-after-load 'racket-mode
+    (define-key racket-mode-map (kbd "C-c L") #'ian/lisp-menu)))
 
 ;; ============================================================================
 ;; LSP (Eglot)
@@ -574,6 +577,12 @@
                  . ("clojure-lsp")))
   (add-to-list 'eglot-server-programs
                '(racket-mode . ("racket" "-l" "racket-langserver"))))
+
+(with-eval-after-load 'eglot
+  (ian/eglot-add-workspace-config
+   :clojure-lsp '(:lens (:enable t)
+                        :semantic-tokens (:enable t)
+                        :source-paths ["src" "test" "dev"])))
 
 (defun ian/eglot-ensure-clojure ()
   "Start Clojure Eglot only inside a concrete Clojure project."

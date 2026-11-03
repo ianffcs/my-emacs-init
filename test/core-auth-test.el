@@ -90,7 +90,7 @@
   (should (ian/ai-provider-p 'openai))
   (should-not (ian/ai-provider-p 'bogus))
   (should-not (ian/ai-provider-p "api.openai.com"))
-  (should (equal '(openai anthropic google) (ian/ai-provider-names))))
+  (should (equal '(openai anthropic google qwen) (ian/ai-provider-names))))
 
 (ert-deftest core-auth-unlock-searches-only-when-a-file-source-exists ()
   (let ((file (make-temp-file "authinfo-"))
@@ -108,6 +108,44 @@
 
 (ert-deftest core-auth-includes-keepassxc-secret-service-source ()
   (should (member "secrets:Login" auth-sources)))
+
+(ert-deftest core-auth-ollama-endpoint-accessors ()
+  (let ((ian/ollama-host--value "ollama.test:1234"))
+    (should (equal "ollama.test" (ian/ollama-endpoint-host)))
+    (should (= 1234 (ian/ollama-endpoint-port)))
+    (should (equal "http://ollama.test:1234" (ian/ollama-endpoint-url)))
+    (should (equal "http://ollama.test:1234/api/tags"
+                   (ian/ollama-endpoint-url "/api/tags"))))
+  (let ((ian/ollama-host--value "ollama.test"))
+    (should (= 11434 (ian/ollama-endpoint-port)))
+    (should (equal "http://ollama.test:11434" (ian/ollama-endpoint-url)))))
+
+(ert-deftest core-auth-ollama-endpoint-unconfigured ()
+  (let ((ian/ollama-host--value "") (process-environment process-environment))
+    (should-not (ian/ollama-endpoint))
+    (should-not (ian/ollama-endpoint-url "/x"))))
+
+(ert-deftest core-auth-qwen-key-from-settings-file ()
+  (let ((file (make-temp-file "qwen-settings-" nil ".json"))
+        (process-environment (copy-sequence process-environment)))
+    (setenv "SMALL_ROUTER_API_KEY" nil)
+    (unwind-protect
+        (let ((ian/ai-providers
+               `((qwen :file ,file :json-path ("env" "SMALL_ROUTER_API_KEY")
+                       :env "SMALL_ROUTER_API_KEY"))))
+          (should-error (ian/ai-key 'qwen))
+          (should-not (ian/ai-key 'qwen t))
+          (with-temp-file file
+            (insert "{\"env\": {\"SMALL_ROUTER_API_KEY\": \"file-secret\"}}"))
+          (should (equal "file-secret" (ian/ai-key 'qwen)))
+          (should (equal "file-secret" (funcall (ian/ai-key-callback 'qwen))))
+          (with-temp-file file (insert "{\"env\": {\"SMALL_ROUTER_API_KEY\": \"\"}}"))
+          (should-not (ian/ai-key 'qwen t))
+          (with-temp-file file (insert "not json"))
+          (should-not (ian/ai-key 'qwen t))
+          (setenv "SMALL_ROUTER_API_KEY" "env-secret")
+          (should (equal "env-secret" (ian/ai-key 'qwen))))
+      (delete-file file))))
 
 (provide 'core-auth-test)
 ;;; core-auth-test.el ends here

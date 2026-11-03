@@ -30,10 +30,10 @@
 
 ;; Use eglot for Dart (consistent with the rest of this config).
 ;; lsp-dart pulled in lsp-mode which conflicts with eglot.
-(with-eval-after-load 'dart-mode
+(with-eval-after-load 'eglot
   (when (getenv "FLUTTER_HOME")
-    (setq-default eglot-workspace-configuration
-                  `(:dart (:flutterSdkPath ,(getenv "FLUTTER_HOME"))))))
+    (ian/eglot-add-workspace-config
+     :dart `(:flutterSdkPath ,(getenv "FLUTTER_HOME")))))
 
 (use-package flutter
   :after dart-mode

@@ -12,6 +12,10 @@ _Avoid_: language profile, language spec, language support
 A `-ts-mode` major mode paired with its classic `-mode` counterpart. Every registration lists both explicitly.
 _Avoid_: ts variant, tree-sitter mode alias
 
+**Project root**:
+The directory `(ian/project-root)` in `core-utils.el` returns for the current buffer: `project-root` of `(project-current)` (projectile is a project.el backend, see `tool-dev.el`), else `default-directory`. Never nil. Commands that run something from the project use `ian/with-project-root` instead of calling `projectile-project-root`.
+_Avoid_: calling `projectile-project-root` directly, `(or ... default-directory)` fallbacks
+
 **Platform**:
 The operating environment named by `(ian/platform)` in `core-os.el`: `wsl`, `darwin`, `windows`, or `linux` (other Unixes). Computed per call; consumers use the per-purpose dispatchers (`ian/open-external`, `ian/platform-volume-command`, `ian/platform-screenshot-command`) rather than branching on `system-type`. Tests inject one via `ian/platform-override`.
 _Avoid_: OS, system type branch
@@ -21,7 +25,7 @@ The mechanism `core-os.el` uses to reach the system clipboard on the selected fr
 _Avoid_: clipboard backend, clipboard provider, tty clipboard
 
 **AI provider**:
-A hosted AI service (`openai`, `anthropic`, `google`) identified by a symbol and defined once as a row in `ian/ai-providers` (auth-source host, aliases, env var). Callers pass the symbol, e.g. `(ian/ai-key 'anthropic)`.
+An AI service (`openai`, `anthropic`, `google`, `qwen`) identified by a symbol and defined once as a row in `ian/ai-providers`. A row names its key source: an auth-source host with aliases, or (`qwen`) a JSON settings file plus key path; either may have an env var fallback. Callers pass the symbol, e.g. `(ian/ai-key 'anthropic)`; `ian/ai-key-status` reports every row. The local Ollama server is not a provider: its endpoint is `ian/ollama-endpoint` (`-host`, `-port`, `-url`).
 _Avoid_: API host (as the identifier), service host, provider host
 
 **Org file**:
@@ -36,6 +40,7 @@ _Avoid_: `(expand-file-name "roam" org-directory)` spelled at the consumer
 
 - A **Language toolchain** has one or more **Mode twins**; its LSP server and formatter are optional.
 - A **Language toolchain** is registered in exactly one `lang-*` module, never in `tool-dev.el`.
+- Eglot workspace settings live with the **Language toolchain** that owns the server: each `lang-*` module calls `ian/eglot-add-workspace-config` (defined in `tool-dev.el`, merge-only) from a top-level `with-eval-after-load 'eglot` form. Nothing may `setq` `eglot-workspace-configuration` wholesale.
 
 ## Flagged ambiguities
 

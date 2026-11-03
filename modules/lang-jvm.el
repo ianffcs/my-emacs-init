@@ -129,19 +129,19 @@
 (defun ian/android-build ()
   "Build Android project."
   (interactive)
-  (let ((default-directory (projectile-project-root)))
+  (ian/with-project-root
     (compile "./gradlew assembleDebug")))
 
 (defun ian/android-install ()
   "Install Android app on connected device."
   (interactive)
-  (let ((default-directory (projectile-project-root)))
+  (ian/with-project-root
     (compile "./gradlew installDebug")))
 
 (defun ian/android-run ()
   "Build and run Android app."
   (interactive)
-  (let ((default-directory (projectile-project-root)))
+  (ian/with-project-root
     (compile "./gradlew installDebug && adb shell am start -n $(./gradlew -q :app:printDebugApplicationId)/$(./gradlew -q :app:printDebugMainActivity)")))
 
 ;; ============================================================================
@@ -192,12 +192,19 @@
                             ("a i" "Install" ian/android-install)
                             ("a r" "Run" ian/android-run)])
 
-  (with-eval-after-load 'java-mode
+  ;; java-mode-map lives in cc-mode (no `java-mode' feature exists).
+  (with-eval-after-load 'cc-mode
     (define-key java-mode-map (kbd "C-c C-m") #'ian/jvm-menu))
+  (with-eval-after-load 'java-ts-mode
+    (define-key java-ts-mode-map (kbd "C-c C-m") #'ian/jvm-menu))
   (with-eval-after-load 'kotlin-mode
     (define-key kotlin-mode-map (kbd "C-c C-m") #'ian/jvm-menu))
+  (with-eval-after-load 'kotlin-ts-mode
+    (define-key kotlin-ts-mode-map (kbd "C-c C-m") #'ian/jvm-menu))
   (with-eval-after-load 'scala-mode
-    (define-key scala-mode-map (kbd "C-c C-m") #'ian/jvm-menu)))
+    (define-key scala-mode-map (kbd "C-c C-m") #'ian/jvm-menu))
+  (with-eval-after-load 'scala-ts-mode
+    (define-key scala-ts-mode-map (kbd "C-c C-m") #'ian/jvm-menu)))
 
 ;; ============================================================================
 ;; LSP (Eglot)

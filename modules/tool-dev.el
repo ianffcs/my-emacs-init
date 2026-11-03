@@ -119,9 +119,11 @@
 
 ;; Helper function for workspace configuration
 (defun ian/eglot-add-workspace-config (key value)
-  "Add KEY with VALUE to eglot-workspace-configuration."
+  "Merge KEY with VALUE into the default `eglot-workspace-configuration'.
+Other keys already present are kept; only KEY is set.  Each Language
+toolchain calls this from its own lang-* module."
   (setq-default eglot-workspace-configuration
-                (plist-put (default-value 'eglot-workspace-configuration)
+                (plist-put (copy-tree (default-value 'eglot-workspace-configuration))
                            key value)))
 
 (use-package eglot
@@ -147,26 +149,7 @@
         eglot-report-progress nil
         eglot-events-buffer-size 0
         eglot-sync-connect nil
-        eldoc-echo-area-use-multiline-p nil)
-
-  (when (fboundp 'ian/eglot-add-workspace-config)
-    (ian/eglot-add-workspace-config
-     :clojure-lsp '(:lens (:enable t)
-                          :semantic-tokens (:enable t)
-                          :source-paths ["src" "test" "dev"]))
-    (ian/eglot-add-workspace-config
-     :rust-analyzer '(:check (:command "clippy")
-                      :cargo (:buildScripts (:enable t))
-                      :procMacro (:enable t)))
-    (ian/eglot-add-workspace-config
-     :gopls '(:staticcheck t
-            :usePlaceholders t
-            :completeUnimported t))
-    (ian/eglot-add-workspace-config
-     :python.analysis '(:autoSearchPaths t
-                        :useLibraryCodeForTypes t
-                        :diagnosticMode "workspace"
-                        :typeCheckingMode "basic"))))
+        eldoc-echo-area-use-multiline-p nil))
 
 ;; Cape + Eglot: merge eglot's capf with cape sources so file/dabbrev
 ;; completion still works in LSP buffers (eglot otherwise replaces all capfs).

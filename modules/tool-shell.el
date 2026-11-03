@@ -135,8 +135,8 @@
   (defun ian/vterm-project ()
     "Open vterm in project root."
     (interactive)
-    (let ((default-directory (or (projectile-project-root) default-directory)))
-      (vterm (format "*vterm[%s]*" (projectile-project-name)))))
+    (ian/with-project-root
+      (vterm(format "*vterm[%s]*" (projectile-project-name)))))
 
   ;; Named vterm
   (defun ian/vterm-named (name)
@@ -211,7 +211,7 @@
 (defun ian/eshell-project ()
   "Open eshell in project root."
   (interactive)
-  (let ((default-directory (or (projectile-project-root) default-directory)))
+  (ian/with-project-root
     (eshell 'new)))
 
 (defun ian/term-send-raw-meta ()

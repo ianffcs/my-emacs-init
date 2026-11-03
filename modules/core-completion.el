@@ -179,13 +179,7 @@
 
   ;; Use Projectile for project root
   (setq consult-project-function
-        (lambda (_)
-          (cond
-           ((fboundp 'projectile-project-root) (projectile-project-root))
-           ((fboundp 'project-root)
-            (when-let* ((p (project-current nil)))
-              (project-root p)))
-           (t default-directory)))))
+        (lambda (_) (ian/project-root))))
 
 ;; Consult + Flycheck
 (use-package consult-flycheck
@@ -291,7 +285,7 @@
 (use-package kind-icon
   :after corfu
   :custom
-  (kind-icon-use-icons (ian/icons-displayable-p))
+  ;; `kind-icon-use-icons' is set per frame by `ian/apply-icon-settings' (core-ui).
   (kind-icon-default-face 'corfu-default)
   (kind-icon-blend-background nil)
   (kind-icon-blend-frac 0.08)

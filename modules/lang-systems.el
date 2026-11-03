@@ -189,6 +189,8 @@
     (define-key rust-mode-map (kbd "C-c C-m") #'ian/systems-menu))
   (with-eval-after-load 'rust-ts-mode
     (define-key rust-ts-mode-map (kbd "C-c C-m") #'ian/systems-menu))
+  (with-eval-after-load 'go-mode
+    (define-key go-mode-map (kbd "C-c C-m") #'ian/systems-menu))
   (with-eval-after-load 'go-ts-mode
     (define-key go-ts-mode-map (kbd "C-c C-m") #'ian/systems-menu)))
 
@@ -208,6 +210,16 @@
   (add-to-list 'eglot-server-programs
                '((go-mode go-ts-mode) . ("gopls")))
   (add-to-list 'eglot-server-programs '(zig-mode . ("zls"))))
+
+(with-eval-after-load 'eglot
+  (ian/eglot-add-workspace-config
+   :rust-analyzer '(:check (:command "clippy")
+                    :cargo (:buildScripts (:enable t))
+                    :procMacro (:enable t)))
+  (ian/eglot-add-workspace-config
+   :gopls '(:staticcheck t
+            :usePlaceholders t
+            :completeUnimported t)))
 
 (dolist (hook '(c-mode-hook c-ts-mode-hook c++-mode-hook c++-ts-mode-hook
                 rust-mode-hook rust-ts-mode-hook go-mode-hook go-ts-mode-hook))

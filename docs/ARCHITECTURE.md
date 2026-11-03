@@ -50,13 +50,24 @@ flowchart LR
 
 `tool-mcp` owns one data table, `ian/mcp-servers`, describing the local MCP
 servers (filesystem, duckduckgo, fetch, mcp-shell-server, plus a Clojure
-server registered lazily per CIDER connection). Converters translate it into
-each consumer's format: `ian/mcp-hub-server-defs` feeds `mcp-hub-servers`
-(used by org-mcp and by gptel as tools via `gptel-mcp-connect`), and
-`ian/mcp-agent-shell-server-defs` feeds `agent-shell-mcp-servers` (set when
-agent-shell loads). Servers are only started on demand — `gptel-mcp-connect`
-or `mcp-hub-start-all-server` interactively, or when an agent-shell session
-is created. Adding or changing a server means editing the table only.
+row added lazily per CIDER connection). Both consumers are derived from it
+through one per-server normaliser, `ian/mcp-normalize-server` (resolved
+command, args, env split on the first `=` only, roots):
+`ian/mcp-hub-server-defs` feeds `mcp-hub-servers` (used by org-mcp and by
+gptel as tools via `gptel-mcp-connect`), and `ian/mcp-agent-shell-server-defs`
+feeds `agent-shell-mcp-servers` (set when agent-shell loads). Both lists
+contain the same servers. mcp-hub receives `:roots` as a key; ACP has no
+roots field, so agent-shell receives the same roots appended to the
+server's args (how the filesystem server takes directories). Roots come
+from `mcp-filesystem-server-project-root` (read only in
+`ian/mcp-filesystem-roots`) or `/tmp`.
+
+Runtime changes go through `ian/mcp-set-server`, which adds or replaces a
+table row and re-derives both consumer lists; the CIDER hook uses it, so a
+reconnect on a new port updates the row. Servers are only started on
+demand: `gptel-mcp-connect` or `mcp-hub-start-all-server` interactively, or
+when an agent-shell session is created. Adding or changing a server means
+editing the table only. Tests: `test/mcp-servers-test.el`.
 
 ## Language toolchains
 
